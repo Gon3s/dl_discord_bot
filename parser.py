@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.expected_conditions import presence_of_element_located
 from selenium.webdriver.support.wait import WebDriverWait
 from seleniumbase import Driver, SB
-
+from seleniumbase.fixtures.page_actions import is_element_enabled
 
 XPATH_LINK = '//*[@id="protected-container"]/div[2]/div/ul/li/a'
 SELECT_PROVIDER = '1fichier'
@@ -43,35 +43,44 @@ class Parser:
         :return:
         """
         
-        with SB(uc=True) as sb:
+        with SB(uc=True, headless=True) as sb:
             self.log(f"Goto {url}")
-            sb.driver.get(url)
-            sb.sleep(1)
+            sb.get(url)
+            sb.sleep(5)
             
-            if not sb.is_element_enabled('subButton'):
-                sb.get_new_driver(undetectable=True)
-                sb.driver.get(url)
-                sb.sleep(1)
-                
-            if not sb.is_element_enabled('subButton'):
-                if sb.is_element_visible('iframe[src*="challenge"]'):
-                    with sb.frame_switch('iframe[src*="challenge"]'):
-                        sb.click("span.mark")
-                        sb.sleep(2)
-                        
-            sb.activate_demo_mode()
+            # try:
+            #     if not sb.is_element_enabled('subButton'):
+            #         self.log(f"Try new driver")
+            #         sb.get_new_driver(undetectable=True)
+            #         sb.driver.get(url)
+            #         sb.sleep(5)
+            #
+            #     if not sb.is_element_enabled('subButton'):
+            #         self.log(f"Try to find iframe")
+            #         if sb.is_element_visible('iframe[src*="challenge"]'):
+            #             with sb.frame_switch('iframe[src*="challenge"]'):
+            #                 sb.click("span.mark")
+            #                 sb.sleep(2)
+            # except Exception:
+            #     self.ctx.send(f'Error: No link found')
+            #     sb.driver.save_screenshot('screen.png')
+            #     return None
+            #
+            # sb.activate_demo_mode()
             
             self.log(f"Clic on subButton")
-            element = sb.driver.find_element(By.ID, "subButton")
-            sb.driver.execute_script("arguments[0].click();", element)
+            element = sb.find_element(By.ID, "subButton")
+            sb.execute_script("arguments[0].click();", element)
             
             self.log("Try to find link")
-            link = sb.driver.find_element(By.XPATH, XPATH_LINK)
+            link = sb.find_element(By.XPATH, XPATH_LINK)
             if link:
                 href = link.get_attribute('href')
                 self.log(f"Find link {href}")
+                sb.driver.close()
                 return href
             else:
+                sb.driver.close()
                 self.log(f"Error no link found")
     
     def download_all_series(self, url):
@@ -112,7 +121,6 @@ class Parser:
 
                 if dl_protect_link:
                     urls.append(dl_protect_link)
-                return urls
         return urls
 
 
