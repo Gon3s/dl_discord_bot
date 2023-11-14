@@ -8,5 +8,7 @@ env/
 venv/
 
 *.log
+*.txt
 
 __pycache__/
+/downloaded_files/
