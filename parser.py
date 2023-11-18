@@ -45,28 +45,22 @@ class Parser:
         
         with SB(uc=True, headless=True) as sb:
             self.log(f"Goto {url}")
-            sb.get(url)
+            sb.driver.get(url)
             sb.sleep(5)
             
-            # try:
-            #     if not sb.is_element_enabled('subButton'):
-            #         self.log(f"Try new driver")
-            #         sb.get_new_driver(undetectable=True)
-            #         sb.driver.get(url)
-            #         sb.sleep(5)
-            #
-            #     if not sb.is_element_enabled('subButton'):
-            #         self.log(f"Try to find iframe")
-            #         if sb.is_element_visible('iframe[src*="challenge"]'):
-            #             with sb.frame_switch('iframe[src*="challenge"]'):
-            #                 sb.click("span.mark")
-            #                 sb.sleep(2)
-            # except Exception:
-            #     self.ctx.send(f'Error: No link found')
-            #     sb.driver.save_screenshot('screen.png')
-            #     return None
-            #
-            # sb.activate_demo_mode()
+            if sb.is_text_visible('Vérification en cours...', '#subButton'):
+                self.log(f"Try new driver")
+                sb.get_new_driver(undetectable=True)
+                sb.driver.get(url)
+                sb.sleep(5)
+
+                if sb.is_text_visible('Vérification en cours...', '#subButton'):
+                    self.log(f"Try to find iframe")
+                    if sb.is_element_visible('iframe[src*="challenge"]'):
+                        with sb.frame_switch('iframe[src*="challenge"]'):
+                            sb.click("span.mark")
+                            sb.sleep(2)
+            sb.activate_demo_mode()
             
             self.log(f"Clic on subButton")
             element = sb.find_element(By.ID, "subButton")
@@ -80,6 +74,7 @@ class Parser:
                 sb.driver.close()
                 return href
             else:
+                sb.driver.save_screenshot('screen.png')
                 sb.driver.close()
                 self.log(f"Error no link found")
     
@@ -126,6 +121,8 @@ class Parser:
 
 if __name__ == '__main__':
     parser = Parser(show_logs=True)
+
+    parser.dl_protect("https://dl-protect.link/2bd40b83?fn=U2V4IEVkdWNhdGlvbiAtIFNhaXNvbiAzIMOJcGlzb2RlIDEgLSBbVk9TVEZSIEhEXQ%3D%3D&rl=b2")
     
     all_series_urls = parser.download_all_series("https://www.wawacity.fit/?p=serie&id=12739-sex-education-saison4")
     if len(all_series_urls) == 0:

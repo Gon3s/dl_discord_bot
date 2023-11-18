@@ -41,11 +41,11 @@ pyotp==2.9.0
 pyreadline3==3.4.1
 PySocks==1.7.1
 pytest==7.4.3
-pytest-html==4.1.1
+pytest-html==2.0.1
 pytest-metadata==3.0.0
 pytest-ordering==0.6
 pytest-rerunfailures==12.0
-pytest-xdist==3.4.0
+pytest-xdist==3.3.1
 python-dotenv==1.0.0
 requests==2.31.0
 rich==13.6.0
@@ -59,7 +59,7 @@ soupsieve==2.5
 tabcompleter==1.3.0
 trio==0.23.1
 trio-websocket==0.11.1
-urllib3==2.1.0
+urllib3
 websockets==12.0
 wsproto==1.2.0
 yarl==1.9.2

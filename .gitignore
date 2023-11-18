@@ -9,6 +9,7 @@ venv/
 
 *.log
 *.txt
+*.html
 
 __pycache__/
 /downloaded_files/
