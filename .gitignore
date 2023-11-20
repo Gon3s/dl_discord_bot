@@ -10,6 +10,8 @@ venv/
 *.log
 *.txt
 *.html
+*.png
 
 __pycache__/
 /downloaded_files/
+/summary/
