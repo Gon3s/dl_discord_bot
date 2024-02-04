@@ -1,18 +1,19 @@
-import time
+import re
 
 from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.expected_conditions import presence_of_element_located
 from selenium.webdriver.support.wait import WebDriverWait
 from seleniumbase import Driver, SB
+import aiohttp
 
 XPATH_LINK = '//*[@id="protected-container"]/div[2]/div/ul/li/a'
-SELECT_PROVIDER = '1fichier'
 
 
 class Parser:
-    def __init__(self, show_logs=False):
+    def __init__(self, select_provider=None,  show_logs=True):
         self.show_logs = show_logs
+        self.select_provider = select_provider
         self.log(f"Init Driver")
     
     def log(self, msg):
@@ -40,6 +41,7 @@ class Parser:
             
             if sb.is_text_visible('Vérification en cours...', '#subButton'):
                 self.log(f"Try new driver")
+                sb.driver.close()
                 sb.get_new_driver(undetectable=True)
                 sb.driver.get(url)
                 self.log(f"Wait 2.1s")
@@ -78,7 +80,7 @@ class Parser:
                 self.log(f"Error: {e}")
                 sb.driver.save_screenshot('screen.png')
                 sb.driver.close()
-                raise e
+                raise Exception("Error no link found")
     
     def download_all_series(self, url):
         """
@@ -95,9 +97,11 @@ class Parser:
             wait.until(presence_of_element_located((By.ID, "main-body")))
         except Exception:
             driver.save_screenshot('screen.png')
+            driver.close()
             return []
         
         page_source = driver.page_source
+        driver.close()
         
         soup = BeautifulSoup(page_source, 'html.parser')
         
@@ -109,7 +113,7 @@ class Parser:
         urls = []
         
         for tr in trs:
-            if tr.find_all('td')[1].text == SELECT_PROVIDER:
+            if tr.find_all('td')[1].text == self.select_provider:
                 provider_link = tr.find_all('td')[0].find('a').get('href')
                 dl_protect_link = self.dl_protect(provider_link)
                 
@@ -132,9 +136,11 @@ class Parser:
             wait.until(presence_of_element_located((By.ID, "main-body")))
         except Exception:
             driver.save_screenshot('screen.png')
+            driver.close()
             return None, None
         
         page_source = driver.page_source
+        driver.close()
         
         soup = BeautifulSoup(page_source, 'html.parser')
         
@@ -145,24 +151,26 @@ class Parser:
         
         urls = []
         for tr in trs:
-            if tr.find_all('td')[1].text == SELECT_PROVIDER:
+            if tr.find_all('td')[1].text == self.select_provider:
                 provider_link = tr.find_all('td')[0].find('a').get('href')
                 urls.append(provider_link)
         
         return title, urls
 
-
-if __name__ == '__main__':
-    parser = Parser(show_logs=True)
+# if __name__ == '__main__':
+#     parser = Parser(show_logs=True, )
+#     parser.search(query = "oppenheimer", category = "films",  year = "2023",)
+    #
+    # # parser.dl_protect("https://dl-protect.link/2bd40b83?fn=U2V4IEVkdWNhdGlvbiAtIFNhaXNvbiAzIMOJcGlzb2RlIDEgLSBbVk9TVEZSIEhEXQ%3D%3D&rl=b2")
+    #
+    # the_url = "https://www.wawacity.fit/?p=film&id=45008-oppenheimer"
+    #
+    # all_series_urls = parser.download_all_series(the_url)
+    # if len(all_series_urls) == 0:
+    #     print("No link found")
+    # else:
+    #     # list all links into file name result.txt
+    #     with open("result.txt", "w") as f:
+    #         f.write("\n".join(all_series_urls))
     
-    # parser.dl_protect("https://dl-protect.link/2bd40b83?fn=U2V4IEVkdWNhdGlvbiAtIFNhaXNvbiAzIMOJcGlzb2RlIDEgLSBbVk9TVEZSIEhEXQ%3D%3D&rl=b2")
     
-    the_url = "https://www.wawacity.fit/?p=film&id=45008-oppenheimer"
-    
-    all_series_urls = parser.download_all_series(the_url)
-    if len(all_series_urls) == 0:
-        print("No link found")
-    else:
-        # list all links into file name result.txt
-        with open("result.txt", "w") as f:
-            f.write("\n".join(all_series_urls))
