@@ -17,6 +17,8 @@ DISCORD_GUILD=your_discord_guild
 ALLDEBRID_API_KEY=your_alldebrid_api_key
 
 DOWNLOAD_PATH=your_download_path
+
+WAWACITY_URL=https://www.wawacity.city/
 ```
 
 ## How to run
