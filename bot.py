@@ -51,6 +51,8 @@ async def download_by_url(url, type):
         print(f'Error: No filename')
         return False
     
+    filename = filename.replace(' ', '.')
+    
     print(f'Debrid {filename} / {data["link"]}')
     
     if type == 'movie':
@@ -58,17 +60,19 @@ async def download_by_url(url, type):
     elif type == 'serie':
         path = os.path.join(DOWNLOAD_PATH, 'Shows')
         regex_series = r"(.*).(S[0-9]{1,2})(E[0-9]{1,2}).*(\.[a-z]*)"
-        matches = re.match(regex_series, filename).groups()
+        matches = re.match(regex_series, filename)
         if matches:
-            folder = matches[0].replace('.', ' ')
-            season = f"{folder} - {matches[1]}"
-            path = os.path.join(path, folder)
-            if not os.path.exists(path):
-                os.makedirs(path)
-            path = os.path.join(path, season)
-            if not os.path.exists(path):
-                os.makedirs(path)
-            filename = f"{matches[0]}-{matches[1]}{matches[2]}{matches[3]}"
+          matches = matches.groups()
+          if len(matches) == 4:
+              folder = matches[0].replace('.', ' ')
+              season = f"{folder} - {matches[1]}"
+              path = os.path.join(path, folder)
+              if not os.path.exists(path):
+                  os.makedirs(path)
+              path = os.path.join(path, season)
+              if not os.path.exists(path):
+                  os.makedirs(path)
+              filename = f"{matches[0]}-{matches[1]}{matches[2]}{matches[3]}"
     else:
         print(f'Error: Invalid type')
         return False
@@ -145,12 +149,19 @@ def get_results(data, max_results):
 
 
 async def search_wawacity(ctx, query, category, year):
-    if year is None:
-        year = ''
+    params = {}
+    params['search'] = query
+    params['p'] = category
+    if year is not None:
+        params['year'] = year
+    
+    if category == 'films':
+        params['s'] = 'blu-ray_1080p-720p'
+    else:
+       params['s'] = 'vostfr-hq'  
         
     async with (aiohttp.ClientSession() as session):
-        async with session.get(WAWACITY_URL, params={'search': query, 'p': category, 'year': year,
-            's':                                               'blu-ray_1080p-720p'}) as resp:
+        async with session.get(WAWACITY_URL, params=params) as resp:
             if resp.status != 200:
                 await ctx.send(f'Error: {resp.status}')
                 return False
@@ -197,7 +208,7 @@ async def download_url_selected(ctx, url, folder, select_provider):
             if dl_protect_url:
                 try:
                     print(f'You want to download: {dl_protect_url}')
-                    title = await download_by_url(ctx, dl_protect_url, folder)
+                    title = await download_by_url(dl_protect_url, folder)
                     if title:
                         download_status = 'OK'
                     else:
@@ -289,4 +300,4 @@ async def search(ctx, query=None, category=None, year=None, count=3, select_prov
 if __name__ == '__main__':
     bot.run(TOKEN)
     # loop = asyncio.get_event_loop()
-    # loop.run_until_complete(download_by_url(None, 'https://1fichier.com/?4nryvtblgf0n10z0hlkm&af=4814702', 'serie'))
+    # loop.run_until_complete(download_by_url('https://1fichier.com/?4jpan3acbd740eevl40v&af=3601079', 'serie'))
