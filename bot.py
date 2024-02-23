@@ -59,7 +59,7 @@ async def download_by_url(url, type):
         path = os.path.join(DOWNLOAD_PATH, 'Movies')
     elif type == 'serie':
         path = os.path.join(DOWNLOAD_PATH, 'Shows')
-        regex_series = r"(.*).(S[0-9]{1,2})(E[0-9]{1,2}).*(\.[a-z]*)"
+        regex_series = r"(.*).(S[0-9]{1,2})(E[0-9]{1,2}).*(\.[a-z0-9]*)"
         matches = re.match(regex_series, filename)
         if matches:
           matches = matches.groups()
@@ -175,12 +175,12 @@ async def search_wawacity(ctx, query, category, year):
 async def download_url_selected(ctx, url, folder, select_provider):
     parser = Parser(show_logs=True, select_provider=select_provider)
     
-    title, urls = parser.get_dl_protect_url(url)
+    mainTitle, urls = parser.get_dl_protect_url(url)
     if not urls:
         await ctx.send(f'Error: No link found')
         return
     
-    await ctx.send(f'You want to download: {title}')
+    await ctx.send(f'You want to download: {mainTitle}')
     
     loop = asyncio.get_event_loop()
     summary = []
@@ -222,17 +222,25 @@ async def download_url_selected(ctx, url, folder, select_provider):
                 error = 'No link found'
         
         await ctx.send(f"{title} - {download_status} - {error}")
-        summary.append(
-            {'title': title, 'url': url, 'dl_protect_url': dl_protect_url, 'download_status': download_status,
-             'error': error})
-    
-    with open(f'summary/{slugify(title)}.txt', 'w') as f:
-        for item in summary:
-            f.write(
-                f"URL: {item['url']}, DL Protect URL: {item['dl_protect_url']}, Download Status: {item['download_status']}")
+        
+        with open(f'summary/{slugify(mainTitle)}.txt', 'w') as f:
+            f.write(f"{title} - {dl_protect_url} - {download_status} - {error}")
     
     await ctx.send(f"Summary: {len(summary)} files downloaded")
 
+
+@bot.command(name='url', help='Download a file by url')
+async def url(ctx, url=None, folder=None):
+    if url is None:
+        await ctx.send('Invalid url')
+        return
+    
+    if folder is None and folder not in ['movie', 'serie']:
+        await ctx.send('Invalid folder')
+        return
+    
+    await download_url_selected(ctx, url, folder, SELECT_PROVIDER)
+    
 
 @bot.command(name='search', help='Search a series, films or manga')
 async def search(ctx, query=None, category=None, year=None, count=3, select_provider=SELECT_PROVIDER):
