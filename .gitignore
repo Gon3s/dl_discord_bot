@@ -11,6 +11,7 @@ venv/
 *.txt
 *.html
 *.png
+*.csv
 
 __pycache__/
 /downloaded_files/
