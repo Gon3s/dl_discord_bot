@@ -11,7 +11,7 @@ XPATH_LINK = '//*[@id="protected-container"]/div[2]/div/ul/li/a'
 
 
 class Parser:
-    def __init__(self, select_provider=None,  show_logs=True):
+    def __init__(self, select_provider=None, show_logs=True):
         self.show_logs = show_logs
         self.select_provider = select_provider
         self.log(f"Init Driver")
@@ -24,7 +24,7 @@ class Parser:
         """
         if self.show_logs:
             print(msg)
-    
+            
     def dl_protect(self, url):
         """
         Download link from dl-protect
@@ -32,37 +32,32 @@ class Parser:
         :return:
         """
         
-        with SB(uc=True, headless=True) as sb:
+        with SB(uc=True, test=False) as sb:
             self.log(f"Goto {url}")
-            sb.driver.get(url)
             
-            self.log(f"Wait 2.1s")
-            sb.sleep(5.1)
+            sb.driver.uc_open_with_reconnect(url, reconnect_time=20)
+            sb.driver.save_screenshot('screen-1.png')
+            try:
+                sb.driver.switch_to_frame("iframe")
+                sb.driver.uc_click("span")
+            except Exception:
+                self.log(f"Error click turnstile")
+                sb.driver.save_screenshot('screen-2.png')
+                sb.driver.uc_open_with_reconnect(url, reconnect_time=2)
+                sb.driver.switch_to_frame("iframe")
+                sb.driver.uc_click("span")
             
-            if sb.is_text_visible('Vérification en cours...', '#subButton'):
-                self.log(f"Try new driver")
-                sb.driver.close()
-                sb.get_new_driver(undetectable=True)
-                sb.driver.get(url)
-                self.log(f"Wait 2.1s")
-                sb.sleep(2.1)
+            sb.driver.save_screenshot('screen-3.png')
+            
+            sb.highlight_click('button:contains("Continuer")')
+            
+            # self.log(f"Clic on subButton")
+            # element = sb.find_element(By.ID, "subButton")
+            # sb.execute_script("arguments[0].click();", element)
+            
+            
+            # sb.driver.save_screenshot('screen-5.png')
                 
-                if sb.is_text_visible('Vérification en cours...', '#subButton'):
-                    self.log(f"Try to find iframe")
-                    if sb.is_element_visible('iframe[src*="challenge"]'):
-                        with sb.frame_switch('iframe[src*="challenge"]'):
-                            sb.click("span.mark")
-                            
-                            self.log(f"Wait 2.1s")
-                            sb.sleep(2.1)
-                            
-            self.log(f"Activate demo mode")
-            sb.activate_demo_mode()
-            
-            self.log(f"Clic on subButton")
-            element = sb.find_element(By.ID, "subButton")
-            sb.execute_script("arguments[0].click();", element)
-            
             try:
                 self.log("Try to find link")
                 link = sb.find_element(By.XPATH, XPATH_LINK)
@@ -73,12 +68,14 @@ class Parser:
                     return href
                 else:
                     self.log("Error no link found")
-                    sb.driver.save_screenshot('screen.png')
+                    sb.driver.save_screenshot('screen-nolink.png')
                     sb.driver.close()
                     raise Exception("Error no link found")
             except Exception as e:
                 self.log(f"Error: {e}")
-                sb.driver.save_screenshot('screen.png')
+                sb.driver.save_screenshot('screen-error.png')
+                with open('page_source.html', 'w') as f:
+                    f.write(sb.driver.page_source)
                 sb.driver.close()
                 raise Exception("Error no link found")
     
@@ -157,11 +154,12 @@ class Parser:
         
         return title, urls
 
-# if __name__ == '__main__':
-#     parser = Parser(show_logs=True, )
+# type: ignore 
+if __name__ == '__main__':
+    parser = Parser(show_logs=True, )
 #     parser.search(query = "oppenheimer", category = "films",  year = "2023",)
     #
-    # # parser.dl_protect("https://dl-protect.link/2bd40b83?fn=U2V4IEVkdWNhdGlvbiAtIFNhaXNvbiAzIMOJcGlzb2RlIDEgLSBbVk9TVEZSIEhEXQ%3D%3D&rl=b2")
+    parser.dl_protect("https://dl-protect.link/5807cb1b?fn=U2Vjb25kIHRvdXIgW1dFQi1ETCA3MjBwXSASRU5DSA%3D%3D&rl=a2")
     #
     # the_url = "https://www.wawacity.fit/?p=film&id=45008-oppenheimer"
     #

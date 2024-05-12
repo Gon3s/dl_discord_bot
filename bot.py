@@ -42,6 +42,7 @@ def create_embed(item, index, count):
 
 async def download_by_url(url, type):
     alldebrid_client = alldebrid.AllDebrid()
+    
     try:
         data = alldebrid_client.debrid_link(url)
     except AssertionError as e:
@@ -190,8 +191,6 @@ async def download_url_selected(ctx, url_selected, folder, select_provider):
     
     await ctx.send(f'You want to download: {main_title}')
     
-    loop = asyncio.get_event_loop()
-    
     for url in urls:
         print(f'You want to find url from {url}')
         
@@ -200,40 +199,19 @@ async def download_url_selected(ctx, url_selected, folder, select_provider):
             print(f'Error: Already downloaded')
             continue
     
-        tries = 0
-        dl_protect_url = None
         error = None
-        while tries < 3 and not dl_protect_url:
-            try:
-                future = loop.run_in_executor(None, parser.dl_protect, url)
-                dl_protect_url = await future
-            except Exception as e:
-                tries += 1
-                print(f"Tries {tries}/3: {e}")
-                future = loop.run_in_executor(None, parser.dl_protect, url)
-                dl_protect_url = await future
-        
-        print(f"Tries {tries}/3 - {dl_protect_url}")
-        if tries == 3 and not dl_protect_url:
-            download_status = 'ERROR'
-            error = 'Too many tries'
-        else:
-            if dl_protect_url:
-                try:
-                    print(f'You want to download: {dl_protect_url}')
-                    title = await download_by_url(dl_protect_url, folder)
-                    if title:
-                        download_status = 'OK'
-                    else:
-                        download_status = 'ERROR'
-                        error = 'Download error'
-                except Exception as e:
-                    download_status = 'ERROR'
-                    error = e
+        try:
+            print(f'You want to download: {url}')
+            title = await download_by_url(url, folder)
+            if title:
+                download_status = 'OK'
             else:
                 download_status = 'ERROR'
-                error = 'No link found'
-        
+                error = 'Download error'
+        except Exception as e:
+            download_status = 'ERROR'
+            error = e
+            
         await ctx.send(f"{title} - {download_status} - {error}")
         
         if download_status == 'OK':
@@ -257,11 +235,11 @@ async def url(ctx, url=None, folder=None):
 @bot.command(name='search', help='Search a series, films or manga')
 async def search(ctx, query=None, category=None, year=None, count=3, select_provider=SELECT_PROVIDER):
     if query is None:
-        await ctx.send('Invalid query')
+        await ctx.send('Error: Invalid query')
         return
     
     if category is None and category not in ['films', 'series', 'mangas']:
-        await ctx.send('Invalid category')
+        await ctx.send('Error: Invalid category (films, series, mangas)')
         return
     
     data = await search_wawacity(ctx, query, category, year)
@@ -322,5 +300,4 @@ if __name__ == '__main__':
     data = pd.read_csv('history.csv')
     histories = data.to_dict(orient='records')
     
-    bot.run(
-        TOKEN)  # loop = asyncio.get_event_loop()  # loop.run_until_complete(download_by_url('https://1fichier.com/?4jpan3acbd740eevl40v&af=3601079', 'serie'))
+    bot.run(TOKEN)
