@@ -102,14 +102,24 @@ class Parser:
         
         soup = BeautifulSoup(page_source, 'html.parser')
         
-        title = soup.find('h1').text.strip().split('»')[1]
+        title = soup.find('h1')
+        if title:
+            title = title.text.strip().split('»')[1] if '»' in title.text else title.text.strip()
+        else:
+            self.log("Error: Title not found")
+            return []
         
-        table = soup.find('table', id="DDLLinks")
+        table = soup.find('table', id="DDLLinkѕ")
+        if table is None:
+            self.log("Error: Table DDLLinkѕ not found")
+            return []
+            
         trs = table.find_all('tr', class_='link-row')
         
         urls = []
         
         for tr in trs:
+            print(tr.find_all('td')[1].text, self.select_provider)
             if tr.find_all('td')[1].text == self.select_provider:
                 provider_link = tr.find_all('td')[0].find('a').get('href')
                 dl_protect_link = self.dl_protect(provider_link)
@@ -137,13 +147,27 @@ class Parser:
             return None, None
         
         page_source = driver.page_source
+        
+        # Sauvegarder le code source pour debug
+        with open('page_source.html', 'w', encoding='utf-8') as f:
+            f.write(page_source)
+        
         driver.close()
         
         soup = BeautifulSoup(page_source, 'html.parser')
         
-        title = soup.find('h1').text.strip().split('»')[1]
+        title = soup.find('h1')
+        if title:
+            title = title.text.strip().split('»')[1] if '»' in title.text else title.text.strip()
+        else:
+            self.log("Error: Title not found")
+            return None, None
         
         table = soup.find('table', id="DDLLinks")
+        if table is None:
+            self.log("Error: Table DDLLinks not found, page may have changed structure")
+            return None, None
+            
         trs = table.find_all('tr', class_='link-row')
         
         urls = []
@@ -156,19 +180,19 @@ class Parser:
 
 # type: ignore 
 if __name__ == '__main__':
-    parser = Parser(show_logs=True, )
+    parser = Parser(show_logs=True, select_provider="Rapidgator")
 #     parser.search(query = "oppenheimer", category = "films",  year = "2023",)
     #
-    parser.dl_protect("https://dl-protect.link/5807cb1b?fn=U2Vjb25kIHRvdXIgW1dFQi1ETCA3MjBwXSASRU5DSA%3D%3D&rl=a2")
+    # parser.dl_protect("https://dl-protect.link/5807cb1b?fn=U2Vjb25kIHRvdXIgW1dFQi1ETCA3MjBwXSASRU5DSA%3D%3D&rl=a2")
     #
-    # the_url = "https://www.wawacity.fit/?p=film&id=45008-oppenheimer"
-    #
-    # all_series_urls = parser.download_all_series(the_url)
-    # if len(all_series_urls) == 0:
-    #     print("No link found")
-    # else:
-    #     # list all links into file name result.txt
-    #     with open("result.txt", "w") as f:
-    #         f.write("\n".join(all_series_urls))
+    the_url = "https://www.wawacity.irish/?p=serie&id=23306-ghosts-fant-mes-la-maison-saison4"
+    
+    all_series_urls = parser.download_all_series(the_url)
+    if len(all_series_urls) == 0:
+        print("No link found")
+    else:
+        # list all links into file name result.txt
+        with open("result.txt", "w") as f:
+            f.write("\n".join(all_series_urls))
     
     

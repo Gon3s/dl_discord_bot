@@ -1,7 +1,6 @@
 import os
-
+import logging
 import alldebrid
-
 import discord
 from discord.ext import commands
 from dotenv import load_dotenv
@@ -14,11 +13,47 @@ import pandas as pd
 
 from parser import Parser
 
+# Configuration logging structuré
+import sys
+from pathlib import Path
+
+log_dir = Path('logs')
+log_dir.mkdir(exist_ok=True)
+
+# Formatter commun
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
+
+# Handler fichier INFO
+file_handler = logging.FileHandler(log_dir / 'bot.log')
+file_handler.setLevel(logging.INFO)
+file_handler.setFormatter(formatter)
+
+# Handler fichier ERRORS
+error_handler = logging.FileHandler(log_dir / 'errors.log')
+error_handler.setLevel(logging.ERROR)
+error_handler.setFormatter(formatter)
+
+# Handler console
+console_handler = logging.StreamHandler(sys.stdout)
+console_handler.setLevel(logging.INFO)
+console_handler.setFormatter(formatter)
+
+# Logger principal
+logger = logging.getLogger(__name__)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(file_handler)
+logger.addHandler(error_handler)
+logger.addHandler(console_handler)
+
 load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 DOWNLOAD_PATH = os.getenv('DOWNLOAD_PATH')
 WAWACITY_URL = os.getenv('WAWACITY_URL')
 SELECT_PROVIDER = '1fichier'
+PROVIDERS = ['1fichier', 'Turbobit', 'Rapidgator']
 
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 
@@ -26,7 +61,23 @@ numbers = ['1️⃣', '2️⃣', '3️⃣', '4️⃣', '5️⃣', '6️⃣', '7�
 histories = []
 
 
+
+
 def create_embed(item, index, count):
+    """
+    Crée un embed Discord pour afficher un résultat de recherche.
+    
+    Args:
+        item (dict): Dictionnaire contenant {title, image, year, quality, language}
+        index (int): Index du résultat (pour pagination)
+        count (int): Nombre total de résultats
+    
+    Returns:
+        discord.Embed: Embed formaté prêt à envoyer
+    
+    Note:
+        Affiche en pied de page : "Page X/Y"
+    """
     embed = discord.Embed(color=0x0099ff, title=item["title"], )
     
     embed.set_image(url=item["image"])
@@ -41,6 +92,32 @@ def create_embed(item, index, count):
 
 
 async def download_by_url(url, type):
+    """
+    Télécharge un fichier via AllDebrid et l'enregistre localement.
+    
+    Args:
+        url (str): URL protégée à débrier
+        type (str): Type de contenu ('movie' ou 'serie')
+    
+    Returns:
+        str: Nom du fichier téléchargé (ou False en cas d'erreur)
+    
+    Raises:
+        AssertionError: En cas d'erreur AllDebrid
+    
+    Process:
+        1. Débridage du lien via AllDebrid API
+        2. Renaming (espaces → points)
+        3. Organisation en dossiers (Movies/Shows/Saison)
+        4. Pour séries: extraction titre/saison via regex
+        5. Téléchargement asynchrone du fichier
+    
+    TODO:
+        - Ajouter vérification d'espace disque
+        - Implémenter resume de téléchargement
+        - Meilleure gestion des timeouts (configurable)
+        - Logging structuré (pas de print)
+    """
     alldebrid_client = alldebrid.AllDebrid()
     
     try:
@@ -97,6 +174,22 @@ async def download_by_url(url, type):
 
 
 def match_language(source_language):
+    """
+    Convertit un code de langue en emoji drapeau Discord.
+    
+    Args:
+        source_language (str): Classe CSS comme 'flag-fr', 'flag-en', etc.
+    
+    Returns:
+        str: Emoji drapeau correspondant
+    
+    Mapping:
+        FR → 🇫🇷 (Français)
+        EN → 🇬🇧 (Anglais)
+        VOSTFR → 🇬🇧🇫🇷 (Version originale)
+        MULTI → 🇪🇺 (Multilingue)
+        Autre → 🌐 (Inconnu)
+    """
     language = source_language.replace('flag-', '').upper()
     
     match language:
@@ -115,6 +208,25 @@ def match_language(source_language):
 
 
 def get_results(data, max_results):
+    """
+    Parse les résultats HTML de Wawacity.
+    
+    Args:
+        data (bytes): Contenu HTML brut
+        max_results (int): Nombre maximum de résultats à retourner
+    
+    Returns:
+        list: Liste de dictionnaires {title, quality, year, language, image, url}
+    
+    Parsing Details:
+        - Extraction via BeautifulSoup des divs 'wa-post-detail-item'
+        - Regex pour séparer titre et qualité (format: "Title [QUALITY]")
+        - Construction des URLs complètes (ajout de WAWACITY_URL)
+        - Conversion des flags de langue en emojis
+    
+    NOTE:
+        HTML-dependent - breakable en cas de changement de structure du site
+    """
     amount = 0
     pattern = re.compile(r'^(.*?)\s\[(.*?)\]')
     results = []
@@ -151,6 +263,30 @@ def get_results(data, max_results):
 
 
 async def search_wawacity(ctx, query, category, year):
+    """
+    Recherche du contenu sur Wawacity via requête HTTP.
+    
+    Args:
+        ctx: Contexte Discord
+        query (str): Terme de recherche (titre du film/série)
+        category (str): 'films', 'series', ou 'mangas'
+        year (int or None): Année de sortie (optionnel)
+    
+    Returns:
+        bytes: Contenu HTML brut ou False si erreur
+    
+    Parameters:
+        - search: requête utilisateur
+        - p: catégorie (films/series/mangas)
+        - year: année de sortie
+        - s: sorting (tri par qualité)
+          - films: 'blu-ray_1080p-720p'
+          - autres: 'vostfr-hq'
+    
+    URL Status Codes:
+        200 OK → retourne le contenu
+        Autre → envoie message d'erreur Discord
+    """
     params = {}
     params['search'] = query
     params['p'] = category
@@ -175,72 +311,231 @@ async def search_wawacity(ctx, query, category, year):
 
 
 def is_already_downloaded(url):
+    """
+    Vérifie si une URL a déjà été téléchargée.
+    
+    Args:
+        url (str): URL à vérifier
+    
+    Returns:
+        bool: True si déjà dans l'historique, False sinon
+    
+    NOTE:
+        Implémentation inefficace - O(n)
+        TODO: Utiliser set ou dictionnaire pour O(1)
+    """
     for history in histories:
         if history['url'] == url:
             return True
     return False
 
 
-async def download_url_selected(ctx, url_selected, folder, select_provider):
-    parser = Parser(show_logs=True, select_provider=select_provider)
+async def download_url_selected(ctx, url_selected, folder, providers_list=None):
+    """
+    Télécharge un contenu depuis une URL Wawacity avec fallback multi-providers.
     
-    main_title, urls = parser.get_dl_protect_url(url_selected)
-    if not urls:
-        await ctx.send(f'Error: No link found')
+    Args:
+        ctx: Contexte Discord
+        url_selected (str): URL du contenu sur Wawacity
+        folder (str): Type de stockage ('movie' ou 'serie')
+        providers_list (list): Providers à essayer (par défaut PROVIDERS)
+    
+    Flow:
+        1. Collecte les liens DE TOUS les providers
+        2. Pour chaque lien:
+            - Essai de téléchargement
+            - En cas d'échec → essai lien suivant (autre provider)
+        3. Sauvegarde du succès/échec dans history.csv
+    
+    Erreurs:
+        - Aucun lien trouvé aucun provider → message d'erreur
+        - Fichier déjà téléchargé → skip (vérification URL)
+        - Téléchargement échoué → continue avec lien suivant (d'un autre provider)
+    
+    Output CSV:
+        Colonnes: title, url
+        Mise à jour en temps réel
+    """
+    if providers_list is None:
+        providers_list = PROVIDERS
+    
+    main_title = None
+    all_results = []  # Liste de tuples: (provider, title, url)
+    
+    # DEBUG: Afficher l'URL sélectionnée
+    logger.info(f'URL selectionnee: {url_selected}')
+    await ctx.send(f'🔗 URL: {url_selected[:100]}...')
+    
+    # Collecter les liens de TOUS les providers
+    for provider in providers_list:
+        await ctx.send(f'Trying provider: {provider}')
+        logger.info(f'Essai provider: {provider}')
+        
+        try:
+            parser = Parser(show_logs=True, select_provider=provider)
+            
+            main_title, urls = parser.get_dl_protect_url(url_selected)
+            logger.info(f'{provider}: title={main_title}, urls={len(urls) if urls else 0}')
+            
+            if urls and len(urls) > 0:
+                await ctx.send(f'Found {len(urls)} link(s) with {provider}')
+                logger.info(f'Liens trouves avec {provider}: {urls}')
+                # Ajouter tous les liens avec leur provider
+                for url in urls:
+                    all_results.append((provider, main_title, url))
+            else:
+                await ctx.send(f'No links found with {provider}')
+                logger.warning(f'Aucun lien avec {provider}')
+        except Exception as e:
+            logger.error(f'Erreur provider {provider}: {e}', exc_info=True)
+            await ctx.send(f'Erreur avec {provider}: {str(e)[:100]}')
+    
+    if not all_results:
+        error_msg = 'Erreur: Aucun lien trouve avec les providers (1fichier, Turbobit, Rapidgator)'
+        logger.error(error_msg)
+        await ctx.send(error_msg)
+        await ctx.send('💡 Possible causes:\n- URL morte ou inaccessible\n- Site structure modifiee\n- Pas d\'options DL disponibles')
         return
     
-    await ctx.send(f'You want to download: {main_title}')
+    if main_title:
+        await ctx.send(f'You want to download: {main_title}')
     
-    for url in urls:
-        print(f'You want to find url from {url}')
+    # Télécharger chaque URL (différents providers)
+    for provider, title, url in all_results:
+        logger.info(f'Telechargement URL: {url[:100]}... (provider: {provider})')
         
         # check if file already exists in history by url
         if is_already_downloaded(url):
-            print(f'Error: Already downloaded')
+            logger.info(f'Deja telecharge: {url}')
+            await ctx.send(f'⏭️ Deja telecharge, skip')
             continue
     
         error = None
+        filename = None
         try:
-            print(f'You want to download: {url}')
-            title = await download_by_url(url, folder)
-            if title:
+            logger.info(f'Debut telechargement: {url} ({provider})')
+            filename = await download_by_url(url, folder)
+            if filename:
                 download_status = 'OK'
+                logger.info(f'Telechargement OK: {filename}')
+                histories.append({'title': filename, 'url': url})
+                pd.DataFrame(histories).to_csv('history.csv', index=False)
+                logger.info(f'Historique maj: {filename}')
             else:
                 download_status = 'ERROR'
                 error = 'Download error'
+                logger.error('Erreur telechargement: aucun titre retourne')
         except Exception as e:
+            logger.error(f'Exception telechargement: {e}', exc_info=True)
             download_status = 'ERROR'
-            error = e
+            error = str(e)[:100]
             
-        await ctx.send(f"{title} - {download_status} - {error}")
-        
-        if download_status == 'OK':
-            histories.append({'title': title, 'url': url})
-            pd.DataFrame(histories).to_csv('history.csv', index=False)
+        await ctx.send(f"{filename or 'Unknown'} - {download_status} (provider: {provider}) - {error if error else 'Essai suivant...'}")
 
 
 @bot.command(name='url', help='Download a file by url')
 async def url(ctx, url=None, folder=None):
+    """
+    Commande: !url <url> <folder>
+    
+    Télécharge un contenu via URL Wawacity directe.
+    
+    Params:
+        url (str): URL du contenu sur Wawacity
+        folder (str): 'movie' ou 'serie'
+    
+    Example:
+        !url https://wawacity.sc/... movie
+    
+    Validation:
+        ✓ URL non None
+        ✓ folder in ['movie', 'serie']
+    
+    BUG CRITIQUE À FIXER:
+        Ligne actuelle: if folder is None and folder not in ['movie', 'serie']
+        Devrait être:   if folder is None or folder not in ['movie', 'serie']
+    """
+    # BUGFIX: Correction "and" -> "or"
     if url is None:
-        await ctx.send('Invalid url')
+        logger.error(f'{ctx.author}: URL invalide')
+        await ctx.send('URL invalide')
         return
     
-    if folder is None and folder not in ['movie', 'serie']:
-        await ctx.send('Invalid folder')
+    if folder is None or folder not in ['movie', 'serie']:
+        logger.error(f'{ctx.author}: Dossier invalide: {folder}')
+        embed = discord.Embed(
+            title='Dossier Invalide',
+            description='Utilise: `!url <url> movie` ou `!url <url> serie`',
+            color=discord.Color.red()
+        )
+        await ctx.send(embed=embed)
         return
     
-    await download_url_selected(ctx, url, folder, SELECT_PROVIDER)
+    logger.info(f'{ctx.author} telecharge: {url[:50]}... ({folder})')
+    await download_url_selected(ctx, url, folder, PROVIDERS)
 
 
 @bot.command(name='search', help='Search a series, films or manga')
-async def search(ctx, query=None, category=None, year=None, count=3, select_provider=SELECT_PROVIDER):
+async def search(ctx, query=None, category=None, year=None, count=3):
+    """
+    Commande: !search <query> <category> [year] [count]
+    
+    Recherche du contenu sur Wawacity et affiche résultats avec réactions.
+    
+    Params:
+        query (str): Terme de recherche (titre)
+        category (str): 'films', 'series', ou 'mangas'
+        year (int): Année de sortie (optionnel)
+        count (int): Nombre de résultats (défaut: 3)
+    
+    Example:
+        !search "Dragon Ball" series
+        !search "Inception" films 2010 5
+    
+    Flow Interactif:
+        1. Recherche et affichage 1 embed par résultat
+        2. Ajout réactions numéros (1️⃣-9️⃣🔟)
+        3. Attente réaction utilisateur (timeout: 30s)
+        4. Sélection → téléchargement auto
+    
+    Validation:
+        ✓ query non None
+        ✓ category in ['films', 'series', 'mangas']
+    
+    BUG CRITIQUE À FIXER:
+        Même problème "and" au lieu de "or" 
+        - Ligne query: if query is None and query not in [...]
+        - Ligne category: if category is None and category not in [...]
+    
+    TODO:
+        - Meilleure gestion timeout (utilisateur informé)
+        - Pagination si count > 10 (limite emojis disponibles)
+    """
+    
+    # BUGFIX: Correction "and" -> "or" pour query
     if query is None:
-        await ctx.send('Error: Invalid query')
+        logger.error(f'{ctx.author}: Requete vide')
+        await ctx.send('Erreur: Requete vide')
         return
     
-    if category is None and category not in ['films', 'series', 'mangas']:
-        await ctx.send('Error: Invalid category (films, series, mangas)')
+    # BUGFIX: Correction "and" -> "or" pour category
+    if category is None or category not in ['films', 'series', 'mangas']:
+        logger.error(f'{ctx.author}: Categorie invalide: {category}')
+        embed = discord.Embed(
+            title='Categorie Invalide',
+            description='Categories disponibles: `films`, `series`, `mangas`\nEx: `!search Dragon Ball series`',
+            color=discord.Color.red()
+        )
+        await ctx.send(embed=embed)
         return
+    
+    # Validation du nombre de resultats
+    if count > 10:
+        logger.warning(f'{ctx.author}: count trop eleve ({count}), limite a 10')
+        count = 10
+        await ctx.send('Nombre de resultats limite a 10 (maximum d\'emojis)')
+    
+    logger.info(f'{ctx.author} recherche: {query} ({category}, {count} resultats)')
     
     data = await search_wawacity(ctx, query, category, year)
     
@@ -291,12 +586,30 @@ async def search(ctx, query=None, category=None, year=None, count=3, select_prov
         url = to_download['url']
         folder = 'movie' if category == 'films' else 'serie'
         
-        await download_url_selected(ctx, url, folder, select_provider)
+        await download_url_selected(ctx, url, folder, PROVIDERS)
     else:
         await ctx.send('Error: No selection')
 
 
 if __name__ == '__main__':
+    """
+    Point d'entrée du bot Discord.
+    
+    Process:
+        1. Charge l'historique depuis history.csv
+        2. Remplit la liste globale histories
+        3. Lance le bot avec le token Discord
+    
+    Environment Variables Requises:
+        - DISCORD_TOKEN: Token d'authentification Discord
+        - DOWNLOAD_PATH: Chemin racine des téléchargements
+        - WAWACITY_URL: URL de base Wawacity (avec /)
+    
+    TODO:
+        - Valider l'existence du fichier history.csv
+        - Gérer cas où le fichier est corrompu
+        - Implémenter reconnexion automatique
+    """
     data = pd.read_csv('history.csv')
     histories = data.to_dict(orient='records')
     
