@@ -8,14 +8,20 @@ Lance ou redémarre la stack complète via docker-compose. Argument optionnel : 
 
 ## Étapes à suivre
 
-1. **Vérifier le fichier `.env`** :
+1. **Lancer les tests avant de déployer** :
+   ```bash
+   cd backend && uv run pytest --tb=short -q
+   ```
+   Arrêter si des tests échouent — ne pas déployer du code cassé.
+
+2. **Vérifier le fichier `.env`** :
    - Confirmer que `DISCORD_TOKEN`, `ALLDEBRID_API_KEY`, `DOWNLOAD_PATH` sont renseignés
    - Confirmer que `DOWNLOAD_PATH` existe sur le système hôte :
      ```bash
      ls "$DOWNLOAD_PATH"
      ```
 
-2. **Builder et démarrer** :
+3. **Builder et démarrer** :
    ```bash
    # Stack complète
    docker-compose up --build -d
@@ -24,13 +30,13 @@ Lance ou redémarre la stack complète via docker-compose. Argument optionnel : 
    docker-compose up --build -d $ARGUMENTS
    ```
 
-3. **Vérifier que les services sont UP** :
+4. **Vérifier que les services sont UP** :
    ```bash
    docker-compose ps
    ```
    Les 3 services doivent être `running` : `backend`, `bot`, `frontend`
 
-4. **Vérifier les logs au démarrage** :
+5. **Vérifier les logs au démarrage** :
    ```bash
    # Backend
    docker-compose logs --tail=50 backend
@@ -42,7 +48,7 @@ Lance ou redémarre la stack complète via docker-compose. Argument optionnel : 
    - Backend : `Application startup complete`
    - Bot : `Logged in as`
 
-5. **Test de santé** :
+6. **Test de santé** :
    ```bash
    curl -s http://localhost:8000/api/v1/status | python3 -m json.tool
    curl -s http://localhost:80

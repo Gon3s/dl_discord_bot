@@ -18,12 +18,21 @@ Scaffolde un nouveau scraper pour la source de données `$ARGUMENTS`.
    - Chercher dans `backend/app/scrapers/__init__.py` si le module est bien importé
    - Ajouter l'import si nécessaire pour que `@register` s'exécute au démarrage
 
-4. **Tester** manuellement l'endpoint :
+4. **Ajouter les tests** dans `backend/tests/test_scrapers.py` (créer si absent) :
+   - Si stub : tester que `search()` lève bien `NotImplementedError`
+   - Si implémenté : tester la structure des `SearchResult` retournés (mocker les appels réseau)
+
+5. **Lancer les tests** pour valider :
+   ```bash
+   cd backend && uv run pytest tests/test_scrapers.py -v
+   ```
+
+6. **Tester** manuellement l'endpoint (si le backend tourne) :
    - `GET /api/v1/search?q=test&source=<source_name>&category=films`
    - Si stub : doit retourner `501 Not Implemented` avec message clair
    - Si implémenté : doit retourner une liste de `SearchResult`
 
-5. **Mettre à jour** `CLAUDE.md` section "Sources actuelles" avec le nouvel entry.
+7. **Mettre à jour** `CLAUDE.md` section "Sources actuelles" avec le nouvel entry.
 
 ## Conventions importantes
 
