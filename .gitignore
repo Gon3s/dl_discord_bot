@@ -16,3 +16,7 @@ venv/
 __pycache__/
 /downloaded_files/
 /summary/
+
+# SQLite databases
+*.db
+*.sqlite
