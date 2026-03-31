@@ -33,6 +33,21 @@ class AllDebridClient:
 
         return data["data"]["links"][0]
 
+    async def ping(self) -> bool:
+        """Return True if the AllDebrid API is reachable and the key is valid."""
+        params = {**self._base_params()}
+        try:
+            async with aiohttp.ClientSession() as session:
+                async with session.get(
+                    f"{_BASE_URL}/user", params=params
+                ) as response:
+                    if response.status != 200:
+                        return False
+                    data = await response.json()
+            return data.get("status") == "success"
+        except Exception:
+            return False
+
     async def debrid_link(self, url: str) -> dict:
         """Unlock a link via AllDebrid and return the unlock data."""
         if "dl-protect" in url:
