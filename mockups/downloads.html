@@ -5,167 +5,155 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DL Bot — Downloads</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{ox:{400:'#fb923c',500:'#f97316',600:'#ea580c'}}}}}</script>
   <style>
-    body { background: #080d18; }
-    .sidebar { background: #0d1424; border-right: 1px solid #1a2540; }
-    .card { background: #0d1424; border: 1px solid #1a2540; }
-    .nav-active { background: rgba(249,115,22,0.12); color: #fb923c; border-left: 2px solid #f97316; }
-    .nav-item { border-left: 2px solid transparent; }
-    .nav-item:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+    :root { --black:#000; --dark:#3E432E; --mid:#616F39; --lime:#A7D129; }
+    body { background: var(--black); color: #e8ecd8; font-family: 'ui-monospace','Cascadia Code','Fira Mono',monospace; }
+    .sidebar { background: #0a0a0a; border-right: 1px solid #1a1f10; }
+    .logo-box { background: var(--lime); }
+    .nav-link { color: #6b7a4a; border-left: 2px solid transparent; transition: all .15s; }
+    .nav-link:hover { color: #c8d890; background: rgba(167,209,41,.06); border-left-color: var(--mid); }
+    .nav-active { color: var(--lime); background: rgba(167,209,41,.1); border-left: 2px solid var(--lime); }
+    .badge { background: var(--lime); color: #000; font-weight: 900; }
 
-    /* Progress bar glow */
-    .bar-ox { background: linear-gradient(90deg, #ea580c, #f97316, #fb923c); box-shadow: 0 0 8px rgba(249,115,22,.5); }
-    .bar-teal { background: linear-gradient(90deg, #0f766e, #14b8a6); box-shadow: 0 0 8px rgba(20,184,166,.4); }
+    .card { background: #0c0c0c; border: 1px solid #1a1f10; }
+    .btn-ghost { background: transparent; border: 1px solid #1a1f10; color: #6b7a4a; }
+    .btn-ghost:hover { border-color: var(--mid); color: #c8d890; }
 
-    @keyframes ws-pulse { 0%,100%{opacity:1;} 50%{opacity:.3;} }
-    .ws-dot { animation: ws-pulse 1.1s ease infinite; }
+    /* Progress bars */
+    .bar-lime { background: linear-gradient(90deg, var(--dark), var(--mid), var(--lime)); box-shadow: 0 0 8px rgba(167,209,41,.35); }
+    .bar-dim  { background: var(--dark); }
 
-    @keyframes speed-tick { 0%,100%{opacity:1;} 40%{opacity:.6;} }
-    .speed { animation: speed-tick .9s ease infinite; font-variant-numeric: tabular-nums; }
+    /* Indeterminate */
+    @keyframes ind { 0%{left:-55%;width:55%} 100%{left:105%;width:55%} }
+    .ind { position:absolute; top:0; height:100%; border-radius:9999px; background:rgba(167,209,41,.25); animation:ind 1.7s ease infinite; }
 
-    @keyframes ind { 0%{left:-60%;width:60%;} 100%{left:110%;width:60%;} }
-    .ind-bar { position:absolute; top:0; height:100%; background: rgba(249,115,22,.3); border-radius:9999px; animation: ind 1.6s ease infinite; }
+    /* Speed flicker */
+    @keyframes flicker { 0%,100%{opacity:1} 50%{opacity:.55} }
+    .speed { animation: flicker .85s ease infinite; color: var(--lime); }
 
-    .queue-item { border-left: 3px solid transparent; }
-    .queue-item:hover { border-left-color: #f97316; background: rgba(249,115,22,.04); }
-    ::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-thumb{background:#1f2e4a;border-radius:2px;}
+    /* WS dot */
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.2} }
+    .ws-dot { animation: pulse 1.1s ease infinite; background: var(--lime); }
+
+    /* Queue rows */
+    .q-row { border-left: 2px solid transparent; transition: border-color .15s, background .15s; }
+    .q-row:hover { border-left-color: var(--lime); background: rgba(167,209,41,.03); }
+
+    ::-webkit-scrollbar{width:3px;} ::-webkit-scrollbar-thumb{background:#1a1f10;border-radius:2px;}
   </style>
 </head>
-<body class="text-slate-200 min-h-screen flex">
+<body class="min-h-screen flex">
 
   <!-- SIDEBAR -->
-  <aside class="sidebar w-56 shrink-0 flex flex-col fixed top-0 left-0 h-screen z-20">
-    <div class="px-5 py-5 border-b border-[#1a2540]">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-lg bg-ox-500 flex items-center justify-center text-white font-black text-sm">DL</div>
-        <span class="font-bold text-white tracking-tight">MediaBot</span>
+  <aside class="sidebar w-52 shrink-0 fixed top-0 left-0 h-screen flex flex-col z-20">
+    <div class="px-4 py-5 border-b border-[#1a1f10]">
+      <div class="flex items-center gap-3">
+        <div class="logo-box w-7 h-7 rounded flex items-center justify-center text-black font-black text-xs">DL</div>
+        <div><p class="text-xs font-black tracking-widest uppercase text-[#e8ecd8]">MediaBot</p><p class="text-[9px] text-[#3a4022] tracking-wider">v2.0.0</p></div>
       </div>
     </div>
-    <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm">
-      <a href="search.html"    class="nav-item text-slate-500 flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
-        Search
+    <nav class="flex-1 px-2 py-4 space-y-0.5 text-xs">
+      <a href="search.html"    class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>SEARCH
       </a>
-      <a href="downloads.html" class="nav-item nav-active flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-        Downloads
-        <span class="ml-auto bg-ox-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">2</span>
+      <a href="downloads.html" class="nav-link nav-active flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>DOWNLOADS
+        <span class="badge ml-auto text-[9px] px-1.5 py-0.5 rounded">2</span>
       </a>
-      <a href="history.html"   class="nav-item text-slate-500 flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        History
+      <a href="history.html"   class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>HISTORY
       </a>
-      <a href="settings.html"  class="nav-item text-slate-500 flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        Settings
+      <a href="settings.html"  class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>SETTINGS
       </a>
     </nav>
-    <div class="px-4 py-4 border-t border-[#1a2540]">
-      <div class="flex items-center gap-2 text-xs">
-        <span class="w-2 h-2 bg-emerald-400 rounded-full ws-dot"></span>
-        <span class="text-slate-500">WS <span class="text-emerald-400">live</span></span>
-      </div>
+    <div class="px-4 py-3 border-t border-[#1a1f10] flex items-center gap-2">
+      <span class="ws-dot w-1.5 h-1.5 rounded-full"></span>
+      <span class="text-[9px] tracking-widest" style="color:#4a5a2a">WS LIVE</span>
     </div>
   </aside>
 
   <!-- CONTENT -->
-  <div class="ml-56 flex-1 flex flex-col">
+  <div class="ml-52 flex-1 flex flex-col">
 
-    <header class="sticky top-0 z-10 px-8 py-4 flex items-center gap-4 border-b border-[#1a2540]" style="background:#080d18;">
+    <header class="sticky top-0 z-10 px-7 py-4 border-b border-[#1a1f10] flex items-center gap-4" style="background:#000">
       <div class="flex-1">
-        <h1 class="text-lg font-bold text-white">Downloads</h1>
-        <p class="text-xs text-slate-500 mt-0.5">Active queue & progress</p>
+        <p class="text-sm font-black tracking-widest uppercase text-[#e8ecd8]">Downloads</p>
+        <p class="text-[10px] tracking-wider mt-0.5" style="color:#3a4022">QUEUE · PROGRESS · STATUS</p>
       </div>
-      <!-- Summary pills -->
-      <div class="flex gap-2 text-xs">
-        <span class="bg-ox-500/15 text-ox-400 border border-ox-500/25 px-2.5 py-1 rounded-full font-medium">2 active</span>
-        <span class="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-2.5 py-1 rounded-full">3 queued</span>
-        <span class="bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 px-2.5 py-1 rounded-full">12 done</span>
+      <div class="flex gap-1.5 text-[9px] tracking-wider">
+        <span class="px-2 py-1 rounded" style="background:rgba(167,209,41,.12);color:var(--lime);border:1px solid rgba(167,209,41,.2)">2 ACTIVE</span>
+        <span class="px-2 py-1 rounded" style="background:rgba(97,111,57,.15);color:#8a9a55;border:1px solid #2d3520">3 QUEUED</span>
+        <span class="px-2 py-1 rounded" style="background:rgba(62,67,46,.4);color:#6b7a4a;border:1px solid #1a1f10">12 DONE</span>
       </div>
     </header>
 
-    <main class="flex-1 px-8 py-6 space-y-8">
+    <main class="flex-1 px-7 py-5 space-y-6">
 
-      <!-- ── ACTIVE ── -->
+      <!-- ACTIVE -->
       <section>
-        <div class="flex items-center gap-3 mb-3">
-          <span class="text-[10px] text-slate-600 uppercase tracking-widest font-semibold">Active</span>
-          <div class="flex-1 h-px bg-[#1a2540]"></div>
-        </div>
+        <p class="text-[9px] tracking-widest mb-3" style="color:#4a5a2a">// ACTIVE TRANSFERS</p>
 
-        <div class="space-y-3">
+        <div class="space-y-2">
 
           <!-- Item 1 -->
-          <div class="card rounded-2xl p-4 transition hover:border-[#2a3a60]">
+          <div class="card rounded-lg p-4">
             <div class="flex items-start gap-3 mb-3">
-              <!-- Icon -->
-              <div class="w-9 h-9 rounded-xl bg-ox-500/15 flex items-center justify-center shrink-0 mt-0.5">
-                <svg class="w-4 h-4 text-ox-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg>
+              <div class="w-8 h-8 rounded flex items-center justify-center shrink-0" style="background:rgba(167,209,41,.1);border:1px solid rgba(167,209,41,.2)">
+                <svg class="w-4 h-4" style="color:var(--lime)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg>
               </div>
               <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <p class="text-sm font-semibold text-white truncate">Dragon.Ball.Super.S01E01.1080p.FRENCH.mkv</p>
-                  <span class="text-[10px] bg-ox-500/15 text-ox-400 border border-ox-500/25 px-1.5 py-0.5 rounded shrink-0">1fichier</span>
+                <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                  <p class="text-xs font-bold text-[#c8d890] truncate">Dragon.Ball.Super.S01E01.1080p.FRENCH.mkv</p>
+                  <span class="text-[9px] font-black px-1.5 py-0.5 rounded shrink-0" style="background:rgba(167,209,41,.1);color:var(--lime);border:1px solid rgba(167,209,41,.2)">1fichier</span>
                 </div>
-                <p class="text-[11px] text-slate-600 mt-0.5 font-mono truncate">/data/media/Shows/Dragon Ball Super/S01/</p>
+                <p class="text-[9px] font-mono truncate" style="color:#3a4022">/data/media/Shows/Dragon Ball Super/S01/</p>
               </div>
-              <!-- Actions -->
               <div class="flex gap-1 shrink-0">
-                <button class="w-7 h-7 rounded-lg bg-[#111827] hover:bg-amber-500/15 hover:text-amber-400 text-slate-600 flex items-center justify-center transition">
-                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                </button>
-                <button class="w-7 h-7 rounded-lg bg-[#111827] hover:bg-red-500/15 hover:text-red-400 text-slate-600 flex items-center justify-center transition">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
+                <button class="w-7 h-7 rounded btn-ghost flex items-center justify-center transition text-xs">⏸</button>
+                <button class="w-7 h-7 rounded flex items-center justify-center transition text-xs" style="background:transparent;border:1px solid #1a1f10;color:#3a4022" onmouseover="this.style.borderColor='#5a1a1a';this.style.color='#c04040'" onmouseout="this.style.borderColor='#1a1f10';this.style.color='#3a4022'">✕</button>
               </div>
             </div>
-
-            <!-- Progress -->
-            <div class="relative w-full bg-[#111827] rounded-full h-1.5 overflow-hidden mb-2">
-              <div class="bar-ox h-1.5 rounded-full" style="width:63%"></div>
+            <div class="relative w-full h-1 rounded-full overflow-hidden mb-2" style="background:#111">
+              <div class="bar-lime h-1 rounded-full" style="width:63%"></div>
             </div>
-            <div class="flex justify-between text-[11px]">
-              <span class="text-slate-600 font-mono">4.2 GB / 6.7 GB</span>
+            <div class="flex justify-between text-[9px]">
+              <span style="color:#4a5a2a" class="font-mono">4.2 GB / 6.7 GB</span>
               <div class="flex items-center gap-3">
-                <span class="text-emerald-400 speed font-mono">↓ 12.4 MB/s</span>
-                <span class="text-slate-600">ETA 3m 22s</span>
-                <span class="text-ox-400 font-bold">63%</span>
+                <span class="speed font-mono font-bold">↓ 12.4 MB/s</span>
+                <span class="font-mono" style="color:#4a5a2a">ETA 3m22s</span>
+                <span class="font-black" style="color:var(--lime)">63%</span>
               </div>
             </div>
           </div>
 
           <!-- Item 2 -->
-          <div class="card rounded-2xl p-4 transition hover:border-[#2a3a60]">
+          <div class="card rounded-lg p-4">
             <div class="flex items-start gap-3 mb-3">
-              <div class="w-9 h-9 rounded-xl bg-teal-500/10 flex items-center justify-center shrink-0 mt-0.5">
-                <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.069A1 1 0 0121 8.868v6.264a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
+              <div class="w-8 h-8 rounded flex items-center justify-center shrink-0" style="background:rgba(97,111,57,.15);border:1px solid rgba(97,111,57,.3)">
+                <svg class="w-4 h-4" style="color:var(--mid)" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.069A1 1 0 0121 8.868v6.264a1 1 0 01-1.447.894L15 14M3 8a2 2 0 012-2h8a2 2 0 012 2v8a2 2 0 01-2 2H5a2 2 0 01-2-2V8z"/></svg>
               </div>
               <div class="flex-1 min-w-0">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <p class="text-sm font-semibold text-white truncate">Inception.2010.4K.MULTI.mkv</p>
-                  <span class="text-[10px] bg-teal-500/10 text-teal-400 border border-teal-500/20 px-1.5 py-0.5 rounded shrink-0">Turbobit</span>
+                <div class="flex items-center gap-2 flex-wrap mb-0.5">
+                  <p class="text-xs font-bold text-[#c8d890] truncate">Inception.2010.4K.MULTI.mkv</p>
+                  <span class="text-[9px] px-1.5 py-0.5 rounded shrink-0" style="background:rgba(97,111,57,.15);color:#8a9a55;border:1px solid #2d3520">Turbobit</span>
                 </div>
-                <p class="text-[11px] text-slate-600 mt-0.5 font-mono">/data/media/Movies/</p>
+                <p class="text-[9px] font-mono" style="color:#3a4022">/data/media/Movies/</p>
               </div>
               <div class="flex gap-1 shrink-0">
-                <button class="w-7 h-7 rounded-lg bg-[#111827] hover:bg-amber-500/15 hover:text-amber-400 text-slate-600 flex items-center justify-center transition">
-                  <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                </button>
-                <button class="w-7 h-7 rounded-lg bg-[#111827] hover:bg-red-500/15 hover:text-red-400 text-slate-600 flex items-center justify-center transition">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
+                <button class="w-7 h-7 rounded btn-ghost flex items-center justify-center transition text-xs">⏸</button>
+                <button class="w-7 h-7 rounded flex items-center justify-center transition text-xs" style="background:transparent;border:1px solid #1a1f10;color:#3a4022" onmouseover="this.style.borderColor='#5a1a1a';this.style.color='#c04040'" onmouseout="this.style.borderColor='#1a1f10';this.style.color='#3a4022'">✕</button>
               </div>
             </div>
-            <div class="relative w-full bg-[#111827] rounded-full h-1.5 overflow-hidden mb-2">
-              <div class="bar-teal h-1.5 rounded-full" style="width:21%"></div>
+            <div class="relative w-full h-1 rounded-full overflow-hidden mb-2" style="background:#111">
+              <div class="h-1 rounded-full" style="width:21%;background:var(--mid)"></div>
             </div>
-            <div class="flex justify-between text-[11px]">
-              <span class="text-slate-600 font-mono">4.8 GB / 22.1 GB</span>
+            <div class="flex justify-between text-[9px]">
+              <span style="color:#4a5a2a" class="font-mono">4.8 GB / 22.1 GB</span>
               <div class="flex items-center gap-3">
-                <span class="text-emerald-400 speed font-mono" style="animation-delay:.2s">↓ 8.1 MB/s</span>
-                <span class="text-slate-600">ETA 28m 15s</span>
-                <span class="text-teal-400 font-bold">21%</span>
+                <span class="font-mono font-bold" style="color:var(--mid);animation:flicker .9s ease infinite">↓ 8.1 MB/s</span>
+                <span class="font-mono" style="color:#4a5a2a">ETA 28m15s</span>
+                <span class="font-black" style="color:var(--mid)">21%</span>
               </div>
             </div>
           </div>
@@ -173,102 +161,76 @@
         </div>
       </section>
 
-      <!-- ── QUEUE ── -->
+      <!-- QUEUE -->
       <section>
-        <div class="flex items-center gap-3 mb-3">
-          <span class="text-[10px] text-slate-600 uppercase tracking-widest font-semibold">Queue</span>
-          <div class="flex-1 h-px bg-[#1a2540]"></div>
-        </div>
+        <p class="text-[9px] tracking-widest mb-3" style="color:#4a5a2a">// QUEUE</p>
 
-        <div class="card rounded-2xl overflow-hidden divide-y divide-[#1a2540]">
+        <div class="card rounded-lg overflow-hidden divide-y" style="border-color:#1a1f10">
+          <div style="border-color:#1a1f10" class="divide-y divide-[#1a1f10]">
 
-          <!-- Queue row 1 -->
-          <div class="queue-item px-4 py-3 flex items-center gap-3 transition">
-            <span class="text-[10px] text-slate-700 font-mono w-4 shrink-0">01</span>
-            <div class="w-6 h-6 rounded-lg bg-[#111827] flex items-center justify-center shrink-0">
-              <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <div class="q-row px-4 py-3 flex items-center gap-3">
+              <span class="text-[9px] font-mono w-5 shrink-0" style="color:#2d3520">01</span>
+              <div class="flex-1 min-w-0">
+                <p class="text-[11px] font-bold text-[#8a9a55] truncate">Dragon.Ball.Super.S01E02.1080p.FRENCH.mkv</p>
+                <p class="text-[9px] mt-0.5 font-mono" style="color:#3a4022">WAITING · 6.2 GB · 1fichier</p>
+              </div>
+              <div class="w-24 relative h-0.5 rounded-full overflow-hidden" style="background:#111">
+                <div class="ind"></div>
+              </div>
+              <button class="text-[#2d3520] hover:text-red-700 transition text-xs ml-1">✕</button>
             </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium text-slate-300 truncate">Dragon.Ball.Super.S01E02.1080p.FRENCH.mkv</p>
-              <p class="text-[10px] text-slate-600 mt-0.5">Waiting · 6.2 GB · 1fichier</p>
+
+            <div class="q-row px-4 py-3 flex items-center gap-3">
+              <span class="text-[9px] font-mono w-5 shrink-0" style="color:#2d3520">02</span>
+              <div class="flex-1 min-w-0">
+                <p class="text-[11px] font-bold text-[#8a9a55] truncate">Dragon.Ball.Super.S01E03.1080p.FRENCH.mkv</p>
+                <p class="text-[9px] mt-0.5 font-mono" style="color:#3a4022">WAITING · 5.8 GB · 1fichier</p>
+              </div>
+              <div class="w-24 relative h-0.5 rounded-full overflow-hidden" style="background:#111">
+                <div class="ind" style="animation-delay:.5s"></div>
+              </div>
+              <button class="text-[#2d3520] hover:text-red-700 transition text-xs ml-1">✕</button>
             </div>
-            <div class="w-28 relative h-1 bg-[#111827] rounded-full overflow-hidden">
-              <div class="ind-bar"></div>
+
+            <!-- Paused -->
+            <div class="q-row px-4 py-3 flex items-center gap-3" style="border-left-color:#8a7a30 !important;background:rgba(138,122,48,.04)">
+              <span class="text-[9px] font-mono w-5 shrink-0" style="color:#2d3520">03</span>
+              <div class="flex-1 min-w-0">
+                <p class="text-[11px] font-bold text-[#8a9a55] truncate">The.Matrix.1999.1080p.MULTI.mkv</p>
+                <p class="text-[9px] mt-0.5 font-mono" style="color:#8a7a30">PAUSED · 8.1 GB · Rapidgator</p>
+              </div>
+              <div class="w-24 h-0.5 rounded-full" style="background:#111">
+                <div class="h-0.5 rounded-full" style="width:45%;background:#8a7a30"></div>
+              </div>
+              <button class="text-[#8a7a30] hover:text-yellow-400 transition text-xs ml-1">▶</button>
             </div>
-            <button class="text-slate-700 hover:text-red-400 transition ml-1">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
+
           </div>
-
-          <!-- Queue row 2 -->
-          <div class="queue-item px-4 py-3 flex items-center gap-3 transition">
-            <span class="text-[10px] text-slate-700 font-mono w-4 shrink-0">02</span>
-            <div class="w-6 h-6 rounded-lg bg-[#111827] flex items-center justify-center shrink-0">
-              <svg class="w-3.5 h-3.5 text-slate-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium text-slate-300 truncate">Dragon.Ball.Super.S01E03.1080p.FRENCH.mkv</p>
-              <p class="text-[10px] text-slate-600 mt-0.5">Waiting · 5.8 GB · 1fichier</p>
-            </div>
-            <div class="w-28 relative h-1 bg-[#111827] rounded-full overflow-hidden">
-              <div class="ind-bar" style="animation-delay:.5s"></div>
-            </div>
-            <button class="text-slate-700 hover:text-red-400 transition ml-1">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </button>
-          </div>
-
-          <!-- Queue row 3 – paused -->
-          <div class="queue-item border-l-amber-500/60 px-4 py-3 flex items-center gap-3 bg-amber-500/[.03] transition">
-            <span class="text-[10px] text-slate-700 font-mono w-4 shrink-0">03</span>
-            <div class="w-6 h-6 rounded-lg bg-amber-500/15 flex items-center justify-center shrink-0">
-              <svg class="w-3.5 h-3.5 text-amber-400" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-            </div>
-            <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium text-slate-300 truncate">The.Matrix.1999.1080p.MULTI.mkv</p>
-              <p class="text-[10px] text-amber-500 mt-0.5">Paused · 8.1 GB · Rapidgator</p>
-            </div>
-            <div class="w-28 h-1 bg-[#111827] rounded-full overflow-hidden">
-              <div class="bg-amber-500/50 h-1 rounded-full" style="width:45%"></div>
-            </div>
-            <button class="text-amber-500 hover:text-amber-300 transition ml-1">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-            </button>
-          </div>
-
         </div>
       </section>
 
-      <!-- ── RECENTLY DONE ── -->
+      <!-- DONE -->
       <section>
-        <div class="flex items-center gap-3 mb-3">
-          <span class="text-[10px] text-slate-600 uppercase tracking-widest font-semibold">Recently completed</span>
-          <div class="flex-1 h-px bg-[#1a2540]"></div>
-        </div>
-
-        <div class="card rounded-2xl overflow-hidden divide-y divide-[#1a2540]">
+        <p class="text-[9px] tracking-widest mb-3" style="color:#4a5a2a">// RECENTLY COMPLETED</p>
+        <div class="card rounded-lg overflow-hidden divide-y divide-[#1a1f10]">
 
           <div class="px-4 py-3 flex items-center gap-3">
-            <div class="w-6 h-6 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
-              <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-            </div>
+            <span class="text-[9px] font-black" style="color:var(--lime)">✓</span>
             <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium text-slate-400 truncate">Interstellar.2014.2160p.4K.BluRay.mkv</p>
-              <p class="text-[10px] text-slate-600 mt-0.5">14 min ago · 28.4 GB · 1fichier</p>
+              <p class="text-[11px] font-bold text-[#6b7a4a] truncate">Interstellar.2014.2160p.4K.BluRay.mkv</p>
+              <p class="text-[9px] font-mono" style="color:#3a4022">14 MIN AGO · 28.4 GB · 1fichier</p>
             </div>
-            <div class="w-24 h-1 bg-emerald-500/20 rounded-full"><div class="bg-emerald-500 h-1 rounded-full w-full"></div></div>
-            <span class="text-[10px] text-emerald-400 font-bold ml-2">100%</span>
+            <div class="w-24 h-0.5 rounded-full" style="background:var(--mid)"></div>
+            <span class="text-[9px] font-black ml-2" style="color:var(--lime)">100%</span>
           </div>
 
-          <div class="px-4 py-3 flex items-center gap-3 opacity-60">
-            <div class="w-6 h-6 rounded-lg bg-red-500/10 flex items-center justify-center shrink-0">
-              <svg class="w-3.5 h-3.5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-            </div>
+          <div class="px-4 py-3 flex items-center gap-3 opacity-50">
+            <span class="text-[9px] font-black text-red-700">✕</span>
             <div class="flex-1 min-w-0">
-              <p class="text-xs font-medium text-slate-500 truncate">Dune.Part.2.2024.1080p.FRENCH.mkv</p>
-              <p class="text-[10px] text-red-400 mt-0.5">Failed — AllDebrid error</p>
+              <p class="text-[11px] font-bold text-[#6b7a4a] truncate">Dune.Part.2.2024.1080p.FRENCH.mkv</p>
+              <p class="text-[9px] font-mono text-red-900">FAILED — ALLDEBRID ERROR</p>
             </div>
-            <button class="text-[10px] border border-[#1f2e4a] hover:border-ox-500/40 hover:text-ox-400 text-slate-500 px-2.5 py-1 rounded-lg transition">Retry</button>
+            <button class="btn-ghost px-2.5 py-1 rounded text-[9px] transition">RETRY</button>
           </div>
 
         </div>

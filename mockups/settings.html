@@ -5,306 +5,275 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DL Bot — Settings</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{ox:{400:'#fb923c',500:'#f97316',600:'#ea580c'}}}}}</script>
   <style>
-    body { background: #080d18; }
-    .sidebar { background: #0d1424; border-right: 1px solid #1a2540; }
-    .nav-active { background: rgba(249,115,22,0.12); color: #fb923c; border-left: 2px solid #f97316; }
-    .nav-item { border-left: 2px solid transparent; }
-    .nav-item:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
-    .card { background: #0d1424; border: 1px solid #1a2540; }
-    .input-base { background: #111827; border: 1px solid #1f2e4a; color: #e2e8f0; }
-    .input-base:focus { outline: none; border-color: #f97316; box-shadow: 0 0 0 2px rgba(249,115,22,.15); }
+    :root { --black:#000; --dark:#3E432E; --mid:#616F39; --lime:#A7D129; }
+    body { background: var(--black); color: #e8ecd8; font-family: 'ui-monospace','Cascadia Code','Fira Mono',monospace; }
+    .sidebar { background: #0a0a0a; border-right: 1px solid #1a1f10; }
+    .logo-box { background: var(--lime); }
+    .nav-link { color: #6b7a4a; border-left: 2px solid transparent; transition: all .15s; }
+    .nav-link:hover { color: #c8d890; background: rgba(167,209,41,.06); border-left-color: var(--mid); }
+    .nav-active { color: var(--lime); background: rgba(167,209,41,.1); border-left: 2px solid var(--lime); }
+    .badge { background: var(--lime); color: #000; font-weight: 900; }
+
+    .card { background: #0c0c0c; border: 1px solid #1a1f10; }
+    .input { background: #111; border: 1px solid #1a1f10; color: #c8d890; font-family: inherit; }
+    .input:focus { outline: none; border-color: var(--lime); box-shadow: 0 0 0 2px rgba(167,209,41,.12); }
+    .input::placeholder { color: #2d3520; }
+    .input:disabled { color: #2d3520; cursor: not-allowed; }
+
+    .btn-primary { background: var(--lime); color: #000; font-weight: 900; font-family: inherit; letter-spacing: .03em; }
+    .btn-primary:hover { background: #bde430; }
+    .btn-ghost { background: transparent; border: 1px solid #1a1f10; color: #6b7a4a; font-family: inherit; }
+    .btn-ghost:hover { border-color: var(--mid); color: #c8d890; }
 
     /* Toggle */
-    .tog-track { width:40px; height:22px; border-radius:999px; position:relative; cursor:pointer; transition:background .2s; }
-    .tog-on  { background: #f97316; }
-    .tog-off { background: #1f2e4a; }
-    .tog-thumb { position:absolute; top:3px; width:16px; height:16px; background:white; border-radius:50%; transition:left .2s; }
-    .tog-on  .tog-thumb { left:21px; }
-    .tog-off .tog-thumb { left:3px; }
+    .tog { width: 36px; height: 20px; border-radius: 999px; position: relative; cursor: pointer; transition: background .18s; flex-shrink: 0; }
+    .tog-on  { background: var(--lime); }
+    .tog-off { background: #1a1f10; border: 1px solid #2d3520; }
+    .tog-thumb { position: absolute; top: 2px; width: 14px; height: 14px; border-radius: 50%; transition: left .18s; }
+    .tog-on  .tog-thumb { left: 20px; background: #000; }
+    .tog-off .tog-thumb { left: 2px; background: #3a4022; }
 
-    ::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-thumb{background:#1f2e4a;border-radius:2px;}
+    /* Provider drag card */
+    .prov { border: 1px solid #1a1f10; background: #0c0c0c; transition: border-color .15s; }
+    .prov-active { border-color: rgba(167,209,41,.3); background: rgba(167,209,41,.03); }
+    .prov:hover { border-color: #2d3520; }
+
+    ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-thumb { background: #1a1f10; border-radius: 2px; }
   </style>
 </head>
-<body class="text-slate-200 min-h-screen flex">
+<body class="min-h-screen flex">
 
   <!-- SIDEBAR -->
-  <aside class="sidebar w-56 shrink-0 flex flex-col fixed top-0 left-0 h-screen z-20">
-    <div class="px-5 py-5 border-b border-[#1a2540]">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-lg bg-ox-500 flex items-center justify-center text-white font-black text-sm">DL</div>
-        <span class="font-bold text-white tracking-tight">MediaBot</span>
+  <aside class="sidebar w-52 shrink-0 fixed top-0 left-0 h-screen flex flex-col z-20">
+    <div class="px-4 py-5 border-b border-[#1a1f10]">
+      <div class="flex items-center gap-3">
+        <div class="logo-box w-7 h-7 rounded flex items-center justify-center text-black font-black text-xs">DL</div>
+        <div><p class="text-xs font-black tracking-widest uppercase text-[#e8ecd8]">MediaBot</p><p class="text-[9px] text-[#3a4022] tracking-wider">v2.0.0</p></div>
       </div>
     </div>
-    <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm">
-      <a href="search.html"    class="nav-item text-slate-500 flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>Search
+    <nav class="flex-1 px-2 py-4 space-y-0.5 text-xs">
+      <a href="search.html"    class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>SEARCH
       </a>
-      <a href="downloads.html" class="nav-item text-slate-500 flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>Downloads
-        <span class="ml-auto bg-ox-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">2</span>
+      <a href="downloads.html" class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>DOWNLOADS
+        <span class="badge ml-auto text-[9px] px-1.5 py-0.5 rounded">2</span>
       </a>
-      <a href="history.html"   class="nav-item text-slate-500 flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>History
+      <a href="history.html"   class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>HISTORY
       </a>
-      <a href="settings.html"  class="nav-item nav-active flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Settings
+      <a href="settings.html"  class="nav-link nav-active flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>SETTINGS
       </a>
     </nav>
-    <div class="px-4 py-4 border-t border-[#1a2540]">
-      <div class="flex items-center gap-2 text-xs">
-        <span class="w-2 h-2 bg-emerald-400 rounded-full"></span>
-        <span class="text-slate-500">API <span class="text-emerald-400">connected</span></span>
-      </div>
+    <div class="px-4 py-3 border-t border-[#1a1f10] flex items-center gap-2">
+      <span class="w-1.5 h-1.5 rounded-full" style="background:var(--lime)"></span>
+      <span class="text-[9px] tracking-widest" style="color:#4a5a2a">API ONLINE</span>
     </div>
   </aside>
 
   <!-- CONTENT -->
-  <div class="ml-56 flex-1 flex flex-col">
+  <div class="ml-52 flex-1 flex flex-col">
 
-    <header class="sticky top-0 z-10 px-8 py-4 flex items-center gap-4 border-b border-[#1a2540]" style="background:#080d18;">
+    <header class="sticky top-0 z-10 px-7 py-4 border-b border-[#1a1f10] flex items-center gap-4" style="background:#000">
       <div class="flex-1">
-        <h1 class="text-lg font-bold text-white">Settings</h1>
-        <p class="text-xs text-slate-500 mt-0.5">Configure paths, sources and providers</p>
+        <p class="text-sm font-black tracking-widest uppercase text-[#e8ecd8]">Settings</p>
+        <p class="text-[10px] tracking-wider mt-0.5" style="color:#3a4022">PATHS · SOURCE · PROVIDERS · API</p>
       </div>
-      <button id="save-btn" class="bg-ox-500 hover:bg-ox-600 text-white font-bold px-5 py-2 rounded-xl text-sm transition flex items-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-        Save
+      <button id="save-btn" class="btn-primary px-5 py-2 rounded text-xs transition flex items-center gap-2">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+        SAVE →
       </button>
     </header>
 
     <!-- Toast -->
-    <div id="toast" class="hidden fixed bottom-5 right-5 z-50 bg-emerald-600 text-white text-xs px-4 py-2.5 rounded-xl shadow-xl flex items-center gap-2">
-      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>
-      Settings saved
+    <div id="toast" class="hidden fixed bottom-5 right-5 z-50 text-black text-xs font-black px-4 py-2.5 rounded flex items-center gap-2 tracking-wider" style="background:var(--lime)">
+      ✓ SAVED
     </div>
 
-    <main class="flex-1 px-8 py-6 max-w-2xl space-y-5">
+    <main class="flex-1 px-7 py-5 max-w-xl space-y-4">
 
-      <!-- ── PATHS ── -->
-      <div class="card rounded-2xl p-5">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 rounded-xl bg-ox-500/15 flex items-center justify-center">
-            <svg class="w-4 h-4 text-ox-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
-          </div>
-          <div>
-            <p class="text-sm font-semibold text-white">Download Paths</p>
-            <p class="text-[11px] text-slate-600">Where files are saved on the server</p>
-          </div>
-        </div>
-
+      <!-- PATHS -->
+      <div class="card rounded-lg p-4">
+        <p class="text-[9px] tracking-widest font-black mb-3" style="color:#4a5a2a">// DOWNLOAD PATHS</p>
         <div class="space-y-3">
           <div>
-            <label class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold block mb-1.5">Movies</label>
+            <label class="text-[9px] tracking-widest block mb-1" style="color:#3a4022">MOVIES</label>
             <div class="flex gap-2">
-              <input type="text" value="/data/media/Movies" class="input-base flex-1 rounded-xl px-3 py-2 text-xs font-mono" />
-              <button class="bg-[#111827] border border-[#1f2e4a] hover:border-ox-500/40 hover:text-ox-400 text-slate-500 px-3 py-2 rounded-xl text-xs transition">Test</button>
+              <input type="text" value="/data/media/Movies" class="input flex-1 rounded px-3 py-2 text-xs" />
+              <button class="btn-ghost rounded px-3 py-2 text-[10px] transition">TEST</button>
             </div>
           </div>
           <div>
-            <label class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold block mb-1.5">Shows</label>
+            <label class="text-[9px] tracking-widest block mb-1" style="color:#3a4022">SHOWS</label>
             <div class="flex gap-2">
-              <input type="text" value="/data/media/Shows" class="input-base flex-1 rounded-xl px-3 py-2 text-xs font-mono" />
-              <button class="bg-[#111827] border border-[#1f2e4a] hover:border-ox-500/40 hover:text-ox-400 text-slate-500 px-3 py-2 rounded-xl text-xs transition">Test</button>
+              <input type="text" value="/data/media/Shows" class="input flex-1 rounded px-3 py-2 text-xs" />
+              <button class="btn-ghost rounded px-3 py-2 text-[10px] transition">TEST</button>
             </div>
           </div>
           <!-- Disk bar -->
-          <div class="bg-[#111827] rounded-xl p-3 mt-1">
-            <div class="flex justify-between text-[11px] mb-1.5">
-              <span class="text-slate-600">/data/media</span>
-              <span class="text-white font-mono">2.4 TB / 4 TB</span>
+          <div class="rounded p-3" style="background:#111;border:1px solid #1a1f10">
+            <div class="flex justify-between text-[9px] mb-1.5">
+              <span style="color:#3a4022">/data/media</span>
+              <span class="font-black" style="color:#8a9a55">2.4 TB / 4 TB</span>
             </div>
-            <div class="w-full h-1.5 bg-[#1a2540] rounded-full">
-              <div class="h-1.5 rounded-full bg-gradient-to-r from-ox-600 to-amber-400" style="width:60%"></div>
+            <div class="w-full h-1 rounded-full" style="background:#1a1f10">
+              <div class="h-1 rounded-full" style="width:60%;background:linear-gradient(90deg,var(--dark),var(--mid),var(--lime))"></div>
             </div>
-            <p class="text-[10px] text-slate-600 mt-1">1.6 TB remaining</p>
+            <p class="text-[9px] mt-1" style="color:#3a4022">1.6 TB FREE</p>
           </div>
         </div>
       </div>
 
-      <!-- ── SOURCE ── -->
-      <div class="card rounded-2xl p-5">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 rounded-xl bg-teal-500/10 flex items-center justify-center">
-            <svg class="w-4 h-4 text-teal-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"/></svg>
-          </div>
-          <div>
-            <p class="text-sm font-semibold text-white">Source</p>
-            <p class="text-[11px] text-slate-600">Scraper URL and search defaults</p>
-          </div>
-        </div>
-
+      <!-- SOURCE -->
+      <div class="card rounded-lg p-4">
+        <p class="text-[9px] tracking-widest font-black mb-3" style="color:#4a5a2a">// SOURCE</p>
         <div class="space-y-3">
           <div>
-            <label class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold block mb-1.5">Wawacity URL</label>
+            <label class="text-[9px] tracking-widest block mb-1" style="color:#3a4022">WAWACITY URL</label>
             <div class="flex gap-2">
-              <input type="url" value="https://www.wawacity.vip/" class="input-base flex-1 rounded-xl px-3 py-2 text-xs font-mono" />
-              <button class="bg-[#111827] border border-[#1f2e4a] hover:border-teal-500/40 hover:text-teal-400 text-slate-500 px-3 py-2 rounded-xl text-xs transition">Ping</button>
+              <input type="url" value="https://www.wawacity.vip/" class="input flex-1 rounded px-3 py-2 text-xs" />
+              <button class="btn-ghost rounded px-3 py-2 text-[10px] transition">PING</button>
             </div>
             <div class="flex items-center gap-1.5 mt-1.5">
-              <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span>
-              <span class="text-[10px] text-emerald-400">Reachable — 142ms</span>
+              <span class="w-1.5 h-1.5 rounded-full" style="background:var(--lime)"></span>
+              <span class="text-[9px]" style="color:var(--mid)">REACHABLE — 142ms</span>
             </div>
           </div>
-
           <div>
-            <label class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold block mb-1.5">Default category</label>
-            <div class="flex rounded-xl overflow-hidden border border-[#1f2e4a]">
-              <button class="flex-1 py-2 text-xs text-slate-500 hover:bg-white/5 transition">Films</button>
-              <button class="flex-1 py-2 text-xs bg-ox-500 text-white font-bold">Series</button>
-              <button class="flex-1 py-2 text-xs text-slate-500 hover:bg-white/5 transition">Mangas</button>
+            <label class="text-[9px] tracking-widest block mb-1" style="color:#3a4022">DEFAULT CATEGORY</label>
+            <div class="flex rounded overflow-hidden" style="border:1px solid #1a1f10">
+              <button class="flex-1 py-2 text-[10px] nav-link transition">FILMS</button>
+              <button class="flex-1 py-2 text-[10px] font-black" style="background:var(--lime);color:#000">SERIES</button>
+              <button class="flex-1 py-2 text-[10px] nav-link transition">MANGAS</button>
             </div>
           </div>
-
           <div>
-            <label class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold block mb-1.5">Results per search</label>
+            <label class="text-[9px] tracking-widest block mb-1" style="color:#3a4022">RESULTS PER SEARCH</label>
             <div class="flex items-center gap-3">
-              <input type="range" min="3" max="20" value="10" class="flex-1 accent-ox-500" />
-              <span class="text-sm font-mono text-white w-5 text-center">10</span>
+              <input type="range" min="3" max="20" value="10" class="flex-1" style="accent-color:var(--lime)" />
+              <span class="text-xs font-black w-5 text-center" style="color:var(--lime)">10</span>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ── PROVIDERS ── -->
-      <div class="card rounded-2xl p-5">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 rounded-xl bg-violet-500/10 flex items-center justify-center">
-            <svg class="w-4 h-4 text-violet-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-          </div>
-          <div>
-            <p class="text-sm font-semibold text-white">Providers</p>
-            <p class="text-[11px] text-slate-600">Fallback order · drag to reorder</p>
-          </div>
-        </div>
-
+      <!-- PROVIDERS -->
+      <div class="card rounded-lg p-4">
+        <p class="text-[9px] tracking-widest font-black mb-3" style="color:#4a5a2a">// PROVIDERS — FALLBACK ORDER</p>
         <div class="space-y-2">
 
           <!-- 1fichier -->
-          <div class="bg-[#111827] border border-ox-500/20 rounded-xl px-3 py-2.5 flex items-center gap-3">
-            <svg class="w-4 h-4 text-slate-600 cursor-grab" fill="currentColor" viewBox="0 0 24 24"><path d="M8 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm0 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm0 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm8-12a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm0 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm0 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
-            <span class="text-[10px] text-slate-600 font-mono w-4">#1</span>
-            <div class="w-6 h-6 rounded-lg bg-ox-500/15 flex items-center justify-center text-ox-400 font-black text-[10px]">1</div>
+          <div class="prov prov-active rounded-lg px-3 py-2.5 flex items-center gap-3">
+            <span class="text-[10px] cursor-grab" style="color:#2d3520">⠿</span>
+            <span class="text-[9px] font-mono w-4" style="color:#3a4022">#1</span>
+            <div class="w-6 h-6 rounded flex items-center justify-center font-black text-[10px]" style="background:rgba(167,209,41,.12);color:var(--lime);border:1px solid rgba(167,209,41,.2)">1</div>
             <div class="flex-1">
-              <p class="text-xs font-semibold text-white">1fichier</p>
-              <p class="text-[10px] text-slate-600">Primary · AllDebrid</p>
+              <p class="text-xs font-black text-[#c8d890]">1fichier</p>
+              <p class="text-[9px]" style="color:#3a4022">PRIMARY · ALLDEBRID</p>
             </div>
-            <span class="text-[10px] bg-ox-500/10 text-ox-400 border border-ox-500/20 px-1.5 py-0.5 rounded font-bold">Default</span>
-            <div class="tog-track tog-on"><div class="tog-thumb"></div></div>
+            <span class="text-[9px] font-black px-1.5 py-0.5 rounded" style="background:rgba(167,209,41,.1);color:var(--lime);border:1px solid rgba(167,209,41,.2)">DEFAULT</span>
+            <div class="tog tog-on"><div class="tog-thumb"></div></div>
           </div>
 
           <!-- Turbobit -->
-          <div class="bg-[#111827] border border-[#1f2e4a] rounded-xl px-3 py-2.5 flex items-center gap-3">
-            <svg class="w-4 h-4 text-slate-600 cursor-grab" fill="currentColor" viewBox="0 0 24 24"><path d="M8 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm0 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm0 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm8-12a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm0 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm0 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
-            <span class="text-[10px] text-slate-600 font-mono w-4">#2</span>
-            <div class="w-6 h-6 rounded-lg bg-violet-500/10 flex items-center justify-center text-violet-400 font-black text-[10px]">T</div>
+          <div class="prov rounded-lg px-3 py-2.5 flex items-center gap-3">
+            <span class="text-[10px] cursor-grab" style="color:#2d3520">⠿</span>
+            <span class="text-[9px] font-mono w-4" style="color:#3a4022">#2</span>
+            <div class="w-6 h-6 rounded flex items-center justify-center font-black text-[10px]" style="background:rgba(97,111,57,.15);color:var(--mid);border:1px solid #2d3520">T</div>
             <div class="flex-1">
-              <p class="text-xs font-semibold text-white">Turbobit</p>
-              <p class="text-[10px] text-slate-600">Fallback #1</p>
+              <p class="text-xs font-black text-[#c8d890]">Turbobit</p>
+              <p class="text-[9px]" style="color:#3a4022">FALLBACK #1</p>
             </div>
-            <div class="tog-track tog-on"><div class="tog-thumb"></div></div>
+            <div class="tog tog-on"><div class="tog-thumb"></div></div>
           </div>
 
           <!-- Rapidgator – disabled -->
-          <div class="bg-[#111827]/50 border border-[#1a2540] rounded-xl px-3 py-2.5 flex items-center gap-3 opacity-50">
-            <svg class="w-4 h-4 text-slate-700 cursor-grab" fill="currentColor" viewBox="0 0 24 24"><path d="M8 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm0 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm0 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm8-12a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm0 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3zm0 6a1.5 1.5 0 100-3 1.5 1.5 0 000 3z"/></svg>
-            <span class="text-[10px] text-slate-700 font-mono w-4">#3</span>
-            <div class="w-6 h-6 rounded-lg bg-slate-700/20 flex items-center justify-center text-slate-600 font-black text-[10px]">R</div>
+          <div class="prov rounded-lg px-3 py-2.5 flex items-center gap-3 opacity-40">
+            <span class="text-[10px] cursor-grab" style="color:#2d3520">⠿</span>
+            <span class="text-[9px] font-mono w-4" style="color:#2d3520">#3</span>
+            <div class="w-6 h-6 rounded flex items-center justify-center font-black text-[10px]" style="background:rgba(62,67,46,.2);color:#3a4022;border:1px solid #1a1f10">R</div>
             <div class="flex-1">
-              <p class="text-xs font-semibold text-slate-500">Rapidgator</p>
-              <p class="text-[10px] text-slate-700">Disabled</p>
+              <p class="text-xs font-black" style="color:#4a5a2a">Rapidgator</p>
+              <p class="text-[9px]" style="color:#2d3520">DISABLED</p>
             </div>
-            <div class="tog-track tog-off"><div class="tog-thumb" style="background:#475569"></div></div>
+            <div class="tog tog-off"><div class="tog-thumb"></div></div>
           </div>
+
         </div>
-        <p class="text-[10px] text-slate-700 mt-2.5">Tried in order until one succeeds.</p>
+        <p class="text-[9px] mt-2" style="color:#2d3520">DRAG TO REORDER · TRIED IN ORDER UNTIL ONE SUCCEEDS</p>
       </div>
 
-      <!-- ── ALLDEBRID ── -->
-      <div class="card rounded-2xl p-5">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 rounded-xl bg-amber-500/10 flex items-center justify-center">
-            <svg class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
-          </div>
-          <div>
-            <p class="text-sm font-semibold text-white">AllDebrid</p>
-            <p class="text-[11px] text-slate-600">API key & account info</p>
-          </div>
-        </div>
+      <!-- ALLDEBRID -->
+      <div class="card rounded-lg p-4">
+        <p class="text-[9px] tracking-widest font-black mb-3" style="color:#4a5a2a">// ALLDEBRID API</p>
         <div class="space-y-3">
           <div>
-            <label class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold block mb-1.5">API Key</label>
+            <label class="text-[9px] tracking-widest block mb-1" style="color:#3a4022">API KEY</label>
             <div class="flex gap-2">
-              <input type="password" id="api-key" value="sk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-                     class="input-base flex-1 rounded-xl px-3 py-2 text-xs font-mono" />
-              <button onclick="document.getElementById('api-key').type=document.getElementById('api-key').type==='password'?'text':'password'"
-                      class="bg-[#111827] border border-[#1f2e4a] hover:border-amber-500/40 hover:text-amber-400 text-slate-500 px-3 py-2 rounded-xl text-xs transition">Show</button>
+              <input type="password" id="api-key" value="sk_xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx" class="input flex-1 rounded px-3 py-2 text-xs" />
+              <button onclick="var i=document.getElementById('api-key');i.type=i.type==='password'?'text':'password'" class="btn-ghost rounded px-3 py-2 text-[10px] transition">SHOW</button>
             </div>
           </div>
           <div class="grid grid-cols-3 gap-2">
-            <div class="bg-[#111827] rounded-xl p-3 text-center">
-              <p class="text-[10px] text-slate-600 mb-0.5">Status</p>
-              <p class="text-xs font-bold text-emerald-400">Premium</p>
+            <div class="rounded p-2.5 text-center" style="background:#111;border:1px solid #1a1f10">
+              <p class="text-[9px] mb-1" style="color:#3a4022">STATUS</p>
+              <p class="text-[10px] font-black" style="color:var(--lime)">PREMIUM</p>
             </div>
-            <div class="bg-[#111827] rounded-xl p-3 text-center">
-              <p class="text-[10px] text-slate-600 mb-0.5">Expires</p>
-              <p class="text-xs font-bold text-white font-mono">2025-06-01</p>
+            <div class="rounded p-2.5 text-center" style="background:#111;border:1px solid #1a1f10">
+              <p class="text-[9px] mb-1" style="color:#3a4022">EXPIRES</p>
+              <p class="text-[10px] font-black text-[#8a9a55] font-mono">2025-06-01</p>
             </div>
-            <div class="bg-[#111827] rounded-xl p-3 text-center">
-              <p class="text-[10px] text-slate-600 mb-0.5">Today</p>
-              <p class="text-xs font-bold text-white">24 links</p>
+            <div class="rounded p-2.5 text-center" style="background:#111;border:1px solid #1a1f10">
+              <p class="text-[9px] mb-1" style="color:#3a4022">TODAY</p>
+              <p class="text-[10px] font-black text-[#8a9a55]">24 LINKS</p>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- ── NOTIFICATIONS ── -->
-      <div class="card rounded-2xl p-5">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 rounded-xl bg-sky-500/10 flex items-center justify-center">
-            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      <!-- NOTIFICATIONS -->
+      <div class="card rounded-lg p-4">
+        <p class="text-[9px] tracking-widest font-black mb-3" style="color:#4a5a2a">// NOTIFICATIONS</p>
+        <div class="space-y-0 divide-y" style="border-color:#1a1f10">
+
+          <div class="flex items-center justify-between py-3">
+            <div>
+              <p class="text-xs font-bold text-[#c8d890]">On download complete</p>
+              <p class="text-[9px]" style="color:#3a4022">BROWSER NOTIFICATION</p>
+            </div>
+            <div class="tog tog-on"><div class="tog-thumb"></div></div>
           </div>
-          <div>
-            <p class="text-sm font-semibold text-white">Notifications</p>
-            <p class="text-[11px] text-slate-600">Browser & Discord webhook</p>
+
+          <div class="flex items-center justify-between py-3">
+            <div>
+              <p class="text-xs font-bold text-[#c8d890]">On error</p>
+              <p class="text-[9px]" style="color:#3a4022">ALERT WHEN A DOWNLOAD FAILS</p>
+            </div>
+            <div class="tog tog-on"><div class="tog-thumb"></div></div>
           </div>
-        </div>
-        <div class="space-y-3 divide-y divide-[#1a2540]">
-          <div class="flex items-center justify-between py-2">
-            <div><p class="text-xs font-medium text-white">On download complete</p><p class="text-[10px] text-slate-600">Browser notification</p></div>
-            <div class="tog-track tog-on"><div class="tog-thumb"></div></div>
-          </div>
-          <div class="flex items-center justify-between py-2">
-            <div><p class="text-xs font-medium text-white">On error</p><p class="text-[10px] text-slate-600">Alert when a download fails</p></div>
-            <div class="tog-track tog-on"><div class="tog-thumb"></div></div>
-          </div>
-          <div class="pt-2">
+
+          <div class="py-3">
             <div class="flex items-center justify-between mb-2">
-              <div><p class="text-xs font-medium text-white">Discord webhook</p><p class="text-[10px] text-slate-600">Post to a channel</p></div>
-              <div class="tog-track tog-off"><div class="tog-thumb" style="background:#475569"></div></div>
+              <div>
+                <p class="text-xs font-bold text-[#c8d890]">Discord webhook</p>
+                <p class="text-[9px]" style="color:#3a4022">POST TO A CHANNEL</p>
+              </div>
+              <div class="tog tog-off"><div class="tog-thumb"></div></div>
             </div>
-            <input type="url" placeholder="https://discord.com/api/webhooks/…" disabled
-                   class="w-full bg-[#111827]/50 border border-[#1a2540] rounded-xl px-3 py-2 text-[10px] font-mono text-slate-700 cursor-not-allowed" />
+            <input type="url" placeholder="https://discord.com/api/webhooks/…" disabled class="input w-full rounded px-3 py-2 text-[10px]" style="opacity:.35" />
           </div>
         </div>
       </div>
 
-      <!-- ── DANGER ── -->
-      <div class="rounded-2xl p-5 border border-red-900/30" style="background:rgba(127,29,29,0.05)">
-        <div class="flex items-center gap-3 mb-4">
-          <div class="w-8 h-8 rounded-xl bg-red-500/10 flex items-center justify-center">
-            <svg class="w-4 h-4 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-          </div>
-          <div>
-            <p class="text-sm font-semibold text-red-400">Danger Zone</p>
-            <p class="text-[11px] text-red-700">Irreversible actions</p>
-          </div>
-        </div>
+      <!-- DANGER -->
+      <div class="rounded-lg p-4" style="background:rgba(80,10,10,.15);border:1px solid rgba(120,20,20,.3)">
+        <p class="text-[9px] tracking-widest font-black mb-3 text-red-800">// DANGER ZONE</p>
         <div class="flex flex-wrap gap-2">
-          <button class="bg-transparent border border-red-900/50 hover:bg-red-500/10 hover:border-red-500/50 text-red-500 px-3 py-2 rounded-xl text-xs transition">Clear history</button>
-          <button class="bg-transparent border border-red-900/50 hover:bg-red-500/10 hover:border-red-500/50 text-red-500 px-3 py-2 rounded-xl text-xs transition">Cancel all downloads</button>
-          <button class="bg-transparent border border-red-900/50 hover:bg-red-500/10 hover:border-red-500/50 text-red-500 px-3 py-2 rounded-xl text-xs transition">Reset to defaults</button>
+          <button class="px-3 py-2 rounded text-[10px] transition text-red-800 hover:text-red-600" style="background:transparent;border:1px solid rgba(120,20,20,.4)">CLEAR HISTORY</button>
+          <button class="px-3 py-2 rounded text-[10px] transition text-red-800 hover:text-red-600" style="background:transparent;border:1px solid rgba(120,20,20,.4)">CANCEL ALL DOWNLOADS</button>
+          <button class="px-3 py-2 rounded text-[10px] transition text-red-800 hover:text-red-600" style="background:transparent;border:1px solid rgba(120,20,20,.4)">RESET TO DEFAULTS</button>
         </div>
       </div>
 
@@ -316,7 +285,7 @@
     document.getElementById('save-btn').addEventListener('click', () => {
       const t = document.getElementById('toast');
       t.classList.remove('hidden');
-      setTimeout(() => t.classList.add('hidden'), 2500);
+      setTimeout(() => t.classList.add('hidden'), 2000);
     });
   </script>
 </body>

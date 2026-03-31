@@ -5,270 +5,265 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DL Bot — Search</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            ox: { 400: '#fb923c', 500: '#f97316', 600: '#ea580c' },
-          },
-          fontFamily: { mono: ['ui-monospace', 'monospace'] }
-        }
-      }
-    }
-  </script>
   <style>
-    body { background: #080d18; }
-    .sidebar { background: #0d1424; border-right: 1px solid #1a2540; }
-    .card { background: #0d1424; border: 1px solid #1a2540; }
-    .card:hover { border-color: #f97316; }
-    .input-base { background: #111827; border: 1px solid #1f2e4a; color: #e2e8f0; }
-    .input-base:focus { outline: none; border-color: #f97316; box-shadow: 0 0 0 2px rgba(249,115,22,0.15); }
-    .nav-active { background: rgba(249,115,22,0.12); color: #fb923c; border-left: 2px solid #f97316; }
-    .nav-item { border-left: 2px solid transparent; }
-    .nav-item:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
-
-    @keyframes shimmer { 0%{background-position:-600px 0} 100%{background-position:600px 0} }
-    .skeleton {
-      background: linear-gradient(90deg, #111827 25%, #1f2e4a 50%, #111827 75%);
-      background-size: 600px 100%;
-      animation: shimmer 1.6s infinite;
+    :root {
+      --black:  #000000;
+      --dark:   #3E432E;
+      --mid:    #616F39;
+      --lime:   #A7D129;
     }
-    .card-hover-overlay { opacity: 0; transition: opacity .2s; background: linear-gradient(to top, rgba(249,115,22,.9) 0%, rgba(249,115,22,.4) 50%, transparent 100%); }
-    .result-card:hover .card-hover-overlay { opacity: 1; }
-    .result-card:hover { transform: translateY(-3px); transition: transform .2s; }
 
-    .modal-bg { background: #0a0f1e; border: 1px solid #1a2540; }
-    ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #1f2e4a; border-radius: 2px; }
+    * { box-sizing: border-box; }
+    body { background: var(--black); color: #e8ecd8; font-family: 'ui-monospace', 'Cascadia Code', 'Fira Mono', monospace; }
+
+    /* Sidebar */
+    .sidebar { background: #0a0a0a; border-right: 1px solid #1a1f10; }
+    .logo-box { background: var(--lime); }
+    .nav-link { color: #6b7a4a; border-left: 2px solid transparent; transition: all .15s; }
+    .nav-link:hover { color: #c8d890; background: rgba(167,209,41,.06); border-left-color: var(--mid); }
+    .nav-active { color: var(--lime); background: rgba(167,209,41,.1); border-left: 2px solid var(--lime); }
+    .badge { background: var(--lime); color: #000; font-weight: 900; }
+
+    /* Cards & inputs */
+    .card { background: #0c0c0c; border: 1px solid #1a1f10; }
+    .card:hover { border-color: #2d3520; }
+    .input { background: #111; border: 1px solid #1a1f10; color: #c8d890; font-family: inherit; }
+    .input:focus { outline: none; border-color: var(--lime); box-shadow: 0 0 0 2px rgba(167,209,41,.15); }
+    .input::placeholder { color: #3a4022; }
+
+    /* Buttons */
+    .btn-primary { background: var(--lime); color: #000; font-weight: 900; letter-spacing: .03em; }
+    .btn-primary:hover { background: #bde430; }
+    .btn-ghost { background: transparent; border: 1px solid #1a1f10; color: #6b7a4a; }
+    .btn-ghost:hover { border-color: var(--mid); color: #c8d890; }
+
+    /* Tags */
+    .tag-lime { background: rgba(167,209,41,.12); color: var(--lime); border: 1px solid rgba(167,209,41,.25); }
+    .tag-dark { background: rgba(97,111,57,.15); color: #8a9a55; border: 1px solid rgba(97,111,57,.3); }
+    .tag-mid  { background: rgba(62,67,46,.5); color: #6b7a4a; border: 1px solid #2d3520; }
+
+    /* Result cards */
+    .result-card { transition: transform .18s, border-color .18s; }
+    .result-card:hover { transform: translateY(-4px); border-color: var(--lime) !important; }
+    .result-card:hover .card-cta { opacity: 1; }
+    .card-cta { opacity: 0; transition: opacity .18s; background: linear-gradient(to top, rgba(0,0,0,.95) 0%, rgba(0,0,0,.5) 60%, transparent 100%); }
+
+    /* Skeleton */
+    @keyframes sk { 0%{background-position:-500px 0} 100%{background-position:500px 0} }
+    .sk { background: linear-gradient(90deg, #111 25%, #1a1f10 50%, #111 75%); background-size: 500px 100%; animation: sk 1.5s infinite; }
+
+    /* Modal */
+    .modal-wrap { background: #080808; border: 1px solid #1a1f10; }
+    .modal-accent { height: 2px; background: linear-gradient(90deg, var(--dark), var(--mid), var(--lime)); }
+
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-thumb { background: #2d3520; border-radius: 2px; }
   </style>
 </head>
-<body class="text-slate-200 min-h-screen flex">
+<body class="min-h-screen flex">
 
-  <!-- ── SIDEBAR ── -->
-  <aside class="sidebar w-56 shrink-0 flex flex-col fixed top-0 left-0 h-screen z-20">
-    <!-- Logo -->
-    <div class="px-5 py-5 border-b border-[#1a2540]">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-lg bg-ox-500 flex items-center justify-center text-white font-black text-sm">DL</div>
-        <span class="font-bold text-white tracking-tight">MediaBot</span>
+  <!-- SIDEBAR -->
+  <aside class="sidebar w-52 shrink-0 fixed top-0 left-0 h-screen flex flex-col z-20">
+
+    <div class="px-4 py-5 border-b border-[#1a1f10]">
+      <div class="flex items-center gap-3">
+        <div class="logo-box w-7 h-7 rounded flex items-center justify-center text-black font-black text-xs">DL</div>
+        <div>
+          <p class="text-xs font-black text-[#e8ecd8] tracking-widest uppercase">MediaBot</p>
+          <p class="text-[9px] text-[#3a4022] tracking-wider">v2.0.0</p>
+        </div>
       </div>
     </div>
 
-    <!-- Nav -->
-    <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm">
-      <a href="search.html"    class="nav-item nav-active flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
-        Search
+    <nav class="flex-1 px-2 py-4 space-y-0.5 text-xs">
+      <a href="search.html"    class="nav-link nav-active flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+        SEARCH
       </a>
-      <a href="downloads.html" class="nav-item text-slate-500 flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-        Downloads
-        <span class="ml-auto bg-ox-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">2</span>
+      <a href="downloads.html" class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        DOWNLOADS
+        <span class="badge ml-auto text-[9px] px-1.5 py-0.5 rounded">2</span>
       </a>
-      <a href="history.html"   class="nav-item text-slate-500 flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-        History
+      <a href="history.html"   class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        HISTORY
       </a>
-      <a href="settings.html"  class="nav-item text-slate-500 flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-        Settings
+      <a href="settings.html"  class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        SETTINGS
       </a>
     </nav>
 
-    <!-- Status -->
-    <div class="px-4 py-4 border-t border-[#1a2540]">
-      <div class="flex items-center gap-2 text-xs">
-        <span class="w-2 h-2 bg-emerald-400 rounded-full"></span>
-        <span class="text-slate-500">API <span class="text-emerald-400">connected</span></span>
-      </div>
+    <div class="px-4 py-3 border-t border-[#1a1f10] flex items-center gap-2">
+      <span class="w-1.5 h-1.5 rounded-full" style="background:var(--lime)"></span>
+      <span class="text-[9px] tracking-widest" style="color:#4a5a2a">API ONLINE</span>
     </div>
   </aside>
 
-  <!-- ── CONTENT ── -->
-  <div class="ml-56 flex-1 flex flex-col min-h-screen">
+  <!-- MAIN -->
+  <div class="ml-52 flex-1 flex flex-col">
 
-    <!-- Top bar -->
-    <header class="sticky top-0 z-10 px-8 py-4 flex items-center gap-4 border-b border-[#1a2540]" style="background:#080d18;">
-      <div class="flex-1">
-        <h1 class="text-lg font-bold text-white">Search</h1>
-        <p class="text-xs text-slate-500 mt-0.5">Find movies, series and mangas</p>
+    <header class="sticky top-0 z-10 px-7 py-4 border-b border-[#1a1f10] flex items-center gap-4" style="background:#000">
+      <div>
+        <p class="text-sm font-black tracking-widest uppercase" style="color:#e8ecd8">Search</p>
+        <p class="text-[10px] tracking-wider mt-0.5" style="color:#3a4022">FIND · DOWNLOAD · ENJOY</p>
       </div>
     </header>
 
-    <main class="flex-1 px-8 py-6">
+    <main class="flex-1 px-7 py-5">
 
-      <!-- Search form -->
-      <div class="card rounded-2xl p-5 mb-6">
-        <div class="flex flex-col sm:flex-row gap-3">
-
-          <!-- Query -->
+      <!-- Search bar -->
+      <div class="card rounded-lg p-4 mb-5">
+        <div class="flex flex-col sm:flex-row gap-2">
           <div class="relative flex-1">
-            <span class="absolute inset-y-0 left-3 flex items-center text-slate-600">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+            <span class="absolute inset-y-0 left-3 flex items-center" style="color:#3a4022">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
             </span>
-            <input type="text" value="Dragon Ball" placeholder="Title…"
-                   class="input-base w-full pl-9 pr-4 py-2.5 rounded-xl text-sm" />
+            <input type="text" value="Dragon Ball" class="input w-full pl-8 pr-3 py-2 rounded text-xs" />
           </div>
 
-          <!-- Category toggle -->
-          <div class="flex rounded-xl overflow-hidden border border-[#1f2e4a] shrink-0">
-            <button class="px-4 py-2.5 text-sm text-slate-500 hover:bg-white/5 transition">Films</button>
-            <button class="px-4 py-2.5 text-sm bg-ox-500 text-white font-semibold">Series</button>
-            <button class="px-4 py-2.5 text-sm text-slate-500 hover:bg-white/5 transition">Mangas</button>
+          <!-- Category buttons -->
+          <div class="flex rounded overflow-hidden border border-[#1a1f10] shrink-0 text-[11px]">
+            <button class="px-3 py-2 nav-link transition">FILMS</button>
+            <button class="px-3 py-2 font-black" style="background:var(--lime);color:#000">SERIES</button>
+            <button class="px-3 py-2 nav-link transition">MANGAS</button>
           </div>
 
-          <!-- Year -->
-          <input type="number" placeholder="Year" value="2024"
-                 class="input-base rounded-xl px-3 py-2.5 text-sm w-28" />
+          <input type="number" value="2024" placeholder="YEAR" class="input rounded px-3 py-2 text-xs w-24" />
 
-          <!-- Search btn -->
-          <button class="bg-ox-500 hover:bg-ox-600 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition shrink-0">
-            Search
-          </button>
+          <button class="btn-primary px-5 py-2 rounded text-xs transition shrink-0">SEARCH →</button>
         </div>
       </div>
 
-      <!-- Results header -->
-      <div class="flex items-center justify-between mb-4">
-        <p class="text-sm text-slate-500">
-          <span class="text-white font-semibold">8</span> results for
-          <span class="text-ox-400 font-mono">"Dragon Ball"</span>
+      <!-- Results label -->
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-[10px] tracking-widest" style="color:#4a5a2a">
+          RESULTS — <span style="color:var(--lime)">8</span> FOR <span class="text-[#c8d890]">"DRAGON BALL"</span>
         </p>
-        <span class="text-xs text-slate-600 font-mono">Series · 2024</span>
+        <div class="flex gap-1">
+          <span class="tag-lime text-[9px] px-2 py-0.5 rounded">SERIES</span>
+          <span class="tag-mid text-[9px] px-2 py-0.5 rounded">2024</span>
+        </div>
       </div>
 
       <!-- Grid -->
       <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
 
-        <!-- Card 1 -->
-        <div class="result-card card rounded-xl overflow-hidden cursor-pointer"
-             onclick="openModal('Dragon Ball Super','🇫🇷','2024','1080p')">
+        <div class="result-card card rounded overflow-hidden cursor-pointer" onclick="openModal('Dragon Ball Super','🇫🇷','2024','1080p')">
           <div class="relative">
-            <img src="https://via.placeholder.com/200x300/0d1424/f97316?text=DBS" alt="" class="w-full aspect-[2/3] object-cover" />
-            <div class="card-hover-overlay absolute inset-0 flex items-end p-3">
-              <span class="text-white font-bold text-xs">Download →</span>
+            <img src="https://via.placeholder.com/200x300/0c0c0c/A7D129?text=DBS" class="w-full aspect-[2/3] object-cover" alt="" />
+            <div class="card-cta absolute inset-0 flex items-end p-2">
+              <span class="text-[10px] font-black" style="color:var(--lime)">[ DOWNLOAD ]</span>
             </div>
-            <div class="absolute top-2 right-2 bg-black/70 text-ox-400 text-[10px] font-bold px-1.5 py-0.5 rounded">1080p</div>
+            <span class="absolute top-1.5 right-1.5 text-[9px] font-black px-1.5 py-0.5 rounded" style="background:#000;color:var(--lime);border:1px solid var(--mid)">1080p</span>
           </div>
-          <div class="p-2.5">
-            <p class="text-xs font-semibold text-white truncate">Dragon Ball Super</p>
-            <p class="text-[10px] text-slate-500 mt-0.5">🇫🇷 · 2024</p>
+          <div class="p-2">
+            <p class="text-[11px] font-bold text-[#c8d890] truncate">Dragon Ball Super</p>
+            <p class="text-[9px] mt-0.5" style="color:#4a5a2a">🇫🇷 · 2024</p>
           </div>
         </div>
 
-        <!-- Card 2 -->
-        <div class="result-card card rounded-xl overflow-hidden cursor-pointer"
-             onclick="openModal('Dragon Ball Z','🇫🇷🇬🇧','2023','4K')">
+        <div class="result-card card rounded overflow-hidden cursor-pointer" onclick="openModal('Dragon Ball Z','🇫🇷🇬🇧','2023','4K')">
           <div class="relative">
-            <img src="https://via.placeholder.com/200x300/0d1424/fb923c?text=DBZ" alt="" class="w-full aspect-[2/3] object-cover" />
-            <div class="card-hover-overlay absolute inset-0 flex items-end p-3">
-              <span class="text-white font-bold text-xs">Download →</span>
+            <img src="https://via.placeholder.com/200x300/0c0c0c/616F39?text=DBZ" class="w-full aspect-[2/3] object-cover" alt="" />
+            <div class="card-cta absolute inset-0 flex items-end p-2">
+              <span class="text-[10px] font-black" style="color:var(--lime)">[ DOWNLOAD ]</span>
             </div>
-            <div class="absolute top-2 right-2 bg-black/70 text-amber-400 text-[10px] font-bold px-1.5 py-0.5 rounded">4K</div>
+            <span class="absolute top-1.5 right-1.5 text-[9px] font-black px-1.5 py-0.5 rounded" style="background:#000;color:#e8d62a;border:1px solid #5a5020">4K</span>
           </div>
-          <div class="p-2.5">
-            <p class="text-xs font-semibold text-white truncate">Dragon Ball Z</p>
-            <p class="text-[10px] text-slate-500 mt-0.5">🇫🇷🇬🇧 · 2023</p>
+          <div class="p-2">
+            <p class="text-[11px] font-bold text-[#c8d890] truncate">Dragon Ball Z</p>
+            <p class="text-[9px] mt-0.5" style="color:#4a5a2a">🇫🇷🇬🇧 · 2023</p>
           </div>
         </div>
 
-        <!-- Card 3 -->
-        <div class="result-card card rounded-xl overflow-hidden cursor-pointer"
-             onclick="openModal('Dragon Ball GT','🇬🇧🇫🇷','2022','720p')">
+        <div class="result-card card rounded overflow-hidden cursor-pointer" onclick="openModal('Dragon Ball GT','🇬🇧🇫🇷','2022','720p')">
           <div class="relative">
-            <img src="https://via.placeholder.com/200x300/0d1424/64748b?text=DBGT" alt="" class="w-full aspect-[2/3] object-cover" />
-            <div class="card-hover-overlay absolute inset-0 flex items-end p-3">
-              <span class="text-white font-bold text-xs">Download →</span>
+            <img src="https://via.placeholder.com/200x300/0c0c0c/3E432E?text=DBGT" class="w-full aspect-[2/3] object-cover" alt="" />
+            <div class="card-cta absolute inset-0 flex items-end p-2">
+              <span class="text-[10px] font-black" style="color:var(--lime)">[ DOWNLOAD ]</span>
             </div>
-            <div class="absolute top-2 right-2 bg-black/70 text-slate-400 text-[10px] font-bold px-1.5 py-0.5 rounded">720p</div>
+            <span class="absolute top-1.5 right-1.5 text-[9px] font-black px-1.5 py-0.5 rounded" style="background:#000;color:#8a9a55;border:1px solid #2d3520">720p</span>
           </div>
-          <div class="p-2.5">
-            <p class="text-xs font-semibold text-white truncate">Dragon Ball GT</p>
-            <p class="text-[10px] text-slate-500 mt-0.5">🇬🇧🇫🇷 · 2022</p>
+          <div class="p-2">
+            <p class="text-[11px] font-bold text-[#c8d890] truncate">Dragon Ball GT</p>
+            <p class="text-[9px] mt-0.5" style="color:#4a5a2a">🇬🇧🇫🇷 · 2022</p>
           </div>
         </div>
 
-        <!-- Skeleton cards -->
-        <div class="card rounded-xl overflow-hidden">
-          <div class="skeleton w-full aspect-[2/3]"></div>
-          <div class="p-2.5 space-y-1.5"><div class="skeleton h-2.5 rounded w-4/5"></div><div class="skeleton h-2 rounded w-2/5"></div></div>
+        <!-- Skeletons -->
+        <div class="card rounded overflow-hidden">
+          <div class="sk w-full aspect-[2/3]"></div>
+          <div class="p-2 space-y-1.5"><div class="sk h-2.5 rounded w-4/5"></div><div class="sk h-2 rounded w-2/5"></div></div>
         </div>
-        <div class="card rounded-xl overflow-hidden">
-          <div class="skeleton w-full aspect-[2/3]"></div>
-          <div class="p-2.5 space-y-1.5"><div class="skeleton h-2.5 rounded w-3/5"></div><div class="skeleton h-2 rounded w-2/5"></div></div>
+        <div class="card rounded overflow-hidden">
+          <div class="sk w-full aspect-[2/3]"></div>
+          <div class="p-2 space-y-1.5"><div class="sk h-2.5 rounded w-3/5"></div><div class="sk h-2 rounded w-1/2"></div></div>
         </div>
-        <div class="card rounded-xl overflow-hidden">
-          <div class="skeleton w-full aspect-[2/3]"></div>
-          <div class="p-2.5 space-y-1.5"><div class="skeleton h-2.5 rounded w-4/5"></div><div class="skeleton h-2 rounded w-1/3"></div></div>
+        <div class="card rounded overflow-hidden">
+          <div class="sk w-full aspect-[2/3]"></div>
+          <div class="p-2 space-y-1.5"><div class="sk h-2.5 rounded w-4/5"></div><div class="sk h-2 rounded w-1/3"></div></div>
         </div>
 
       </div>
     </main>
   </div>
 
-  <!-- ── MODAL ── -->
-  <div id="modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="modal-bg rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-
-      <!-- Gradient header band -->
-      <div class="h-1 bg-gradient-to-r from-ox-600 via-ox-400 to-amber-400"></div>
-
+  <!-- MODAL -->
+  <div id="modal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4" style="background:rgba(0,0,0,.85)">
+    <div class="modal-wrap rounded-lg w-full max-w-sm overflow-hidden">
+      <div class="modal-accent"></div>
       <div class="p-5">
-        <div class="flex items-start gap-4 mb-5">
-          <img src="https://via.placeholder.com/72x108/0d1424/f97316?text=?" alt=""
-               class="w-16 rounded-lg shrink-0 border border-[#1a2540]" />
+
+        <div class="flex items-start gap-3 mb-5">
+          <img src="https://via.placeholder.com/64x96/0c0c0c/A7D129?text=?" alt=""
+               class="w-14 rounded shrink-0" style="border:1px solid #2d3520" />
           <div class="flex-1 min-w-0">
-            <h2 id="m-title" class="font-bold text-white text-base leading-snug">Title</h2>
-            <div class="flex items-center gap-2 mt-1.5 flex-wrap">
-              <span id="m-quality" class="text-[11px] font-bold bg-ox-500/20 text-ox-400 border border-ox-500/30 px-2 py-0.5 rounded">1080p</span>
-              <span id="m-lang" class="text-xs text-slate-500">🇫🇷</span>
-              <span id="m-year" class="text-xs text-slate-600">2024</span>
+            <p id="m-title" class="text-sm font-black text-[#e8ecd8] leading-tight">Title</p>
+            <div class="flex gap-1.5 mt-1.5 flex-wrap">
+              <span id="m-quality" class="tag-lime text-[9px] font-black px-1.5 py-0.5 rounded">1080p</span>
+              <span id="m-lang" class="text-[10px]">🇫🇷</span>
+              <span id="m-year" class="text-[9px]" style="color:#4a5a2a">2024</span>
             </div>
           </div>
-          <button onclick="closeModal()" class="text-slate-600 hover:text-slate-300 transition text-xl">&times;</button>
+          <button onclick="closeModal()" class="text-[#3a4022] hover:text-[#8a9a55] text-lg">&times;</button>
         </div>
 
         <!-- Provider -->
-        <div class="mb-4">
-          <p class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-2">Provider</p>
-          <div class="flex gap-2">
-            <button class="flex-1 py-2 rounded-lg border border-ox-500 bg-ox-500/10 text-ox-400 text-xs font-bold">1fichier</button>
-            <button class="flex-1 py-2 rounded-lg border border-[#1f2e4a] text-slate-500 text-xs hover:border-slate-600 transition">Turbobit</button>
-            <button class="flex-1 py-2 rounded-lg border border-[#1f2e4a] text-slate-500 text-xs hover:border-slate-600 transition">Rapidgator</button>
+        <div class="mb-3">
+          <p class="text-[9px] tracking-widest mb-1.5" style="color:#4a5a2a">// PROVIDER</p>
+          <div class="flex gap-1.5">
+            <button class="flex-1 py-1.5 rounded text-[11px] font-black" style="background:var(--lime);color:#000">1fichier</button>
+            <button class="flex-1 py-1.5 rounded text-[11px] btn-ghost transition">Turbobit</button>
+            <button class="flex-1 py-1.5 rounded text-[11px] btn-ghost transition">Rapidgator</button>
           </div>
         </div>
 
         <!-- Destination -->
-        <div class="mb-4">
-          <p class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-2">Destination</p>
-          <div class="flex gap-2">
-            <button class="flex-1 py-2 rounded-lg border border-ox-500 bg-ox-500/10 text-ox-400 text-xs font-bold flex items-center justify-center gap-1.5">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
+        <div class="mb-3">
+          <p class="text-[9px] tracking-widest mb-1.5" style="color:#4a5a2a">// DESTINATION</p>
+          <div class="flex gap-1.5">
+            <button class="flex-1 py-1.5 rounded text-[11px] font-black flex items-center justify-center gap-1" style="background:var(--dark);color:var(--lime);border:1px solid var(--mid)">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
               Server
             </button>
-            <button class="flex-1 py-2 rounded-lg border border-[#1f2e4a] text-slate-500 text-xs hover:border-slate-600 transition flex items-center justify-center gap-1.5">
-              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.1-1.1m.758-4.9a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
-              Direct link
+            <button class="flex-1 py-1.5 rounded text-[11px] btn-ghost transition flex items-center justify-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.1-1.1m.758-4.9a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+              Direct
             </button>
           </div>
         </div>
 
         <!-- Path -->
         <div class="mb-5">
-          <p class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-2">Path</p>
-          <div class="input-base rounded-xl px-3 py-2 text-xs font-mono text-slate-400 flex items-center gap-2">
-            <svg class="w-3.5 h-3.5 text-ox-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
-            /data/media/Shows/
-          </div>
+          <p class="text-[9px] tracking-widest mb-1.5" style="color:#4a5a2a">// PATH</p>
+          <div class="input rounded px-3 py-2 text-[10px] font-mono" style="color:#8a9a55">/data/media/Shows/</div>
         </div>
 
-        <!-- CTA -->
         <div class="flex gap-2">
-          <button onclick="closeModal()" class="flex-1 py-2.5 rounded-xl border border-[#1f2e4a] text-slate-400 text-sm hover:bg-white/5 transition">Cancel</button>
-          <button class="flex-1 py-2.5 rounded-xl bg-ox-500 hover:bg-ox-600 text-white font-bold text-sm transition">
-            Start download
-          </button>
+          <button onclick="closeModal()" class="flex-1 py-2 rounded text-xs btn-ghost transition">CANCEL</button>
+          <button class="flex-1 py-2 rounded text-xs btn-primary transition">START DOWNLOAD →</button>
         </div>
       </div>
     </div>
