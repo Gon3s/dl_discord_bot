@@ -16,3 +16,15 @@ class AllDebridHTTPError(AllDebridError):
     def __init__(self, status: int) -> None:
         super().__init__(f"HTTP error {status}")
         self.status = status
+
+
+class DownloadError(Exception):
+    """Raised when a download fails."""
+
+
+class DownloadNotFoundError(DownloadError):
+    """Raised when a download ID does not exist in the database."""
+
+    def __init__(self, download_id: str) -> None:
+        super().__init__(f"Download not found: {download_id}")
+        self.download_id = download_id

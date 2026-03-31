@@ -3,14 +3,25 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database import Base, engine
+from app.core.queue import download_queue
+from app.database import Base, AsyncSessionLocal, engine
+from app.services.download_service import DownloadService
+
+
+async def _run_download(download_id: str) -> None:
+    async with AsyncSessionLocal() as session:
+        service = DownloadService(session)
+        await service.run(download_id)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+    download_queue.set_handler(_run_download)
+    download_queue.start()
     yield
+    await download_queue.stop()
     await engine.dispose()
 
 
