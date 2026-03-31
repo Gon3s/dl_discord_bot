@@ -30,6 +30,23 @@ Crée et applique une migration Alembic pour le backend. Description de la migra
    uv run alembic current
    ```
 
+6. **Ouvrir une Pull Request** vers `v2` si la migration fait partie d'une issue :
+   ```bash
+   gh pr create --base v2 --title "feat: <description>" \
+     --body "$(cat <<'EOF'
+   ## Summary
+   - Adds Alembic migration: `$ARGUMENTS`
+
+   ## Test plan
+   - [ ] `uv run alembic current` affiche la bonne révision
+   - [ ] `uv run pytest --tb=short -q` passe
+
+   🤖 Generated with [Claude Code](https://claude.com/claude-code)
+   EOF
+   )"
+   ```
+   Retourner l'URL de la PR à l'utilisateur et **attendre sa validation** avant de merger.
+
 ## En cas d'erreur
 
 - Si migration en conflit : `uv run alembic merge heads -m "merge"`

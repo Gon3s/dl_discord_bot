@@ -34,6 +34,24 @@ Scaffolde un nouveau scraper pour la source de données `$ARGUMENTS`.
 
 7. **Mettre à jour** `CLAUDE.md` section "Sources actuelles" avec le nouvel entry.
 
+8. **Ouvrir une Pull Request** vers `v2` :
+   ```bash
+   gh pr create --base v2 --title "feat: add <source_name> scraper" \
+     --body "$(cat <<'EOF'
+   ## Summary
+   - Scaffolds `<source_name>` scraper implementing `BaseScraper`
+   - Adds unit tests in `tests/test_scrapers.py`
+
+   ## Test plan
+   - [ ] `uv run pytest tests/test_scrapers.py -v` passes
+   - [ ] `GET /api/v1/search?source=<source_name>` returns expected response
+
+   🤖 Generated with [Claude Code](https://claude.com/claude-code)
+   EOF
+   )"
+   ```
+   Retourner l'URL de la PR à l'utilisateur et **attendre sa validation** avant de merger.
+
 ## Conventions importantes
 
 - Tous les appels HTTP dans le scraper utilisent `aiohttp` (pas `requests`)

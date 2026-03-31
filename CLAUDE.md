@@ -152,11 +152,20 @@ Schémas Pydantic dans `backend/app/models/schemas.py`.
 
 ---
 
+## Workflow issue
+
+1. `/start-issue {numero} {nom}` — crée la branche `feat/{numero}-{nom}` depuis `v2`
+2. Implémenter avec les skills ci-dessous
+3. Le skill crée une PR vers `v2` en fin de tâche
+4. **Attendre la revue et validation de la PR avant de merger**
+
 ## Skills disponibles
 
 | Commande | Description |
 |---|---|
-| `/add-scraper` | Scaffolde un nouveau scraper pour une source de données |
-| `/db-migrate` | Crée et applique une migration Alembic |
+| `/start-issue` | Crée une branche `feat/{numero}-{nom}` depuis `v2` |
+| `/add-scraper` | Scaffolde un nouveau scraper + ouvre une PR |
+| `/db-migrate` | Crée et applique une migration Alembic + ouvre une PR |
 | `/check-api` | Vérifie que tous les endpoints API répondent correctement |
 | `/deploy` | Lance la stack complète via docker-compose |
+| `/test` | Lance la suite de tests du backend |
