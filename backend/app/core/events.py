@@ -1,6 +1,8 @@
 import asyncio
 from collections import defaultdict
 
+QUEUE_CHANNEL = "__queue__"
+
 _subscribers: dict[str, list[asyncio.Queue]] = defaultdict(list)
 
 

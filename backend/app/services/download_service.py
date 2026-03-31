@@ -22,6 +22,12 @@ _DB_UPDATE_INTERVAL = 2.0  # seconds between DB writes during streaming
 _WS_EMIT_INTERVAL = 0.5  # seconds between WebSocket events during streaming
 
 
+async def _emit(download_id: str, event: dict) -> None:
+    """Emit to the per-download channel and to the global queue channel."""
+    await events.emit(download_id, event)
+    await events.emit(events.QUEUE_CHANNEL, event)
+
+
 class DownloadService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
@@ -74,7 +80,7 @@ class DownloadService:
 
         try:
             await self._set_status(download, "downloading")
-            await events.emit(
+            await _emit(
                 download_id,
                 WsProgressEvent(
                     download_id=download_id, status="downloading", progress_pct=0.0
@@ -98,7 +104,7 @@ class DownloadService:
                     filename=filename,
                     completed_at=datetime.now(UTC),
                 )
-                await events.emit(
+                await _emit(
                     download_id,
                     WsProgressEvent(
                         download_id=download_id,
@@ -115,7 +121,7 @@ class DownloadService:
 
         except Exception as exc:
             await self._set_status(download, "error", error=str(exc))
-            await events.emit(
+            await _emit(
                 download_id,
                 WsProgressEvent(
                     download_id=download_id,
@@ -163,7 +169,7 @@ class DownloadService:
                         )
 
                         if now - last_ws_emit >= _WS_EMIT_INTERVAL:
-                            await events.emit(
+                            await _emit(
                                 download_id,
                                 WsProgressEvent(
                                     download_id=download_id,
@@ -195,7 +201,7 @@ class DownloadService:
             filename=filename,
             completed_at=datetime.now(UTC),
         )
-        await events.emit(
+        await _emit(
             download_id,
             WsProgressEvent(
                 download_id=download_id,

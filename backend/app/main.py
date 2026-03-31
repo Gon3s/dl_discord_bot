@@ -3,8 +3,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from app.api.v1.router import router as api_v1_router
+from app.api.ws import router as ws_router
 from app.core.queue import download_queue
-from app.database import Base, AsyncSessionLocal, engine
+from app.database import AsyncSessionLocal, Base, engine
 from app.services.download_service import DownloadService
 
 
@@ -39,6 +41,9 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    app.include_router(api_v1_router)
+    app.include_router(ws_router)
 
     return app
 
