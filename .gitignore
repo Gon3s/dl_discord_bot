@@ -13,6 +13,9 @@ venv/
 *.png
 *.csv
 
+# Allow mockups HTML files
+!mockups/*.html
+
 __pycache__/
 /downloaded_files/
 /summary/
