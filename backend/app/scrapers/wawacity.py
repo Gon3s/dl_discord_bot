@@ -54,12 +54,27 @@ class WawacityScraper(BaseScraper):
         if year is not None:
             params["year"] = year
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(settings.wawacity_url, params=params) as resp:
-                if resp.status != 200:
-                    logger.error("Wawacity search returned HTTP %d", resp.status)
-                    return []
-                data = await resp.read()
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
+            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        }
+        try:
+            async with aiohttp.ClientSession(headers=headers) as session:
+                async with session.get(
+                    settings.wawacity_url, params=params, allow_redirects=True
+                ) as resp:
+                    if resp.status != 200:
+                        logger.error("Wawacity search returned HTTP %d", resp.status)
+                        return []
+                    data = await resp.read()
+        except aiohttp.ClientError as exc:
+            logger.error("Wawacity search request failed: %s", exc)
+            return []
 
         return self._parse_results(data, limit)
 

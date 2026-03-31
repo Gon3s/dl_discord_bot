@@ -20,7 +20,10 @@ async def search(
     except KeyError:
         raise HTTPException(status_code=400, detail=f"Unknown source: {source!r}")
 
-    raw = await scraper.search(q, category, year, limit)
+    try:
+        raw = await scraper.search(q, category, year, limit)
+    except Exception as exc:
+        raise HTTPException(status_code=503, detail=f"Scraper error: {exc}") from exc
 
     results = [
         SearchResultSchema(
