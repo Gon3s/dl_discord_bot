@@ -5,386 +5,215 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>DL Bot — History</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      darkMode: 'class',
-      theme: {
-        extend: {
-          colors: {
-            brand: { 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
-          }
-        }
-      }
-    }
-  </script>
+  <script>tailwind.config={darkMode:'class',theme:{extend:{colors:{ox:{400:'#fb923c',500:'#f97316',600:'#ea580c'}}}}}</script>
+  <style>
+    body { background: #080d18; }
+    .sidebar { background: #0d1424; border-right: 1px solid #1a2540; }
+    .nav-active { background: rgba(249,115,22,0.12); color: #fb923c; border-left: 2px solid #f97316; }
+    .nav-item { border-left: 2px solid transparent; }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+    .input-base { background: #111827; border: 1px solid #1f2e4a; color: #e2e8f0; }
+    .input-base:focus { outline: none; border-color: #f97316; box-shadow: 0 0 0 2px rgba(249,115,22,.15); }
+    .tbl-row:hover { background: rgba(249,115,22,.03); }
+    .tbl-row:hover .row-actions { opacity: 1; }
+    .row-actions { opacity: 0; transition: opacity .15s; }
+    ::-webkit-scrollbar{width:4px;} ::-webkit-scrollbar-thumb{background:#1f2e4a;border-radius:2px;}
+  </style>
 </head>
-<body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col">
+<body class="text-slate-200 min-h-screen flex">
 
-  <!-- NAV -->
-  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center gap-6 shrink-0">
-    <span class="text-brand-500 font-bold text-xl tracking-tight">⬇ DL Bot</span>
-    <div class="flex gap-1 text-sm">
-      <a href="search.html"    class="px-3 py-1.5 rounded text-gray-400 hover:text-white hover:bg-gray-800 transition">Search</a>
-      <a href="downloads.html" class="px-3 py-1.5 rounded text-gray-400 hover:text-white hover:bg-gray-800 transition">Downloads</a>
-      <a href="history.html"   class="px-3 py-1.5 rounded bg-brand-600 text-white font-medium">History</a>
-      <a href="settings.html"  class="px-3 py-1.5 rounded text-gray-400 hover:text-white hover:bg-gray-800 transition">Settings</a>
+  <!-- SIDEBAR -->
+  <aside class="sidebar w-56 shrink-0 flex flex-col fixed top-0 left-0 h-screen z-20">
+    <div class="px-5 py-5 border-b border-[#1a2540]">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-ox-500 flex items-center justify-center text-white font-black text-sm">DL</div>
+        <span class="font-bold text-white tracking-tight">MediaBot</span>
+      </div>
     </div>
-    <div class="ml-auto flex items-center gap-2">
-      <span class="w-2 h-2 bg-emerald-400 rounded-full"></span>
-      <span class="text-xs text-gray-400">API connected</span>
+    <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm">
+      <a href="search.html"    class="nav-item text-slate-500 flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>Search
+      </a>
+      <a href="downloads.html" class="nav-item text-slate-500 flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>Downloads
+        <span class="ml-auto bg-ox-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">2</span>
+      </a>
+      <a href="history.html"   class="nav-item nav-active flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>History
+      </a>
+      <a href="settings.html"  class="nav-item text-slate-500 flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>Settings
+      </a>
+    </nav>
+    <div class="px-4 py-4 border-t border-[#1a2540]">
+      <div class="flex items-center gap-2 text-xs">
+        <span class="w-2 h-2 bg-emerald-400 rounded-full"></span>
+        <span class="text-slate-500">API <span class="text-emerald-400">connected</span></span>
+      </div>
     </div>
-  </nav>
+  </aside>
 
-  <main class="flex-1 px-6 py-8 max-w-7xl mx-auto w-full">
+  <!-- CONTENT -->
+  <div class="ml-56 flex-1 flex flex-col">
 
-    <div class="flex items-center justify-between mb-6">
-      <h1 class="text-2xl font-bold">History</h1>
+    <header class="sticky top-0 z-10 px-8 py-4 flex items-center gap-4 border-b border-[#1a2540]" style="background:#080d18;">
+      <div class="flex-1">
+        <h1 class="text-lg font-bold text-white">History</h1>
+        <p class="text-xs text-slate-500 mt-0.5">All past downloads</p>
+      </div>
       <div class="flex gap-2 text-xs">
-        <span class="bg-gray-800 border border-gray-700 text-gray-400 px-2.5 py-1 rounded-full">
-          142 total
-        </span>
-        <span class="bg-emerald-600/20 text-emerald-400 border border-emerald-600/30 px-2.5 py-1 rounded-full">
-          1.2 TB downloaded
-        </span>
+        <span class="bg-[#0d1424] border border-[#1a2540] text-slate-400 px-2.5 py-1 rounded-full">142 total</span>
+        <span class="bg-teal-500/10 text-teal-400 border border-teal-500/20 px-2.5 py-1 rounded-full">1.2 TB</span>
       </div>
-    </div>
+    </header>
 
-    <!-- Toolbar -->
-    <div class="flex flex-col sm:flex-row gap-3 mb-5">
+    <main class="flex-1 px-8 py-6">
 
-      <!-- Search input -->
-      <div class="relative flex-1">
-        <span class="absolute inset-y-0 left-3 flex items-center text-gray-500">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/>
-          </svg>
-        </span>
-        <input
-          type="text"
-          placeholder="Search by title, provider, status…"
-          value="Dragon"
-          class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-4 py-2
-                 text-sm focus:outline-none focus:ring-2 focus:ring-brand-500"
-        />
-      </div>
-
-      <!-- Status filter -->
-      <select class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
-                     focus:outline-none focus:ring-2 focus:ring-brand-500 min-w-[130px]">
-        <option value="">All statuses</option>
-        <option value="ok" selected>Success</option>
-        <option value="error">Failed</option>
-      </select>
-
-      <!-- Provider filter -->
-      <select class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
-                     focus:outline-none focus:ring-2 focus:ring-brand-500 min-w-[130px]">
-        <option value="">All providers</option>
-        <option value="1fichier" selected>1Fichier</option>
-        <option value="turbobit">Turbobit</option>
-        <option value="rapidgator">Rapidgator</option>
-      </select>
-
-      <!-- Date range -->
-      <input type="date" value="2024-01-01"
-             class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
-                    focus:outline-none focus:ring-2 focus:ring-brand-500 text-gray-400" />
-      <input type="date" value="2024-12-31"
-             class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
-                    focus:outline-none focus:ring-2 focus:ring-brand-500 text-gray-400" />
-
-      <!-- Export -->
-      <button class="bg-gray-800 hover:bg-gray-700 border border-gray-700 text-gray-300 px-4 py-2 rounded-lg text-sm transition flex items-center gap-1.5 shrink-0">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-        </svg>
-        CSV
-      </button>
-    </div>
-
-    <!-- Active filters -->
-    <div class="flex gap-2 mb-4 flex-wrap text-xs">
-      <span class="flex items-center gap-1 bg-brand-600/20 text-brand-400 border border-brand-600/30 px-2.5 py-1 rounded-full">
-        "Dragon" <button class="ml-1 opacity-70 hover:opacity-100">×</button>
-      </span>
-      <span class="flex items-center gap-1 bg-gray-800 text-gray-400 border border-gray-700 px-2.5 py-1 rounded-full">
-        Success <button class="ml-1 opacity-70 hover:opacity-100">×</button>
-      </span>
-      <span class="flex items-center gap-1 bg-gray-800 text-gray-400 border border-gray-700 px-2.5 py-1 rounded-full">
-        1Fichier <button class="ml-1 opacity-70 hover:opacity-100">×</button>
-      </span>
-    </div>
-
-    <!-- Table -->
-    <div class="bg-gray-900 border border-gray-800 rounded-xl overflow-hidden mb-5">
-      <table class="w-full text-sm">
-        <thead>
-          <tr class="border-b border-gray-800 text-gray-500 text-xs uppercase tracking-wide">
-            <th class="text-left px-4 py-3 font-semibold">
-              <button class="flex items-center gap-1 hover:text-gray-300 transition">
-                Title
-                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-              </button>
-            </th>
-            <th class="text-left px-4 py-3 font-semibold">
-              <button class="flex items-center gap-1 hover:text-gray-300 transition">
-                Date
-                <svg class="w-3 h-3 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                </svg>
-              </button>
-            </th>
-            <th class="text-left px-4 py-3 font-semibold">Provider</th>
-            <th class="text-left px-4 py-3 font-semibold">Size</th>
-            <th class="text-left px-4 py-3 font-semibold">Status</th>
-            <th class="text-left px-4 py-3 font-semibold">Path</th>
-            <th class="px-4 py-3"></th>
-          </tr>
-        </thead>
-        <tbody>
-
-          <!-- Row 1 -->
-          <tr class="border-b border-gray-800/50 hover:bg-gray-800/40 transition group">
-            <td class="px-4 py-3">
-              <div>
-                <p class="font-medium text-white">Dragon.Ball.Super.S01E01.1080p.FRENCH.mkv</p>
-                <div class="flex gap-1 mt-0.5">
-                  <span class="text-xs bg-blue-600/20 text-blue-400 px-1.5 py-0.5 rounded">1080p</span>
-                  <span class="text-xs text-gray-500">🇫🇷</span>
-                </div>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-gray-400 whitespace-nowrap">2024-12-15 14:32</td>
-            <td class="px-4 py-3">
-              <span class="bg-brand-600/20 text-brand-400 px-2 py-0.5 rounded text-xs">1fichier</span>
-            </td>
-            <td class="px-4 py-3 text-gray-400 font-mono text-xs">6.7 GB</td>
-            <td class="px-4 py-3">
-              <span class="flex items-center gap-1 text-emerald-400 text-xs">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                Success
-              </span>
-            </td>
-            <td class="px-4 py-3 text-gray-500 text-xs font-mono truncate max-w-[200px]">
-              /data/media/Shows/Dragon Ball Super/S01/
-            </td>
-            <td class="px-4 py-3 text-right">
-              <div class="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition">
-                <button title="Re-download" class="w-7 h-7 rounded bg-gray-800 hover:bg-brand-600/20 text-gray-500 hover:text-brand-400 flex items-center justify-center transition">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                  </svg>
-                </button>
-                <button title="Delete" class="w-7 h-7 rounded bg-gray-800 hover:bg-red-600/20 text-gray-500 hover:text-red-400 flex items-center justify-center transition">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                  </svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-
-          <!-- Row 2 -->
-          <tr class="border-b border-gray-800/50 hover:bg-gray-800/40 transition group">
-            <td class="px-4 py-3">
-              <div>
-                <p class="font-medium text-white">Dragon.Ball.Super.S01E02.1080p.FRENCH.mkv</p>
-                <div class="flex gap-1 mt-0.5">
-                  <span class="text-xs bg-blue-600/20 text-blue-400 px-1.5 py-0.5 rounded">1080p</span>
-                  <span class="text-xs text-gray-500">🇫🇷</span>
-                </div>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-gray-400 whitespace-nowrap">2024-12-15 15:01</td>
-            <td class="px-4 py-3">
-              <span class="bg-brand-600/20 text-brand-400 px-2 py-0.5 rounded text-xs">1fichier</span>
-            </td>
-            <td class="px-4 py-3 text-gray-400 font-mono text-xs">5.9 GB</td>
-            <td class="px-4 py-3">
-              <span class="flex items-center gap-1 text-emerald-400 text-xs">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                Success
-              </span>
-            </td>
-            <td class="px-4 py-3 text-gray-500 text-xs font-mono truncate max-w-[200px]">
-              /data/media/Shows/Dragon Ball Super/S01/
-            </td>
-            <td class="px-4 py-3 text-right">
-              <div class="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition">
-                <button class="w-7 h-7 rounded bg-gray-800 hover:bg-brand-600/20 text-gray-500 hover:text-brand-400 flex items-center justify-center transition">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                  </svg>
-                </button>
-                <button class="w-7 h-7 rounded bg-gray-800 hover:bg-red-600/20 text-gray-500 hover:text-red-400 flex items-center justify-center transition">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                  </svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-
-          <!-- Row 3 – Failed -->
-          <tr class="border-b border-gray-800/50 hover:bg-gray-800/40 transition group">
-            <td class="px-4 py-3">
-              <div>
-                <p class="font-medium text-gray-400">Dragon.Ball.GT.S01E01.720p.FRENCH.mkv</p>
-                <div class="flex gap-1 mt-0.5">
-                  <span class="text-xs bg-gray-600/40 text-gray-400 px-1.5 py-0.5 rounded">720p</span>
-                  <span class="text-xs text-gray-500">🇫🇷</span>
-                </div>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-gray-400 whitespace-nowrap">2024-12-14 09:15</td>
-            <td class="px-4 py-3">
-              <span class="bg-violet-600/20 text-violet-400 px-2 py-0.5 rounded text-xs">Turbobit</span>
-            </td>
-            <td class="px-4 py-3 text-gray-500 font-mono text-xs">—</td>
-            <td class="px-4 py-3">
-              <span class="flex items-center gap-1 text-red-400 text-xs">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-                </svg>
-                Failed
-              </span>
-            </td>
-            <td class="px-4 py-3 text-gray-600 text-xs italic">AllDebrid error</td>
-            <td class="px-4 py-3 text-right">
-              <div class="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition">
-                <button class="text-xs bg-gray-800 hover:bg-brand-600/20 text-gray-500 hover:text-brand-400 border border-gray-700 px-2.5 py-1 rounded transition">
-                  Retry
-                </button>
-              </div>
-            </td>
-          </tr>
-
-          <!-- Row 4 -->
-          <tr class="border-b border-gray-800/50 hover:bg-gray-800/40 transition group">
-            <td class="px-4 py-3">
-              <div>
-                <p class="font-medium text-white">Inception.2010.2160p.4K.BluRay.MULTI.mkv</p>
-                <div class="flex gap-1 mt-0.5">
-                  <span class="text-xs bg-violet-600/20 text-violet-400 px-1.5 py-0.5 rounded">4K</span>
-                  <span class="text-xs text-gray-500">🇫🇷🇬🇧</span>
-                </div>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-gray-400 whitespace-nowrap">2024-12-13 22:44</td>
-            <td class="px-4 py-3">
-              <span class="bg-emerald-600/20 text-emerald-400 px-2 py-0.5 rounded text-xs">Rapidgator</span>
-            </td>
-            <td class="px-4 py-3 text-gray-400 font-mono text-xs">28.4 GB</td>
-            <td class="px-4 py-3">
-              <span class="flex items-center gap-1 text-emerald-400 text-xs">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                Success
-              </span>
-            </td>
-            <td class="px-4 py-3 text-gray-500 text-xs font-mono truncate max-w-[200px]">/data/media/Movies/</td>
-            <td class="px-4 py-3 text-right">
-              <div class="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition">
-                <button class="w-7 h-7 rounded bg-gray-800 hover:bg-brand-600/20 text-gray-500 hover:text-brand-400 flex items-center justify-center transition">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                  </svg>
-                </button>
-                <button class="w-7 h-7 rounded bg-gray-800 hover:bg-red-600/20 text-gray-500 hover:text-red-400 flex items-center justify-center transition">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                  </svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-
-          <!-- Row 5 -->
-          <tr class="hover:bg-gray-800/40 transition group">
-            <td class="px-4 py-3">
-              <div>
-                <p class="font-medium text-white">The.Dark.Knight.2008.1080p.FRENCH.mkv</p>
-                <div class="flex gap-1 mt-0.5">
-                  <span class="text-xs bg-blue-600/20 text-blue-400 px-1.5 py-0.5 rounded">1080p</span>
-                  <span class="text-xs text-gray-500">🇫🇷</span>
-                </div>
-              </div>
-            </td>
-            <td class="px-4 py-3 text-gray-400 whitespace-nowrap">2024-12-12 18:07</td>
-            <td class="px-4 py-3">
-              <span class="bg-brand-600/20 text-brand-400 px-2 py-0.5 rounded text-xs">1fichier</span>
-            </td>
-            <td class="px-4 py-3 text-gray-400 font-mono text-xs">12.1 GB</td>
-            <td class="px-4 py-3">
-              <span class="flex items-center gap-1 text-emerald-400 text-xs">
-                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
-                </svg>
-                Success
-              </span>
-            </td>
-            <td class="px-4 py-3 text-gray-500 text-xs font-mono truncate max-w-[200px]">/data/media/Movies/</td>
-            <td class="px-4 py-3 text-right">
-              <div class="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition">
-                <button class="w-7 h-7 rounded bg-gray-800 hover:bg-brand-600/20 text-gray-500 hover:text-brand-400 flex items-center justify-center transition">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-                  </svg>
-                </button>
-                <button class="w-7 h-7 rounded bg-gray-800 hover:bg-red-600/20 text-gray-500 hover:text-red-400 flex items-center justify-center transition">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
-                  </svg>
-                </button>
-              </div>
-            </td>
-          </tr>
-
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    <div class="flex items-center justify-between text-sm">
-      <p class="text-gray-500 text-xs">
-        Showing <span class="text-white">1–5</span> of <span class="text-white">28</span> results
-      </p>
-      <div class="flex items-center gap-2">
-        <select class="bg-gray-800 border border-gray-700 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-brand-500">
-          <option>5 / page</option>
-          <option selected>10 / page</option>
-          <option>25 / page</option>
-          <option>50 / page</option>
+      <!-- Toolbar -->
+      <div class="flex flex-wrap gap-2 mb-4">
+        <div class="relative flex-1 min-w-[200px]">
+          <span class="absolute inset-y-0 left-3 flex items-center text-slate-600">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+          </span>
+          <input type="text" placeholder="Search title, provider…" value="Dragon"
+                 class="input-base w-full pl-8 pr-4 py-2 rounded-xl text-xs" />
+        </div>
+        <select class="input-base rounded-xl px-3 py-2 text-xs">
+          <option>All statuses</option>
+          <option selected>Success</option>
+          <option>Failed</option>
         </select>
-        <div class="flex gap-1">
-          <button class="px-2.5 py-1 rounded bg-gray-800 text-gray-500 cursor-not-allowed text-xs">Prev</button>
-          <button class="px-2.5 py-1 rounded bg-brand-600 text-white text-xs">1</button>
-          <button class="px-2.5 py-1 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 text-xs">2</button>
-          <button class="px-2.5 py-1 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 text-xs">3</button>
-          <span class="px-2 py-1 text-gray-600 text-xs">…</span>
-          <button class="px-2.5 py-1 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 text-xs">6</button>
-          <button class="px-2.5 py-1 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 text-xs">Next</button>
+        <select class="input-base rounded-xl px-3 py-2 text-xs">
+          <option>All providers</option>
+          <option selected>1fichier</option>
+          <option>Turbobit</option>
+          <option>Rapidgator</option>
+        </select>
+        <input type="date" value="2024-01-01" class="input-base rounded-xl px-3 py-2 text-xs text-slate-500" />
+        <input type="date" value="2024-12-31" class="input-base rounded-xl px-3 py-2 text-xs text-slate-500" />
+        <button class="bg-[#0d1424] border border-[#1a2540] hover:border-ox-500/40 hover:text-ox-400 text-slate-500 px-3 py-2 rounded-xl text-xs transition flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          CSV
+        </button>
+      </div>
+
+      <!-- Active filters -->
+      <div class="flex gap-1.5 mb-4 flex-wrap">
+        <span class="flex items-center gap-1 bg-ox-500/10 text-ox-400 border border-ox-500/20 text-[10px] px-2 py-1 rounded-full">"Dragon" <button class="opacity-60 hover:opacity-100">×</button></span>
+        <span class="flex items-center gap-1 bg-[#0d1424] text-slate-500 border border-[#1a2540] text-[10px] px-2 py-1 rounded-full">Success <button class="opacity-60 hover:opacity-100">×</button></span>
+        <span class="flex items-center gap-1 bg-[#0d1424] text-slate-500 border border-[#1a2540] text-[10px] px-2 py-1 rounded-full">1fichier <button class="opacity-60 hover:opacity-100">×</button></span>
+      </div>
+
+      <!-- Table -->
+      <div class="bg-[#0d1424] border border-[#1a2540] rounded-2xl overflow-hidden mb-4">
+        <table class="w-full text-xs">
+          <thead>
+            <tr class="border-b border-[#1a2540]">
+              <th class="text-left px-4 py-3 text-[10px] text-slate-600 uppercase tracking-widest font-semibold">
+                <button class="flex items-center gap-1 hover:text-slate-400 transition">Title <svg class="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></button>
+              </th>
+              <th class="text-left px-4 py-3 text-[10px] text-slate-600 uppercase tracking-widest font-semibold">
+                <button class="flex items-center gap-1 hover:text-slate-400 transition">Date <svg class="w-2.5 h-2.5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></button>
+              </th>
+              <th class="text-left px-4 py-3 text-[10px] text-slate-600 uppercase tracking-widest font-semibold">Provider</th>
+              <th class="text-left px-4 py-3 text-[10px] text-slate-600 uppercase tracking-widest font-semibold">Size</th>
+              <th class="text-left px-4 py-3 text-[10px] text-slate-600 uppercase tracking-widest font-semibold">Status</th>
+              <th class="px-4 py-3"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[#1a2540]/60">
+
+            <tr class="tbl-row transition">
+              <td class="px-4 py-3">
+                <p class="font-semibold text-white">Dragon.Ball.Super.S01E01.1080p.FRENCH.mkv</p>
+                <div class="flex gap-1 mt-0.5"><span class="bg-ox-500/10 text-ox-400 border border-ox-500/15 px-1.5 py-0.5 rounded text-[10px] font-bold">1080p</span><span class="text-[10px] text-slate-600">🇫🇷</span></div>
+              </td>
+              <td class="px-4 py-3 text-slate-500 whitespace-nowrap font-mono">2024-12-15 14:32</td>
+              <td class="px-4 py-3"><span class="bg-ox-500/10 text-ox-400 border border-ox-500/15 px-1.5 py-0.5 rounded text-[10px] font-bold">1fichier</span></td>
+              <td class="px-4 py-3 text-slate-500 font-mono">6.7 GB</td>
+              <td class="px-4 py-3"><span class="flex items-center gap-1 text-emerald-400 text-[11px]"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>Success</span></td>
+              <td class="px-4 py-3 text-right">
+                <div class="row-actions flex gap-1 justify-end">
+                  <button class="w-6 h-6 rounded-lg bg-[#111827] hover:bg-ox-500/10 hover:text-ox-400 text-slate-600 flex items-center justify-center transition"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button>
+                  <button class="w-6 h-6 rounded-lg bg-[#111827] hover:bg-red-500/10 hover:text-red-400 text-slate-600 flex items-center justify-center transition"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                </div>
+              </td>
+            </tr>
+
+            <tr class="tbl-row transition">
+              <td class="px-4 py-3">
+                <p class="font-semibold text-white">Dragon.Ball.Super.S01E02.1080p.FRENCH.mkv</p>
+                <div class="flex gap-1 mt-0.5"><span class="bg-ox-500/10 text-ox-400 border border-ox-500/15 px-1.5 py-0.5 rounded text-[10px] font-bold">1080p</span><span class="text-[10px] text-slate-600">🇫🇷</span></div>
+              </td>
+              <td class="px-4 py-3 text-slate-500 whitespace-nowrap font-mono">2024-12-15 15:01</td>
+              <td class="px-4 py-3"><span class="bg-ox-500/10 text-ox-400 border border-ox-500/15 px-1.5 py-0.5 rounded text-[10px] font-bold">1fichier</span></td>
+              <td class="px-4 py-3 text-slate-500 font-mono">5.9 GB</td>
+              <td class="px-4 py-3"><span class="flex items-center gap-1 text-emerald-400 text-[11px]"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>Success</span></td>
+              <td class="px-4 py-3 text-right">
+                <div class="row-actions flex gap-1 justify-end">
+                  <button class="w-6 h-6 rounded-lg bg-[#111827] hover:bg-ox-500/10 hover:text-ox-400 text-slate-600 flex items-center justify-center transition"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button>
+                  <button class="w-6 h-6 rounded-lg bg-[#111827] hover:bg-red-500/10 hover:text-red-400 text-slate-600 flex items-center justify-center transition"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Failed row -->
+            <tr class="tbl-row transition opacity-70">
+              <td class="px-4 py-3">
+                <p class="font-semibold text-slate-400">Dragon.Ball.GT.S01E01.720p.FRENCH.mkv</p>
+                <div class="flex gap-1 mt-0.5"><span class="bg-slate-700/30 text-slate-500 border border-slate-700/40 px-1.5 py-0.5 rounded text-[10px]">720p</span><span class="text-[10px] text-slate-600">🇫🇷</span></div>
+              </td>
+              <td class="px-4 py-3 text-slate-600 whitespace-nowrap font-mono">2024-12-14 09:15</td>
+              <td class="px-4 py-3"><span class="bg-violet-500/10 text-violet-400 border border-violet-500/15 px-1.5 py-0.5 rounded text-[10px]">Turbobit</span></td>
+              <td class="px-4 py-3 text-slate-600 font-mono">—</td>
+              <td class="px-4 py-3"><span class="flex items-center gap-1 text-red-400 text-[11px]"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>Failed</span></td>
+              <td class="px-4 py-3 text-right">
+                <div class="row-actions flex gap-1 justify-end">
+                  <button class="text-[10px] border border-[#1f2e4a] hover:border-ox-500/40 hover:text-ox-400 text-slate-600 px-2 py-1 rounded-lg transition">Retry</button>
+                </div>
+              </td>
+            </tr>
+
+            <tr class="tbl-row transition">
+              <td class="px-4 py-3">
+                <p class="font-semibold text-white">Inception.2010.2160p.4K.BluRay.MULTI.mkv</p>
+                <div class="flex gap-1 mt-0.5"><span class="bg-amber-500/10 text-amber-400 border border-amber-500/15 px-1.5 py-0.5 rounded text-[10px] font-bold">4K</span><span class="text-[10px] text-slate-600">🇫🇷🇬🇧</span></div>
+              </td>
+              <td class="px-4 py-3 text-slate-500 whitespace-nowrap font-mono">2024-12-13 22:44</td>
+              <td class="px-4 py-3"><span class="bg-teal-500/10 text-teal-400 border border-teal-500/15 px-1.5 py-0.5 rounded text-[10px]">Rapidgator</span></td>
+              <td class="px-4 py-3 text-slate-500 font-mono">28.4 GB</td>
+              <td class="px-4 py-3"><span class="flex items-center gap-1 text-emerald-400 text-[11px]"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"/></svg>Success</span></td>
+              <td class="px-4 py-3 text-right">
+                <div class="row-actions flex gap-1 justify-end">
+                  <button class="w-6 h-6 rounded-lg bg-[#111827] hover:bg-ox-500/10 hover:text-ox-400 text-slate-600 flex items-center justify-center transition"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></button>
+                  <button class="w-6 h-6 rounded-lg bg-[#111827] hover:bg-red-500/10 hover:text-red-400 text-slate-600 flex items-center justify-center transition"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
+                </div>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex items-center justify-between">
+        <p class="text-[11px] text-slate-600">Showing <span class="text-white">1–4</span> of <span class="text-white">28</span></p>
+        <div class="flex items-center gap-2">
+          <select class="bg-[#0d1424] border border-[#1a2540] rounded-lg px-2 py-1 text-[11px] text-slate-500 focus:outline-none">
+            <option>10 / page</option><option>25 / page</option><option>50 / page</option>
+          </select>
+          <div class="flex gap-1">
+            <button class="px-2.5 py-1 rounded-lg bg-[#0d1424] text-slate-600 cursor-not-allowed text-[11px]">←</button>
+            <button class="px-2.5 py-1 rounded-lg bg-ox-500 text-white text-[11px] font-bold">1</button>
+            <button class="px-2.5 py-1 rounded-lg bg-[#0d1424] border border-[#1a2540] text-slate-500 hover:border-ox-500/40 text-[11px] transition">2</button>
+            <button class="px-2.5 py-1 rounded-lg bg-[#0d1424] border border-[#1a2540] text-slate-500 hover:border-ox-500/40 text-[11px] transition">3</button>
+            <span class="px-2 py-1 text-slate-700 text-[11px]">…</span>
+            <button class="px-2.5 py-1 rounded-lg bg-[#0d1424] border border-[#1a2540] text-slate-500 hover:border-ox-500/40 text-[11px] transition">→</button>
+          </div>
         </div>
       </div>
-    </div>
 
-  </main>
+    </main>
+  </div>
 </body>
 </html>

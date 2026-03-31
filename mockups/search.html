@@ -11,343 +11,279 @@
       theme: {
         extend: {
           colors: {
-            brand: { 500: '#6366f1', 600: '#4f46e5', 700: '#4338ca' }
-          }
+            ox: { 400: '#fb923c', 500: '#f97316', 600: '#ea580c' },
+          },
+          fontFamily: { mono: ['ui-monospace', 'monospace'] }
         }
       }
     }
   </script>
   <style>
-    /* Overlay backdrop blur */
-    .modal-backdrop { backdrop-filter: blur(4px); }
-    /* Skeleton pulse */
-    @keyframes shimmer { 0%{background-position:-400px 0} 100%{background-position:400px 0} }
+    body { background: #080d18; }
+    .sidebar { background: #0d1424; border-right: 1px solid #1a2540; }
+    .card { background: #0d1424; border: 1px solid #1a2540; }
+    .card:hover { border-color: #f97316; }
+    .input-base { background: #111827; border: 1px solid #1f2e4a; color: #e2e8f0; }
+    .input-base:focus { outline: none; border-color: #f97316; box-shadow: 0 0 0 2px rgba(249,115,22,0.15); }
+    .nav-active { background: rgba(249,115,22,0.12); color: #fb923c; border-left: 2px solid #f97316; }
+    .nav-item { border-left: 2px solid transparent; }
+    .nav-item:hover { background: rgba(255,255,255,0.04); color: #e2e8f0; }
+
+    @keyframes shimmer { 0%{background-position:-600px 0} 100%{background-position:600px 0} }
     .skeleton {
-      background: linear-gradient(90deg, #1e293b 25%, #334155 50%, #1e293b 75%);
-      background-size: 400px 100%;
-      animation: shimmer 1.4s infinite;
+      background: linear-gradient(90deg, #111827 25%, #1f2e4a 50%, #111827 75%);
+      background-size: 600px 100%;
+      animation: shimmer 1.6s infinite;
     }
-    /* Card hover */
-    .result-card:hover .card-overlay { opacity: 1; }
-    .card-overlay { transition: opacity 0.2s; }
+    .card-hover-overlay { opacity: 0; transition: opacity .2s; background: linear-gradient(to top, rgba(249,115,22,.9) 0%, rgba(249,115,22,.4) 50%, transparent 100%); }
+    .result-card:hover .card-hover-overlay { opacity: 1; }
+    .result-card:hover { transform: translateY(-3px); transition: transform .2s; }
+
+    .modal-bg { background: #0a0f1e; border: 1px solid #1a2540; }
+    ::-webkit-scrollbar { width: 4px; } ::-webkit-scrollbar-track { background: transparent; } ::-webkit-scrollbar-thumb { background: #1f2e4a; border-radius: 2px; }
   </style>
 </head>
-<body class="bg-gray-950 text-gray-100 min-h-screen flex flex-col">
+<body class="text-slate-200 min-h-screen flex">
 
-  <!-- ── NAV ── -->
-  <nav class="bg-gray-900 border-b border-gray-800 px-6 py-3 flex items-center gap-6 shrink-0">
-    <span class="text-brand-500 font-bold text-xl tracking-tight">⬇ DL Bot</span>
-    <div class="flex gap-1 text-sm">
-      <a href="search.html"   class="px-3 py-1.5 rounded bg-brand-600 text-white font-medium">Search</a>
-      <a href="downloads.html" class="px-3 py-1.5 rounded text-gray-400 hover:text-white hover:bg-gray-800 transition">Downloads</a>
-      <a href="history.html"  class="px-3 py-1.5 rounded text-gray-400 hover:text-white hover:bg-gray-800 transition">History</a>
-      <a href="settings.html" class="px-3 py-1.5 rounded text-gray-400 hover:text-white hover:bg-gray-800 transition">Settings</a>
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar w-56 shrink-0 flex flex-col fixed top-0 left-0 h-screen z-20">
+    <!-- Logo -->
+    <div class="px-5 py-5 border-b border-[#1a2540]">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-lg bg-ox-500 flex items-center justify-center text-white font-black text-sm">DL</div>
+        <span class="font-bold text-white tracking-tight">MediaBot</span>
+      </div>
     </div>
-    <div class="ml-auto flex items-center gap-2">
-      <span class="w-2 h-2 bg-emerald-400 rounded-full inline-block"></span>
-      <span class="text-xs text-gray-400">API connected</span>
+
+    <!-- Nav -->
+    <nav class="flex-1 px-3 py-4 space-y-0.5 text-sm">
+      <a href="search.html"    class="nav-item nav-active flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+        Search
+      </a>
+      <a href="downloads.html" class="nav-item text-slate-500 flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+        Downloads
+        <span class="ml-auto bg-ox-500 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full">2</span>
+      </a>
+      <a href="history.html"   class="nav-item text-slate-500 flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        History
+      </a>
+      <a href="settings.html"  class="nav-item text-slate-500 flex items-center gap-3 px-3 py-2.5 rounded-r-lg transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        Settings
+      </a>
+    </nav>
+
+    <!-- Status -->
+    <div class="px-4 py-4 border-t border-[#1a2540]">
+      <div class="flex items-center gap-2 text-xs">
+        <span class="w-2 h-2 bg-emerald-400 rounded-full"></span>
+        <span class="text-slate-500">API <span class="text-emerald-400">connected</span></span>
+      </div>
     </div>
-  </nav>
+  </aside>
 
-  <!-- ── MAIN ── -->
-  <main class="flex-1 px-6 py-8 max-w-7xl mx-auto w-full">
+  <!-- ── CONTENT ── -->
+  <div class="ml-56 flex-1 flex flex-col min-h-screen">
 
-    <!-- Search bar -->
-    <div class="mb-8">
-      <h1 class="text-2xl font-bold mb-4">Search content</h1>
+    <!-- Top bar -->
+    <header class="sticky top-0 z-10 px-8 py-4 flex items-center gap-4 border-b border-[#1a2540]" style="background:#080d18;">
+      <div class="flex-1">
+        <h1 class="text-lg font-bold text-white">Search</h1>
+        <p class="text-xs text-slate-500 mt-0.5">Find movies, series and mangas</p>
+      </div>
+    </header>
 
-      <div class="flex flex-col sm:flex-row gap-3">
-        <!-- Query input -->
-        <div class="relative flex-1">
-          <span class="absolute inset-y-0 left-3 flex items-center text-gray-500">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z"/>
-            </svg>
-          </span>
-          <input
-            type="text"
-            value="Dragon Ball"
-            placeholder="Title, movie or series…"
-            class="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5
-                   text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent"
-          />
+    <main class="flex-1 px-8 py-6">
+
+      <!-- Search form -->
+      <div class="card rounded-2xl p-5 mb-6">
+        <div class="flex flex-col sm:flex-row gap-3">
+
+          <!-- Query -->
+          <div class="relative flex-1">
+            <span class="absolute inset-y-0 left-3 flex items-center text-slate-600">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+            </span>
+            <input type="text" value="Dragon Ball" placeholder="Title…"
+                   class="input-base w-full pl-9 pr-4 py-2.5 rounded-xl text-sm" />
+          </div>
+
+          <!-- Category toggle -->
+          <div class="flex rounded-xl overflow-hidden border border-[#1f2e4a] shrink-0">
+            <button class="px-4 py-2.5 text-sm text-slate-500 hover:bg-white/5 transition">Films</button>
+            <button class="px-4 py-2.5 text-sm bg-ox-500 text-white font-semibold">Series</button>
+            <button class="px-4 py-2.5 text-sm text-slate-500 hover:bg-white/5 transition">Mangas</button>
+          </div>
+
+          <!-- Year -->
+          <input type="number" placeholder="Year" value="2024"
+                 class="input-base rounded-xl px-3 py-2.5 text-sm w-28" />
+
+          <!-- Search btn -->
+          <button class="bg-ox-500 hover:bg-ox-600 text-white font-bold px-6 py-2.5 rounded-xl text-sm transition shrink-0">
+            Search
+          </button>
         </div>
-
-        <!-- Category -->
-        <select class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm
-                       focus:outline-none focus:ring-2 focus:ring-brand-500 min-w-[130px]">
-          <option>Films</option>
-          <option selected>Series</option>
-          <option>Mangas</option>
-        </select>
-
-        <!-- Year -->
-        <input
-          type="number"
-          placeholder="Year"
-          value="2024"
-          class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm
-                 focus:outline-none focus:ring-2 focus:ring-brand-500 w-28"
-        />
-
-        <!-- Count -->
-        <select class="bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm
-                       focus:outline-none focus:ring-2 focus:ring-brand-500">
-          <option>5 results</option>
-          <option selected>10 results</option>
-          <option>20 results</option>
-        </select>
-
-        <!-- Submit -->
-        <button class="bg-brand-600 hover:bg-brand-700 text-white font-semibold
-                       px-5 py-2.5 rounded-lg text-sm transition whitespace-nowrap">
-          Search
-        </button>
       </div>
 
-      <!-- Active filters chips -->
-      <div class="flex gap-2 mt-3 flex-wrap">
-        <span class="bg-brand-600/20 text-brand-400 border border-brand-600/40 text-xs px-2.5 py-1 rounded-full">
-          Series
-        </span>
-        <span class="bg-gray-800 text-gray-400 border border-gray-700 text-xs px-2.5 py-1 rounded-full">
-          Year: 2024
-        </span>
-        <span class="bg-gray-800 text-gray-400 border border-gray-700 text-xs px-2.5 py-1 rounded-full">
-          10 results
-        </span>
+      <!-- Results header -->
+      <div class="flex items-center justify-between mb-4">
+        <p class="text-sm text-slate-500">
+          <span class="text-white font-semibold">8</span> results for
+          <span class="text-ox-400 font-mono">"Dragon Ball"</span>
+        </p>
+        <span class="text-xs text-slate-600 font-mono">Series · 2024</span>
       </div>
-    </div>
 
-    <!-- Results header -->
-    <div class="flex items-center justify-between mb-4">
-      <p class="text-sm text-gray-400">
-        <span class="text-white font-medium">8 results</span> for "Dragon Ball"
-      </p>
-      <div class="flex gap-2 text-xs">
-        <button class="bg-gray-800 border border-gray-700 px-2.5 py-1 rounded text-gray-400 hover:text-white transition">
-          Grid
-        </button>
-        <button class="bg-gray-700 border border-gray-600 px-2.5 py-1 rounded text-white">
-          List
-        </button>
-      </div>
-    </div>
+      <!-- Grid -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
 
-    <!-- Results grid -->
-    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 mb-8" id="results-grid">
-
-      <!-- Card 1 – with overlay -->
-      <div class="result-card relative rounded-lg overflow-hidden bg-gray-800 cursor-pointer group"
-           onclick="openModal('Dragon Ball Super', '🇫🇷', '2024', '1080p', 'https://via.placeholder.com/200x300/1e293b/6366f1?text=DBS')">
-        <img src="https://via.placeholder.com/200x300/1e293b/6366f1?text=DBS"
-             alt="Dragon Ball Super" class="w-full aspect-[2/3] object-cover" />
-        <div class="card-overlay absolute inset-0 bg-brand-600/80 opacity-0 flex items-center justify-center">
-          <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-          </svg>
-        </div>
-        <div class="p-2">
-          <p class="text-xs font-semibold truncate">Dragon Ball Super</p>
-          <div class="flex items-center gap-1 mt-1">
-            <span class="text-xs bg-blue-600/30 text-blue-400 px-1.5 py-0.5 rounded">1080p</span>
-            <span class="text-xs text-gray-400">🇫🇷</span>
-            <span class="text-xs text-gray-500 ml-auto">2024</span>
+        <!-- Card 1 -->
+        <div class="result-card card rounded-xl overflow-hidden cursor-pointer"
+             onclick="openModal('Dragon Ball Super','🇫🇷','2024','1080p')">
+          <div class="relative">
+            <img src="https://via.placeholder.com/200x300/0d1424/f97316?text=DBS" alt="" class="w-full aspect-[2/3] object-cover" />
+            <div class="card-hover-overlay absolute inset-0 flex items-end p-3">
+              <span class="text-white font-bold text-xs">Download →</span>
+            </div>
+            <div class="absolute top-2 right-2 bg-black/70 text-ox-400 text-[10px] font-bold px-1.5 py-0.5 rounded">1080p</div>
+          </div>
+          <div class="p-2.5">
+            <p class="text-xs font-semibold text-white truncate">Dragon Ball Super</p>
+            <p class="text-[10px] text-slate-500 mt-0.5">🇫🇷 · 2024</p>
           </div>
         </div>
-      </div>
 
-      <!-- Card 2 -->
-      <div class="result-card relative rounded-lg overflow-hidden bg-gray-800 cursor-pointer group"
-           onclick="openModal('Dragon Ball Z', '🇫🇷🇬🇧', '2023', '4K', 'https://via.placeholder.com/200x300/1e293b/a855f7?text=DBZ')">
-        <img src="https://via.placeholder.com/200x300/1e293b/a855f7?text=DBZ"
-             alt="Dragon Ball Z" class="w-full aspect-[2/3] object-cover" />
-        <div class="card-overlay absolute inset-0 bg-brand-600/80 opacity-0 flex items-center justify-center">
-          <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-          </svg>
-        </div>
-        <div class="p-2">
-          <p class="text-xs font-semibold truncate">Dragon Ball Z</p>
-          <div class="flex items-center gap-1 mt-1">
-            <span class="text-xs bg-violet-600/30 text-violet-400 px-1.5 py-0.5 rounded">4K</span>
-            <span class="text-xs text-gray-400">🇫🇷🇬🇧</span>
-            <span class="text-xs text-gray-500 ml-auto">2023</span>
+        <!-- Card 2 -->
+        <div class="result-card card rounded-xl overflow-hidden cursor-pointer"
+             onclick="openModal('Dragon Ball Z','🇫🇷🇬🇧','2023','4K')">
+          <div class="relative">
+            <img src="https://via.placeholder.com/200x300/0d1424/fb923c?text=DBZ" alt="" class="w-full aspect-[2/3] object-cover" />
+            <div class="card-hover-overlay absolute inset-0 flex items-end p-3">
+              <span class="text-white font-bold text-xs">Download →</span>
+            </div>
+            <div class="absolute top-2 right-2 bg-black/70 text-amber-400 text-[10px] font-bold px-1.5 py-0.5 rounded">4K</div>
+          </div>
+          <div class="p-2.5">
+            <p class="text-xs font-semibold text-white truncate">Dragon Ball Z</p>
+            <p class="text-[10px] text-slate-500 mt-0.5">🇫🇷🇬🇧 · 2023</p>
           </div>
         </div>
-      </div>
 
-      <!-- Card 3 -->
-      <div class="result-card relative rounded-lg overflow-hidden bg-gray-800 cursor-pointer group"
-           onclick="openModal('Dragon Ball GT', '🇬🇧🇫🇷', '2022', '720p', 'https://via.placeholder.com/200x300/1e293b/10b981?text=DBGT')">
-        <img src="https://via.placeholder.com/200x300/1e293b/10b981?text=DBGT"
-             alt="Dragon Ball GT" class="w-full aspect-[2/3] object-cover" />
-        <div class="card-overlay absolute inset-0 bg-brand-600/80 opacity-0 flex items-center justify-center">
-          <svg class="w-12 h-12 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-          </svg>
-        </div>
-        <div class="p-2">
-          <p class="text-xs font-semibold truncate">Dragon Ball GT</p>
-          <div class="flex items-center gap-1 mt-1">
-            <span class="text-xs bg-gray-600/60 text-gray-300 px-1.5 py-0.5 rounded">720p</span>
-            <span class="text-xs text-gray-400">🇬🇧🇫🇷</span>
-            <span class="text-xs text-gray-500 ml-auto">2022</span>
+        <!-- Card 3 -->
+        <div class="result-card card rounded-xl overflow-hidden cursor-pointer"
+             onclick="openModal('Dragon Ball GT','🇬🇧🇫🇷','2022','720p')">
+          <div class="relative">
+            <img src="https://via.placeholder.com/200x300/0d1424/64748b?text=DBGT" alt="" class="w-full aspect-[2/3] object-cover" />
+            <div class="card-hover-overlay absolute inset-0 flex items-end p-3">
+              <span class="text-white font-bold text-xs">Download →</span>
+            </div>
+            <div class="absolute top-2 right-2 bg-black/70 text-slate-400 text-[10px] font-bold px-1.5 py-0.5 rounded">720p</div>
+          </div>
+          <div class="p-2.5">
+            <p class="text-xs font-semibold text-white truncate">Dragon Ball GT</p>
+            <p class="text-[10px] text-slate-500 mt-0.5">🇬🇧🇫🇷 · 2022</p>
           </div>
         </div>
-      </div>
 
-      <!-- Card 4 – skeleton (loading state example) -->
-      <div class="rounded-lg overflow-hidden bg-gray-800">
-        <div class="skeleton w-full aspect-[2/3]"></div>
-        <div class="p-2">
-          <div class="skeleton h-3 rounded w-3/4 mb-2"></div>
-          <div class="skeleton h-3 rounded w-1/2"></div>
+        <!-- Skeleton cards -->
+        <div class="card rounded-xl overflow-hidden">
+          <div class="skeleton w-full aspect-[2/3]"></div>
+          <div class="p-2.5 space-y-1.5"><div class="skeleton h-2.5 rounded w-4/5"></div><div class="skeleton h-2 rounded w-2/5"></div></div>
         </div>
-      </div>
-
-      <!-- Card 5 – skeleton -->
-      <div class="rounded-lg overflow-hidden bg-gray-800">
-        <div class="skeleton w-full aspect-[2/3]"></div>
-        <div class="p-2">
-          <div class="skeleton h-3 rounded w-3/4 mb-2"></div>
-          <div class="skeleton h-3 rounded w-1/2"></div>
+        <div class="card rounded-xl overflow-hidden">
+          <div class="skeleton w-full aspect-[2/3]"></div>
+          <div class="p-2.5 space-y-1.5"><div class="skeleton h-2.5 rounded w-3/5"></div><div class="skeleton h-2 rounded w-2/5"></div></div>
         </div>
+        <div class="card rounded-xl overflow-hidden">
+          <div class="skeleton w-full aspect-[2/3]"></div>
+          <div class="p-2.5 space-y-1.5"><div class="skeleton h-2.5 rounded w-4/5"></div><div class="skeleton h-2 rounded w-1/3"></div></div>
+        </div>
+
       </div>
+    </main>
+  </div>
 
-    </div>
+  <!-- ── MODAL ── -->
+  <div id="modal" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="modal-bg rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
 
-    <!-- Pagination -->
-    <div class="flex justify-center gap-1">
-      <button class="px-3 py-1.5 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 text-sm">Prev</button>
-      <button class="px-3 py-1.5 rounded bg-brand-600 text-white text-sm">1</button>
-      <button class="px-3 py-1.5 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 text-sm">2</button>
-      <button class="px-3 py-1.5 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 text-sm">3</button>
-      <button class="px-3 py-1.5 rounded bg-gray-800 text-gray-400 hover:bg-gray-700 text-sm">Next</button>
-    </div>
+      <!-- Gradient header band -->
+      <div class="h-1 bg-gradient-to-r from-ox-600 via-ox-400 to-amber-400"></div>
 
-  </main>
-
-  <!-- ── MODAL DOWNLOAD ── -->
-  <div id="download-modal"
-       class="hidden fixed inset-0 z-50 modal-backdrop bg-black/60 flex items-center justify-center p-4">
-    <div class="bg-gray-900 border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl">
-
-      <!-- Header -->
-      <div class="flex items-start gap-4 p-5 border-b border-gray-800">
-        <img id="modal-poster"
-             src="https://via.placeholder.com/80x120/1e293b/6366f1?text=..."
-             alt="" class="w-16 h-24 object-cover rounded-lg shrink-0" />
-        <div class="flex-1 min-w-0">
-          <h2 id="modal-title" class="font-bold text-lg leading-tight truncate">Title</h2>
-          <div class="flex gap-2 mt-2 flex-wrap">
-            <span id="modal-quality" class="text-xs bg-blue-600/30 text-blue-400 px-2 py-0.5 rounded">1080p</span>
-            <span id="modal-lang" class="text-xs bg-gray-700 text-gray-300 px-2 py-0.5 rounded">🇫🇷</span>
-            <span id="modal-year" class="text-xs text-gray-500">2024</span>
+      <div class="p-5">
+        <div class="flex items-start gap-4 mb-5">
+          <img src="https://via.placeholder.com/72x108/0d1424/f97316?text=?" alt=""
+               class="w-16 rounded-lg shrink-0 border border-[#1a2540]" />
+          <div class="flex-1 min-w-0">
+            <h2 id="m-title" class="font-bold text-white text-base leading-snug">Title</h2>
+            <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+              <span id="m-quality" class="text-[11px] font-bold bg-ox-500/20 text-ox-400 border border-ox-500/30 px-2 py-0.5 rounded">1080p</span>
+              <span id="m-lang" class="text-xs text-slate-500">🇫🇷</span>
+              <span id="m-year" class="text-xs text-slate-600">2024</span>
+            </div>
           </div>
+          <button onclick="closeModal()" class="text-slate-600 hover:text-slate-300 transition text-xl">&times;</button>
         </div>
-        <button onclick="closeModal()" class="text-gray-500 hover:text-gray-200 text-xl leading-none mt-0.5">&times;</button>
-      </div>
-
-      <!-- Body -->
-      <div class="p-5 space-y-4">
 
         <!-- Provider -->
-        <div>
-          <label class="block text-xs text-gray-400 mb-1.5 font-medium uppercase tracking-wide">Provider</label>
+        <div class="mb-4">
+          <p class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-2">Provider</p>
           <div class="flex gap-2">
-            <button class="flex-1 border border-brand-600 bg-brand-600/10 text-brand-400 rounded-lg py-2 text-sm font-medium">
-              1Fichier
-            </button>
-            <button class="flex-1 border border-gray-700 bg-gray-800 text-gray-400 rounded-lg py-2 text-sm hover:border-gray-600 transition">
-              Turbobit
-            </button>
-            <button class="flex-1 border border-gray-700 bg-gray-800 text-gray-400 rounded-lg py-2 text-sm hover:border-gray-600 transition">
-              Rapidgator
-            </button>
+            <button class="flex-1 py-2 rounded-lg border border-ox-500 bg-ox-500/10 text-ox-400 text-xs font-bold">1fichier</button>
+            <button class="flex-1 py-2 rounded-lg border border-[#1f2e4a] text-slate-500 text-xs hover:border-slate-600 transition">Turbobit</button>
+            <button class="flex-1 py-2 rounded-lg border border-[#1f2e4a] text-slate-500 text-xs hover:border-slate-600 transition">Rapidgator</button>
           </div>
         </div>
 
         <!-- Destination -->
-        <div>
-          <label class="block text-xs text-gray-400 mb-1.5 font-medium uppercase tracking-wide">Destination</label>
+        <div class="mb-4">
+          <p class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-2">Destination</p>
           <div class="flex gap-2">
-            <button class="flex-1 border border-brand-600 bg-brand-600/10 text-brand-400 rounded-lg py-2 text-sm font-medium flex items-center justify-center gap-1.5">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
-              </svg>
+            <button class="flex-1 py-2 rounded-lg border border-ox-500 bg-ox-500/10 text-ox-400 text-xs font-bold flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/></svg>
               Server
             </button>
-            <button class="flex-1 border border-gray-700 bg-gray-800 text-gray-400 rounded-lg py-2 text-sm hover:border-gray-600 transition flex items-center justify-center gap-1.5">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
-              </svg>
+            <button class="flex-1 py-2 rounded-lg border border-[#1f2e4a] text-slate-500 text-xs hover:border-slate-600 transition flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.1-1.1m.758-4.9a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
               Direct link
             </button>
           </div>
         </div>
 
-        <!-- Server path (shown when "Server" selected) -->
-        <div>
-          <label class="block text-xs text-gray-400 mb-1.5 font-medium uppercase tracking-wide">Download path</label>
-          <div class="flex gap-2">
-            <input type="text" value="/data/media/Shows"
-                   class="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-sm
-                          focus:outline-none focus:ring-2 focus:ring-brand-500" />
-            <button class="bg-gray-700 hover:bg-gray-600 px-3 py-2 rounded-lg text-sm transition">
-              Browse
-            </button>
+        <!-- Path -->
+        <div class="mb-5">
+          <p class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold mb-2">Path</p>
+          <div class="input-base rounded-xl px-3 py-2 text-xs font-mono text-slate-400 flex items-center gap-2">
+            <svg class="w-3.5 h-3.5 text-ox-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>
+            /data/media/Shows/
           </div>
         </div>
 
-        <!-- Type -->
-        <div>
-          <label class="block text-xs text-gray-400 mb-1.5 font-medium uppercase tracking-wide">Content type</label>
-          <div class="flex gap-2">
-            <button class="flex-1 border border-gray-700 bg-gray-800 text-gray-400 rounded-lg py-2 text-sm hover:border-gray-600 transition">
-              Movie
-            </button>
-            <button class="flex-1 border border-brand-600 bg-brand-600/10 text-brand-400 rounded-lg py-2 text-sm font-medium">
-              Series
-            </button>
-          </div>
+        <!-- CTA -->
+        <div class="flex gap-2">
+          <button onclick="closeModal()" class="flex-1 py-2.5 rounded-xl border border-[#1f2e4a] text-slate-400 text-sm hover:bg-white/5 transition">Cancel</button>
+          <button class="flex-1 py-2.5 rounded-xl bg-ox-500 hover:bg-ox-600 text-white font-bold text-sm transition">
+            Start download
+          </button>
         </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="flex gap-3 p-5 pt-0">
-        <button onclick="closeModal()"
-                class="flex-1 bg-gray-800 hover:bg-gray-700 text-gray-300 font-medium py-2.5 rounded-xl text-sm transition">
-          Cancel
-        </button>
-        <button class="flex-1 bg-brand-600 hover:bg-brand-700 text-white font-semibold py-2.5 rounded-xl text-sm transition">
-          Start download
-        </button>
       </div>
     </div>
   </div>
 
   <script>
-    function openModal(title, lang, year, quality, poster) {
-      document.getElementById('modal-title').textContent = title;
-      document.getElementById('modal-lang').textContent = lang;
-      document.getElementById('modal-year').textContent = year;
-      document.getElementById('modal-quality').textContent = quality;
-      document.getElementById('modal-poster').src = poster || 'https://via.placeholder.com/80x120/1e293b/6366f1?text=?';
-      document.getElementById('download-modal').classList.remove('hidden');
+    function openModal(title, lang, year, quality) {
+      document.getElementById('m-title').textContent = title;
+      document.getElementById('m-lang').textContent = lang;
+      document.getElementById('m-year').textContent = year;
+      document.getElementById('m-quality').textContent = quality;
+      document.getElementById('modal').classList.remove('hidden');
     }
-    function closeModal() {
-      document.getElementById('download-modal').classList.add('hidden');
-    }
-    document.getElementById('download-modal').addEventListener('click', function(e) {
-      if (e.target === this) closeModal();
-    });
+    function closeModal() { document.getElementById('modal').classList.add('hidden'); }
+    document.getElementById('modal').addEventListener('click', e => { if(e.target===document.getElementById('modal')) closeModal(); });
   </script>
 </body>
 </html>
