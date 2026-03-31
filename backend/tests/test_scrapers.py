@@ -152,7 +152,7 @@ async def test_search_returns_results(monkeypatch):
         async def __aexit__(self, *args):
             pass
 
-    monkeypatch.setattr(aiohttp, "ClientSession", lambda: FakeSession())
+    monkeypatch.setattr(aiohttp, "ClientSession", lambda **kwargs: FakeSession())
 
     scraper = WawacityScraper()
     results = await scraper.search("inception", "films", limit=10)
@@ -187,7 +187,7 @@ async def test_search_returns_empty_on_http_error(monkeypatch):
         async def __aexit__(self, *args):
             pass
 
-    monkeypatch.setattr(aiohttp, "ClientSession", lambda: FakeSession())
+    monkeypatch.setattr(aiohttp, "ClientSession", lambda **kwargs: FakeSession())
 
     scraper = WawacityScraper()
     results = await scraper.search("inception", "films")
