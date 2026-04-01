@@ -5,16 +5,9 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/v1/search
+  url: {{baseUrl}}/api/v1/search?q=breaking+bad&source=wawacity&category=series&limit=5
   body: none
   auth: none
-}
-
-params:query {
-  q: breaking bad
-  source: wawacity
-  category: series
-  limit: 5
 }
 
 tests {

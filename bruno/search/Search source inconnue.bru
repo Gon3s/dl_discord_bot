@@ -5,15 +5,9 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/v1/search
+  url: {{baseUrl}}/api/v1/search?q=inception&source=unknown_source&category=films
   body: none
   auth: none
-}
-
-params:query {
-  q: inception
-  source: unknown_source
-  category: films
 }
 
 tests {

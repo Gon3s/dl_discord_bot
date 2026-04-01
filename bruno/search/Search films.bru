@@ -5,16 +5,9 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/v1/search
+  url: {{baseUrl}}/api/v1/search?q=inception&source=wawacity&category=films&limit=10
   body: none
   auth: none
-}
-
-params:query {
-  q: inception
-  source: wawacity
-  category: films
-  limit: 10
 }
 
 tests {

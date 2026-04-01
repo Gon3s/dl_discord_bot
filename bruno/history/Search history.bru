@@ -5,15 +5,9 @@ meta {
 }
 
 get {
-  url: {{baseUrl}}/api/v1/history
+  url: {{baseUrl}}/api/v1/history?q=spider&page=1&limit=10
   body: none
   auth: none
-}
-
-params:query {
-  q: spider
-  page: 1
-  limit: 10
 }
 
 tests {
