@@ -9,7 +9,7 @@ import asyncio
 from slugify import slugify
 from bs4 import BeautifulSoup
 import re
-import pandas as pd
+import csv
 
 from parser import Parser
 
@@ -371,7 +371,7 @@ async def download_url_selected(ctx, url_selected, folder, providers_list=None):
 
                     if filename:
                         histories.append({'title': filename, 'url': episode_name})
-                        pd.DataFrame(histories).to_csv('history.csv', index=False)
+                        _write_history_csv(histories)
                         await ctx.send(f'✅ {filename} — OK ({provider})')
                         downloaded = True
                         break  # ← épisode OK, on passe au suivant
@@ -409,7 +409,7 @@ async def download_url_selected(ctx, url_selected, folder, providers_list=None):
                         filename = await download_by_url(url, folder)
                         if filename:
                             histories.append({'title': filename, 'url': url})
-                            pd.DataFrame(histories).to_csv('history.csv', index=False)
+                            _write_history_csv(histories)
                             await ctx.send(f'✅ {filename} — OK ({provider})')
                             return  # ← film OK, on s'arrête
                         else:
@@ -582,6 +582,24 @@ async def search(ctx, query=None, category=None, year=None, count=3):
         await ctx.send('Error: No selection')
 
 
+_HISTORY_CSV = Path('history.csv')
+_HISTORY_FIELDNAMES = ['title', 'url']
+
+
+def _read_history_csv() -> list[dict]:
+    if not _HISTORY_CSV.exists():
+        return []
+    with _HISTORY_CSV.open(newline='', encoding='utf-8') as f:
+        return list(csv.DictReader(f))
+
+
+def _write_history_csv(histories: list[dict]) -> None:
+    with _HISTORY_CSV.open('w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=_HISTORY_FIELDNAMES)
+        writer.writeheader()
+        writer.writerows(histories)
+
+
 if __name__ == '__main__':
     """
     Point d'entrée du bot Discord.
@@ -601,7 +619,6 @@ if __name__ == '__main__':
         - Gérer cas où le fichier est corrompu
         - Implémenter reconnexion automatique
     """
-    data = pd.read_csv('history.csv')
-    histories = data.to_dict(orient='records')
+    histories = _read_history_csv()
     
     bot.run(TOKEN)
