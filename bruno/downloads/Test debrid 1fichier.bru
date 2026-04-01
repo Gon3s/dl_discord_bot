@@ -1,0 +1,37 @@
+meta {
+  name: Test debrid 1fichier
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/v1/downloads
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "source_url": "https://1fichier.com/?XXXXXXXXXXXXXXXX",
+    "title": "Test 1fichier",
+    "media_type": "film",
+    "destination": "server"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("downloadId", res.body.download_id);
+  }
+}
+
+tests {
+  test("status 201", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("download enqueued", function() {
+    expect(res.body.download_id).to.be.a("string");
+    expect(res.body.status).to.equal("queued");
+  });
+}
