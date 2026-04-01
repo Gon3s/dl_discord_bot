@@ -21,4 +21,8 @@ tests {
     expect(res.body).to.have.property("disk_free_gb");
     expect(res.body).to.have.property("alldebrid_ok");
   });
+
+  test("alldebrid reachable", function() {
+    expect(res.body.alldebrid_ok).to.equal(true);
+  });
 }
