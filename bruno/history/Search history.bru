@@ -1,0 +1,29 @@
+meta {
+  name: Search history (filtre titre)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/history
+  body: none
+  auth: none
+}
+
+params:query {
+  q: spider
+  page: 1
+  limit: 10
+}
+
+tests {
+  test("status 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("results match filter", function() {
+    res.body.items.forEach(function(item) {
+      expect(item.title.toLowerCase()).to.include("spider");
+    });
+  });
+}
