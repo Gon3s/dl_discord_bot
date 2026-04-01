@@ -1,0 +1,21 @@
+meta {
+  name: Search series
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/search?q=breaking+bad&source=wawacity&category=series&limit=5
+  body: none
+  auth: none
+}
+
+tests {
+  test("status 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("has results array", function() {
+    expect(res.body.results).to.be.an("array");
+  });
+}

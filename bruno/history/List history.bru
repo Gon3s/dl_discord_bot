@@ -1,0 +1,30 @@
+meta {
+  name: List history
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/history?page=1&limit=20
+  body: none
+  auth: none
+}
+
+tests {
+  test("status 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("has pagination fields", function() {
+    expect(res.body).to.have.property("items");
+    expect(res.body).to.have.property("total");
+    expect(res.body).to.have.property("page");
+    expect(res.body).to.have.property("limit");
+    expect(res.body.items).to.be.an("array");
+  });
+
+  test("page is correct", function() {
+    expect(res.body.page).to.equal(1);
+    expect(res.body.limit).to.equal(20);
+  });
+}

@@ -1,0 +1,24 @@
+meta {
+  name: Get status
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/status
+  body: none
+  auth: none
+}
+
+tests {
+  test("status 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("has required fields", function() {
+    expect(res.body).to.have.property("queue_size");
+    expect(res.body).to.have.property("active");
+    expect(res.body).to.have.property("disk_free_gb");
+    expect(res.body).to.have.property("alldebrid_ok");
+  });
+}
