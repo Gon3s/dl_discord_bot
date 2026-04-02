@@ -9,8 +9,8 @@ Démarre le travail sur une issue GitHub. Arguments : `$ARGUMENTS` (ex: `42 add-
 
 2. **S'assurer d'être sur la branche principale à jour** :
    ```bash
-   git checkout v2
-   git pull origin v2
+   git checkout main
+   git pull origin main
    ```
 
 3. **Créer et basculer sur la branche de feature** :
@@ -26,6 +26,6 @@ Démarre le travail sur une issue GitHub. Arguments : `$ARGUMENTS` (ex: `42 add-
 ## Conventions
 
 - Le nom de branche doit être en kebab-case, en anglais, court et descriptif
-- Toujours partir de `v2` (branche de développement principale)
+- Toujours partir de `main` (branche principale)
 - Une branche = une issue
 - Ne pas commencer à implémenter quoi que ce soit dans cette commande — se contenter de créer la branche

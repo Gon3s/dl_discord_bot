@@ -30,10 +30,14 @@ cd bot
 uv run python main.py
 ```
 
-### Production
+### Production (systemd)
 
 ```bash
-docker-compose up --build
+# Première installation
+bash deploy/install.sh
+
+# Redémarrer après une mise à jour
+sudo systemctl restart dl_backend.service discord_bot.service
 ```
 
 ---
@@ -154,18 +158,18 @@ Schémas Pydantic dans `backend/app/models/schemas.py`.
 
 ## Workflow issue
 
-1. `/start-issue {numero} {nom}` — crée la branche `feat/{numero}-{nom}` depuis `v2`
+1. `/start-issue {numero} {nom}` — crée la branche `feat/{numero}-{nom}` depuis `main`
 2. Implémenter avec les skills ci-dessous
-3. Le skill crée une PR vers `v2` en fin de tâche
+3. Le skill crée une PR vers `main` en fin de tâche
 4. **Attendre la revue et validation de la PR avant de merger**
 
 ## Skills disponibles
 
 | Commande | Description |
 |---|---|
-| `/start-issue` | Crée une branche `feat/{numero}-{nom}` depuis `v2` |
+| `/start-issue` | Crée une branche `feat/{numero}-{nom}` depuis `main` |
 | `/add-scraper` | Scaffolde un nouveau scraper + ouvre une PR |
 | `/db-migrate` | Crée et applique une migration Alembic + ouvre une PR |
 | `/check-api` | Vérifie que tous les endpoints API répondent correctement |
-| `/deploy` | Lance la stack complète via docker-compose |
+| `/deploy` | Redémarre la stack via systemd (`dl_backend` + `discord_bot`) |
 | `/test` | Lance la suite de tests du backend |
