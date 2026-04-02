@@ -17,10 +17,16 @@ export class DownloadsComponent implements OnInit, OnDestroy {
   private subs = new Subscription();
 
   protected active = computed(() =>
-    this.downloads().filter(d => ['downloading', 'scraping', 'debriding'].includes(d.status))
+    this.downloads().filter(d => ['scraping', 'resolving', 'debriding', 'downloading'].includes(d.status))
   );
   protected queued = computed(() =>
     this.downloads().filter(d => d.status === 'queued')
+  );
+  protected done = computed(() =>
+    this.downloads().filter(d => d.status === 'completed')
+  );
+  protected failed = computed(() =>
+    this.downloads().filter(d => ['error', 'cancelled'].includes(d.status))
   );
   protected completed = computed(() =>
     this.downloads().filter(d => ['completed', 'error', 'cancelled'].includes(d.status))
@@ -58,6 +64,10 @@ export class DownloadsComponent implements OnInit, OnDestroy {
 
   cancel(id: string): void {
     this.api.cancelDownload(id).subscribe({ next: () => this.loadDownloads() });
+  }
+
+  remove(id: string): void {
+    this.api.cancelDownload(id).subscribe({ next: () => this.downloads.update(list => list.filter(d => d.id !== id)) });
   }
 
   formatEta(speedMbps: number | null, progressPct: number): string {

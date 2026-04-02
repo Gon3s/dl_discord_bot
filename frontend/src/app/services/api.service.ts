@@ -46,8 +46,7 @@ export interface HistoryRead {
   filename: string | null;
   media_type: string;
   source: string;
-  status: string;
-  created_at: string;
+  downloaded_at: string;
 }
 
 export interface HistoryList {
@@ -81,12 +80,13 @@ export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly base = '/api/v1';
 
-  search(query: string, category: string, year?: string, limit = 20): Observable<SearchResponse> {
+  search(query: string, category: string, year?: string, limit = 20, sort?: string): Observable<SearchResponse> {
     let params = new HttpParams()
       .set('q', query)
       .set('category', category)
       .set('limit', limit);
     if (year) params = params.set('year', year);
+    if (sort) params = params.set('sort', sort);
     return this.http.get<SearchResponse>(`${this.base}/search`, { params });
   }
 

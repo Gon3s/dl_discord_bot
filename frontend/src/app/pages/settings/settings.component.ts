@@ -17,7 +17,7 @@ export class SettingsComponent implements OnInit {
   protected saved = signal(false);
   protected showApiKey = signal(false);
 
-  protected readonly categories = ['film', 'serie', 'manga'];
+  protected readonly categories = ['films', 'series', 'mangas'];
   protected readonly allProviders = ['1fichier', 'Turbobit', 'Rapidgator'];
 
   ngOnInit(): void {

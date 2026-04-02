@@ -10,9 +10,10 @@ from sqlalchemy import func, select
 
 from app.api.v1.router import router as api_v1_router
 from app.api.ws import router as ws_router
+from app.config import settings as app_settings
 from app.core.queue import download_queue
 from app.database import AsyncSessionLocal, Base, engine
-from app.models.orm import History
+from app.models.orm import History, Setting
 from app.services.download_service import DownloadService
 
 
@@ -59,11 +60,28 @@ async def _migrate_csv_if_needed() -> None:
         await session.commit()
 
 
+async def _seed_settings() -> None:
+    """Populate settings table from .env values for keys not yet in DB."""
+    defaults = {
+        "download_path": app_settings.download_path,
+        "max_concurrent_downloads": str(app_settings.max_concurrent_downloads),
+        "wawacity_url": app_settings.wawacity_url,
+        "alldebrid_api_key": app_settings.alldebrid_api_key,
+    }
+    async with AsyncSessionLocal() as session:
+        for key, value in defaults.items():
+            existing = await session.get(Setting, key)
+            if existing is None:
+                session.add(Setting(key=key, value=value))
+        await session.commit()
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     await _migrate_csv_if_needed()
+    await _seed_settings()
     download_queue.set_handler(_run_download)
     download_queue.start()
     yield

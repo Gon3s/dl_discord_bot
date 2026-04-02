@@ -16,6 +16,7 @@ class DownloadQueue:
         self._queue: asyncio.Queue[str] = asyncio.Queue()
         self._workers: list[asyncio.Task] = []
         self._handler: _Handler | None = None
+        self._active_count: int = 0
 
     def set_handler(self, handler: _Handler) -> None:
         """Set the coroutine that processes each download_id."""
@@ -29,12 +30,14 @@ class DownloadQueue:
     async def _worker(self) -> None:
         while True:
             download_id = await self._queue.get()
+            self._active_count += 1
             try:
                 if self._handler is not None:
                     await self._handler(download_id)
             except Exception:
                 logger.exception("Unhandled error while processing download %s", download_id)
             finally:
+                self._active_count -= 1
                 self._queue.task_done()
 
     def start(self) -> None:
@@ -59,7 +62,7 @@ class DownloadQueue:
 
     @property
     def active(self) -> int:
-        return sum(1 for t in self._workers if not t.done())
+        return self._active_count
 
 
 download_queue = DownloadQueue()

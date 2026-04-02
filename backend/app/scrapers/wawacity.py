@@ -23,6 +23,12 @@ _LANGUAGE_MAP: dict[str, str] = {
     "MULTI": "🇪🇺",
 }
 
+_CATEGORY_MAP: dict[str, str] = {
+    "film": "films",
+    "serie": "series",
+    "manga": "mangas",
+}
+
 _SORT_MAP: dict[str, str] = {
     "films": "blu-ray_1080p-720p",
     "series": "vostfr-hq",
@@ -45,11 +51,13 @@ class WawacityScraper(BaseScraper):
         category: str,
         year: int | None = None,
         limit: int = 10,
+        sort: str | None = None,
     ) -> list[SearchResult]:
+        wawa_category = _CATEGORY_MAP.get(category, category)
         params: dict[str, str | int] = {
             "search": query,
-            "p": category,
-            "s": _SORT_MAP.get(category, "vostfr-hq"),
+            "p": wawa_category,
+            "s": sort or _SORT_MAP.get(wawa_category, "vostfr-hq"),
         }
         if year is not None:
             params["year"] = year
@@ -151,6 +159,12 @@ class WawacityScraper(BaseScraper):
             None, self._fetch_provider_links, url, providers
         )
 
+    async def resolve_link(self, url: str) -> str:
+        """Resolve dl-protect intermediary pages to the actual provider URL."""
+        if "dl-protect" in url:
+            return await self._resolve_dl_protect(url)
+        return url
+
     def _fetch_provider_links(
         self, url: str, providers: list[str]
     ) -> list[ProviderLinks]:
@@ -204,11 +218,10 @@ class WawacityScraper(BaseScraper):
             try:
                 sb.driver.switch_to_frame("iframe")
                 sb.driver.uc_click("span")
+                sb.switch_to_default_content()
             except Exception:
-                logger.warning("Turnstile click failed, retrying")
-                sb.driver.uc_open_with_reconnect(url, reconnect_time=2)
-                sb.driver.switch_to_frame("iframe")
-                sb.driver.uc_click("span")
+                logger.debug("No Turnstile iframe, proceeding directly")
+                sb.switch_to_default_content()
 
             sb.highlight_click('button:contains("Continuer")')
 

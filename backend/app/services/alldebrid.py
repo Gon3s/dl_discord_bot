@@ -50,9 +50,6 @@ class AllDebridClient:
 
     async def debrid_link(self, url: str) -> dict:
         """Unlock a link via AllDebrid and return the unlock data."""
-        if "dl-protect" in url:
-            url = await self.redirect_link(url)
-
         params = {**self._base_params(), "link": url}
         async with aiohttp.ClientSession() as session:
             async with session.get(
