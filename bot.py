@@ -9,7 +9,7 @@ import asyncio
 from slugify import slugify
 from bs4 import BeautifulSoup
 import re
-import pandas as pd
+import csv
 
 from parser import Parser
 
@@ -53,7 +53,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 DOWNLOAD_PATH = os.getenv('DOWNLOAD_PATH')
 WAWACITY_URL = os.getenv('WAWACITY_URL')
 SELECT_PROVIDER = '1fichier'
-PROVIDERS = ['1fichier', 'Turbobit', 'Rapidgator']
+PROVIDERS = ['DailyUploads', '1fichier', 'Turbobit', 'Rapidgator']
 
 bot = commands.Bot(command_prefix='!', intents=discord.Intents.all())
 
@@ -331,107 +331,98 @@ def is_already_downloaded(url):
 
 
 async def download_url_selected(ctx, url_selected, folder, providers_list=None):
-    """
-    Télécharge un contenu depuis une URL Wawacity avec fallback multi-providers.
-    
-    Args:
-        ctx: Contexte Discord
-        url_selected (str): URL du contenu sur Wawacity
-        folder (str): Type de stockage ('movie' ou 'serie')
-        providers_list (list): Providers à essayer (par défaut PROVIDERS)
-    
-    Flow:
-        1. Collecte les liens DE TOUS les providers
-        2. Pour chaque lien:
-            - Essai de téléchargement
-            - En cas d'échec → essai lien suivant (autre provider)
-        3. Sauvegarde du succès/échec dans history.csv
-    
-    Erreurs:
-        - Aucun lien trouvé aucun provider → message d'erreur
-        - Fichier déjà téléchargé → skip (vérification URL)
-        - Téléchargement échoué → continue avec lien suivant (d'un autre provider)
-    
-    Output CSV:
-        Colonnes: title, url
-        Mise à jour en temps réel
-    """
     if providers_list is None:
         providers_list = PROVIDERS
-    
-    main_title = None
-    all_results = []  # Liste de tuples: (provider, title, url)
-    
-    # DEBUG: Afficher l'URL sélectionnée
-    logger.info(f'URL selectionnee: {url_selected}')
-    await ctx.send(f'🔗 URL: {url_selected[:100]}...')
-    
-    # Collecter les liens de TOUS les providers
-    for provider in providers_list:
-        await ctx.send(f'Trying provider: {provider}')
-        logger.info(f'Essai provider: {provider}')
-        
-        try:
-            parser = Parser(show_logs=True, select_provider=provider)
-            
-            main_title, urls = parser.get_dl_protect_url(url_selected)
-            logger.info(f'{provider}: title={main_title}, urls={len(urls) if urls else 0}')
-            
-            if urls and len(urls) > 0:
-                await ctx.send(f'Found {len(urls)} link(s) with {provider}')
-                logger.info(f'Liens trouves avec {provider}: {urls}')
-                # Ajouter tous les liens avec leur provider
-                for url in urls:
-                    all_results.append((provider, main_title, url))
-            else:
-                await ctx.send(f'No links found with {provider}')
-                logger.warning(f'Aucun lien avec {provider}')
-        except Exception as e:
-            logger.error(f'Erreur provider {provider}: {e}', exc_info=True)
-            await ctx.send(f'Erreur avec {provider}: {str(e)[:100]}')
-    
-    if not all_results:
-        error_msg = 'Erreur: Aucun lien trouve avec les providers (1fichier, Turbobit, Rapidgator)'
-        logger.error(error_msg)
-        await ctx.send(error_msg)
-        await ctx.send('💡 Possible causes:\n- URL morte ou inaccessible\n- Site structure modifiee\n- Pas d\'options DL disponibles')
-        return
-    
-    if main_title:
-        await ctx.send(f'You want to download: {main_title}')
-    
-    # Télécharger chaque URL (différents providers)
-    for provider, title, url in all_results:
-        logger.info(f'Telechargement URL: {url[:100]}... (provider: {provider})')
-        
-        # check if file already exists in history by url
-        if is_already_downloaded(url):
-            logger.info(f'Deja telecharge: {url}')
-            await ctx.send(f'⏭️ Deja telecharge, skip')
-            continue
-    
-        error = None
-        filename = None
-        try:
-            logger.info(f'Debut telechargement: {url} ({provider})')
-            filename = await download_by_url(url, folder)
-            if filename:
-                download_status = 'OK'
-                logger.info(f'Telechargement OK: {filename}')
-                histories.append({'title': filename, 'url': url})
-                pd.DataFrame(histories).to_csv('history.csv', index=False)
-                logger.info(f'Historique maj: {filename}')
-            else:
-                download_status = 'ERROR'
-                error = 'Download error'
-                logger.error('Erreur telechargement: aucun titre retourne')
-        except Exception as e:
-            logger.error(f'Exception telechargement: {e}', exc_info=True)
-            download_status = 'ERROR'
-            error = str(e)[:100]
-            
-        await ctx.send(f"{filename or 'Unknown'} - {download_status} (provider: {provider}) - {error if error else 'Essai suivant...'}")
 
+    logger.info(f'URL selectionnee: {url_selected}')
+    await ctx.send(f'URL: {url_selected[:100]}...')
+
+    parser = Parser(show_logs=True)
+
+    if folder == 'serie':
+        # ── SÉRIES : grouper par épisode, fallback provider par épisode ──
+        main_title, episodes = parser.get_all_episodes_links(url_selected)
+
+        if not episodes:
+            await ctx.send('Aucun épisode trouvé sur la page.')
+            return
+
+        await ctx.send(f'{main_title} — {len(episodes)} épisode(s) trouvé(s)')
+
+        for episode_name, provider_links in episodes.items():
+            await ctx.send(f'⬇Épisode: {episode_name}')
+
+            if is_already_downloaded(episode_name):
+                await ctx.send(f'⏭ Déjà téléchargé, skip')
+                continue
+
+            downloaded = False
+            for provider in providers_list:
+                if provider not in provider_links:
+                    continue
+
+                dl_protect_url = provider_links[provider]
+                logger.info(f'Essai {provider} pour {episode_name}')
+                await ctx.send(f'Essai provider: {provider}')
+
+                try:
+                    real_url = parser.dl_protect(dl_protect_url)
+                    filename = await download_by_url(real_url, folder)
+
+                    if filename:
+                        histories.append({'title': filename, 'url': episode_name})
+                        _write_history_csv(histories)
+                        await ctx.send(f'✅ {filename} — OK ({provider})')
+                        downloaded = True
+                        break  # ← épisode OK, on passe au suivant
+                    else:
+                        await ctx.send(f'Échec {provider}, essai suivant...')
+
+                except Exception as e:
+                    logger.error(f'Erreur {provider} / {episode_name}: {e}', exc_info=True)
+                    await ctx.send(f'Erreur {provider}: {str(e)[:100]}, essai suivant...')
+
+            if not downloaded:
+                await ctx.send(f'💀 Aucun provider n\'a fonctionné pour {episode_name}')
+
+    else:
+        # ── FILMS : essai provider par provider, stop au premier qui marche ──
+        for provider in providers_list:
+            await ctx.send(f'Trying provider: {provider}')
+
+            try:
+                parser.select_provider = provider
+                main_title, urls = parser.get_dl_protect_url(url_selected)
+
+                if not urls:
+                    await ctx.send(f'No links found with {provider}')
+                    continue
+
+                await ctx.send(f'Found {len(urls)} link(s) with {provider}')
+
+                for url in urls:
+                    if is_already_downloaded(url):
+                        await ctx.send(f'⏭️ Déjà téléchargé, skip')
+                        continue
+
+                    try:
+                        filename = await download_by_url(url, folder)
+                        if filename:
+                            histories.append({'title': filename, 'url': url})
+                            _write_history_csv(histories)
+                            await ctx.send(f'✅ {filename} — OK ({provider})')
+                            return  # ← film OK, on s'arrête
+                        else:
+                            await ctx.send(f'❌ Échec {provider}, essai suivant...')
+                    except Exception as e:
+                        logger.error(f'Exception: {e}', exc_info=True)
+                        await ctx.send(f'❌ Erreur: {str(e)[:100]}')
+
+            except Exception as e:
+                logger.error(f'Erreur provider {provider}: {e}', exc_info=True)
+                await ctx.send(f'Erreur avec {provider}: {str(e)[:100]}')
+
+        await ctx.send('❌ Aucun provider n\'a fonctionné pour ce film.')
 
 @bot.command(name='url', help='Download a file by url')
 async def url(ctx, url=None, folder=None):
@@ -591,6 +582,24 @@ async def search(ctx, query=None, category=None, year=None, count=3):
         await ctx.send('Error: No selection')
 
 
+_HISTORY_CSV = Path('history.csv')
+_HISTORY_FIELDNAMES = ['title', 'url']
+
+
+def _read_history_csv() -> list[dict]:
+    if not _HISTORY_CSV.exists():
+        return []
+    with _HISTORY_CSV.open(newline='', encoding='utf-8') as f:
+        return list(csv.DictReader(f))
+
+
+def _write_history_csv(histories: list[dict]) -> None:
+    with _HISTORY_CSV.open('w', newline='', encoding='utf-8') as f:
+        writer = csv.DictWriter(f, fieldnames=_HISTORY_FIELDNAMES)
+        writer.writeheader()
+        writer.writerows(histories)
+
+
 if __name__ == '__main__':
     """
     Point d'entrée du bot Discord.
@@ -610,7 +619,6 @@ if __name__ == '__main__':
         - Gérer cas où le fichier est corrompu
         - Implémenter reconnexion automatique
     """
-    data = pd.read_csv('history.csv')
-    histories = data.to_dict(orient='records')
+    histories = _read_history_csv()
     
     bot.run(TOKEN)

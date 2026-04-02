@@ -1,0 +1,28 @@
+meta {
+  name: Search films
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/search?q=inception&source=wawacity&category=films&limit=10
+  body: none
+  auth: none
+}
+
+tests {
+  test("status 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("has results array", function() {
+    expect(res.body).to.have.property("results");
+    expect(res.body.results).to.be.an("array");
+  });
+
+  test("has total and source", function() {
+    expect(res.body).to.have.property("total");
+    expect(res.body).to.have.property("source");
+    expect(res.body.source).to.equal("wawacity");
+  });
+}

@@ -1,0 +1,21 @@
+meta {
+  name: List downloads
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/downloads
+  body: none
+  auth: none
+}
+
+tests {
+  test("status 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("returns array", function() {
+    expect(res.body).to.be.an("array");
+  });
+}

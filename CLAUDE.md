@@ -1,0 +1,171 @@
+# CLAUDE.md — dl_discord_bot v2
+
+## Présentation du projet
+
+Application trois tiers pour rechercher et télécharger des films/séries/mangas depuis Wawacity via AllDebrid.
+
+- **`backend/`** — FastAPI (Python 3.12) : toute la logique scraping, debrid, téléchargement, BDD
+- **`frontend/`** — Angular 21 + Tailwind CSS v4 : interface web principale
+- **`bot/`** — Discord Bot thin client : appelle le backend via HTTP
+
+Docs complètes : `docs/plan-v2.md` et `docs/architecture-v2.md`
+
+---
+
+## Lancer le projet
+
+### Développement (local)
+
+```bash
+# Backend
+cd backend
+uv run uvicorn app.main:app --reload --port 8000
+
+# Frontend
+cd frontend
+ng serve --port 4200
+
+# Bot Discord
+cd bot
+uv run python main.py
+```
+
+### Production
+
+```bash
+docker-compose up --build
+```
+
+---
+
+## Variables d'environnement
+
+Copier `.env.example` → `.env` à la racine. Variables clés :
+
+| Variable | Description |
+|---|---|
+| `DISCORD_TOKEN` | Token du bot Discord |
+| `DISCORD_GUILD` | ID du serveur Discord |
+| `ALLDEBRID_API_KEY` | Clé API AllDebrid |
+| `DOWNLOAD_PATH` | Chemin de stockage des fichiers (ex: `/data/media`) |
+| `WAWACITY_URL` | URL de base Wawacity (ex: `https://www.wawacity.city/`) |
+| `DATABASE_URL` | `sqlite+aiosqlite:///./dl_bot.db` |
+| `MAX_CONCURRENT_DOWNLOADS` | Nombre de téléchargements simultanés (défaut: 2) |
+| `BACKEND_URL` | URL du backend pour le bot (ex: `http://localhost:8000`) |
+
+---
+
+## Migrations BDD
+
+```bash
+cd backend
+
+# Créer une nouvelle migration
+uv run alembic revision --autogenerate -m "description"
+
+# Appliquer les migrations
+uv run alembic upgrade head
+
+# Rollback d'une migration
+uv run alembic downgrade -1
+```
+
+---
+
+## Architecture des scrapers
+
+Pour ajouter une nouvelle source de données, créer `backend/app/scrapers/<nom>.py` :
+
+```python
+from app.scrapers.base import BaseScraper, SearchResult, ProviderLinks, register
+
+@register
+class MonScraper(BaseScraper):
+    source_name = "mon_source"  # valeur du param ?source= dans l'API
+
+    async def search(self, query, category, year, limit) -> list[SearchResult]:
+        ...
+
+    async def get_provider_links(self, url, providers) -> list[ProviderLinks]:
+        ...
+```
+
+Aucune autre modification n'est nécessaire. Le registre est automatique.
+
+**Sources actuelles :**
+- `wawacity` — implémenté (`backend/app/scrapers/wawacity.py`)
+- `darkiworld` — stub `NotImplementedError` (`backend/app/scrapers/darkiworld.py`)
+
+---
+
+## Conventions de code
+
+### Python (backend + bot)
+- **Formatter** : `ruff format` (remplace black)
+- **Linter** : `ruff check`
+- **Type hints** obligatoires sur toutes les fonctions publiques
+- Async partout dans le backend — pas de `requests` ni d'appels bloquants dans les coroutines
+- Les appels Selenium (bloquants) doivent être wrappés dans `asyncio.get_event_loop().run_in_executor(None, ...)`
+- Exceptions custom dans `app/core/exceptions.py` — pas de `assert False` ni de `print()`
+
+### TypeScript (frontend)
+- **Angular 21 standalone components** uniquement — pas de NgModule
+- **Signals** pour l'état local des composants
+- `ApiService` pour tous les appels HTTP — pas de `HttpClient` en direct dans les composants
+- `WsService` pour toutes les connexions WebSocket
+
+---
+
+## Structure des endpoints API
+
+```
+GET  /api/v1/search
+POST /api/v1/downloads
+GET  /api/v1/downloads
+GET  /api/v1/downloads/{id}
+DELETE /api/v1/downloads/{id}
+GET  /api/v1/history
+DELETE /api/v1/history/{id}
+GET  /api/v1/settings
+PUT  /api/v1/settings
+GET  /api/v1/status
+WS   /ws/downloads/{id}
+WS   /ws/queue
+```
+
+Schémas Pydantic dans `backend/app/models/schemas.py`.
+
+---
+
+## Fichiers importants
+
+| Fichier | Rôle |
+|---|---|
+| `backend/app/main.py` | FastAPI factory, lifespan, montage des routers |
+| `backend/app/core/queue.py` | File de téléchargement asyncio, workers |
+| `backend/app/core/events.py` | Bus événements WebSocket (dict UUID→Queue) |
+| `backend/app/scrapers/base.py` | BaseScraper ABC + registre de scrapers |
+| `backend/app/services/download_service.py` | Logique debrid + téléchargement + progression |
+| `frontend/src/app/services/api.service.ts` | Wrapper HttpClient |
+| `frontend/src/app/services/ws.service.ts` | RxJS WebSocketSubject |
+| `bot/client.py` | Thin client HTTP vers le backend |
+
+---
+
+## Workflow issue
+
+1. `/start-issue {numero} {nom}` — crée la branche `feat/{numero}-{nom}` depuis `v2`
+2. Implémenter avec les skills ci-dessous
+3. Le skill crée une PR vers `v2` en fin de tâche
+4. **Attendre la revue et validation de la PR avant de merger**
+
+## Skills disponibles
+
+| Commande | Description |
+|---|---|
+| `/start-issue` | Crée une branche `feat/{numero}-{nom}` depuis `v2` |
+| `/add-scraper` | Scaffolde un nouveau scraper + ouvre une PR |
+| `/db-migrate` | Crée et applique une migration Alembic + ouvre une PR |
+| `/check-api` | Vérifie que tous les endpoints API répondent correctement |
+| `/deploy` | Lance la stack complète via docker-compose |
+| `/test` | Lance la suite de tests du backend |

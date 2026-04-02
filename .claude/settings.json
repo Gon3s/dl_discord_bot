@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file=$(jq -r '.tool_input.file_path // empty'); case \"$file\" in *.py) for d in backend bot; do case \"$file\" in *\"/$d/\"*) s=\"${file%%/$d/*}/$d\"; (cd \"$s\" && uv run ruff format \"$file\" && uv run ruff check --fix \"$file\") 2>/dev/null; break;; esac; done;; esac || true",
+            "statusMessage": "Ruff: format + lint...",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file=$(jq -r '.tool_input.file_path // empty'); case \"$file\" in *.ts|*.html|*.scss|*.css) case \"$file\" in */frontend/*) s=\"${file%%/frontend/*}/frontend\"; (cd \"$s\" && npx prettier --write \"$file\" --log-level silent) 2>/dev/null;; esac;; esac || true",
+            "statusMessage": "Prettier: format...",
+            "timeout": 30
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "file=$(jq -r '.tool_input.file_path // empty'); case \"$file\" in *orm.py) echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PostToolUse\",\"additionalContext\":\"orm.py modifie - pense a creer une migration Alembic si des colonnes ou tables ont change (/db-migrate)\"}}';;  esac || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cmd=$(jq -r '.tool_input.command // empty'); if echo \"$cmd\" | grep -qE 'git push[[:space:]].*[[:space:]]main'; then echo '{\"continue\":false,\"stopReason\":\"Push direct sur main bloque. Developpe sur la branche v2.\"}'; fi || true",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

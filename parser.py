@@ -127,6 +127,61 @@ class Parser:
                 if dl_protect_link:
                     urls.append(dl_protect_link)
         return urls
+      
+    def get_all_episodes_links(self, url):
+        """
+        Retourne tous les liens de la page groupés par épisode et par provider.
+        Returns: (title, { episode_name: { provider: dl_protect_url } })
+        """
+        driver = Driver(uc=True, headless=True)
+        driver.get(url)
+        self.log(f"Get {url}")
+
+        try:
+            wait = WebDriverWait(driver, 10)
+            wait.until(presence_of_element_located((By.ID, "main-body")))
+        except Exception:
+            driver.save_screenshot('screen.png')
+            driver.close()
+            return None, {}
+
+        page_source = driver.page_source
+        with open('page_source.html', 'w', encoding='utf-8') as f:
+            f.write(page_source)
+        driver.close()
+
+        soup = BeautifulSoup(page_source, 'html.parser')
+
+        title = soup.find('h1')
+        if title:
+            title = title.text.strip().split('»')[1] if '»' in title.text else title.text.strip()
+        else:
+            self.log("Error: Title not found")
+            return None, {}
+
+        table = soup.find('table', id="DDLLinks")
+        if table is None:
+            self.log("Error: Table DDLLinks not found")
+            return None, {}
+
+        trs = table.find_all('tr', class_='link-row')
+
+        episodes = {}  # { episode_name: { provider: link } }
+
+        for tr in trs:
+            tds = tr.find_all('td')
+            link_tag = tds[0].find('a')
+            if not link_tag:
+                continue
+            episode_name = link_tag.text.strip()  # nom du fichier = identifiant épisode
+            provider = tds[1].text.strip()
+            link = link_tag.get('href')
+
+            if episode_name not in episodes:
+                episodes[episode_name] = {}
+            episodes[episode_name][provider] = link
+
+        return title, episodes
     
     def get_dl_protect_url(self, url):
         """
