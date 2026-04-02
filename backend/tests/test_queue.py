@@ -31,8 +31,19 @@ class TestDownloadQueue:
 
     async def test_stop_cancels_workers(self) -> None:
         q = DownloadQueue()
+        started = asyncio.Event()
+        block = asyncio.Event()
+
+        async def slow_handler(download_id: str) -> None:
+            started.set()
+            await block.wait()
+
+        q.set_handler(slow_handler)
         q.start()
+        await q.enqueue("dl-1")
+        await asyncio.wait_for(started.wait(), timeout=1.0)
         assert q.active > 0
+        block.set()
         await q.stop()
         assert q.active == 0
 

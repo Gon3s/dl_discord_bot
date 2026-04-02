@@ -46,6 +46,7 @@ class BaseScraper(ABC):
         category: str,
         year: int | None = None,
         limit: int = 10,
+        sort: str | None = None,
     ) -> list[SearchResult]: ...
 
     @abstractmethod
@@ -54,3 +55,11 @@ class BaseScraper(ABC):
         url: str,
         providers: list[str],
     ) -> list[ProviderLinks]: ...
+
+    async def resolve_link(self, url: str) -> str:
+        """Resolve any link protection layer and return the real provider URL.
+
+        Default implementation is a no-op. Scrapers that use dl-protect or
+        similar intermediaries should override this.
+        """
+        return url

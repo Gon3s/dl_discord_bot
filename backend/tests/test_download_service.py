@@ -91,14 +91,26 @@ class TestListActive:
         assert d1.id in ids
         assert d2.id in ids
 
-    async def test_excludes_completed_and_error(
+    async def test_includes_completed_and_error(
         self, service: DownloadService, download_create: DownloadCreate
     ) -> None:
         d = await service.create(download_create)
         await service._set_status(d, "completed")
 
         active = await service.list_active()
-        assert not any(x.id == d.id for x in active)
+        assert any(x.id == d.id for x in active)
+
+
+def _mock_scraper(provider_url: str = "https://turbobit.net/abc123"):
+    """Return a mock scraper that yields one Turbobit provider link."""
+    from app.scrapers.base import ProviderLinks
+
+    scraper = MagicMock()
+    scraper.get_provider_links = AsyncMock(
+        return_value=[ProviderLinks(provider="Turbobit", urls=[f"https://dl-protect.link/abc"])]
+    )
+    scraper.resolve_link = AsyncMock(return_value=provider_url)
+    return scraper
 
 
 class TestRunClientDestination:
@@ -106,9 +118,9 @@ class TestRunClientDestination:
         self, service: DownloadService, db_session
     ) -> None:
         data = DownloadCreate(
-            source_url="https://1fichier.com/?abc123",
+            source_url="https://www.wawacity.pizza?p=film&id=12345-test",
             title="Film",
-            media_type="movie",
+            media_type="films",
             destination="client",
         )
         download = await service.create(data)
@@ -120,6 +132,7 @@ class TestRunClientDestination:
             emitted.append(event)
 
         with (
+            patch.object(service, "_scraper_for_url", return_value=_mock_scraper()),
             patch.object(service._alldebrid, "debrid_link", new=AsyncMock(return_value=debrid_data)),
             patch("app.services.download_service.events.emit", side_effect=capture_emit),
         ):
@@ -138,9 +151,9 @@ class TestRunClientDestination:
         self, service: DownloadService
     ) -> None:
         data = DownloadCreate(
-            source_url="https://1fichier.com/?abc123",
+            source_url="https://www.wawacity.pizza?p=film&id=12345-test",
             title="Film",
-            media_type="movie",
+            media_type="films",
             destination="client",
         )
         download = await service.create(data)
@@ -148,6 +161,7 @@ class TestRunClientDestination:
         debrid_data = {"link": "https://cdn.example.com/film.mkv", "filename": "film.mkv"}
 
         with (
+            patch.object(service, "_scraper_for_url", return_value=_mock_scraper()),
             patch.object(service._alldebrid, "debrid_link", new=AsyncMock(return_value=debrid_data)),
             patch("app.services.download_service.events.emit", new=AsyncMock()),
             patch("builtins.open") as mock_open,
@@ -169,6 +183,7 @@ class TestRunErrors:
         download = await service.create(download_create)
 
         with (
+            patch.object(service, "_scraper_for_url", return_value=_mock_scraper()),
             patch.object(
                 service._alldebrid,
                 "debrid_link",
@@ -190,6 +205,7 @@ class TestRunErrors:
         download = await service.create(download_create)
 
         with (
+            patch.object(service, "_scraper_for_url", return_value=_mock_scraper()),
             patch.object(
                 service._alldebrid,
                 "debrid_link",

@@ -69,30 +69,6 @@ class TestDebridLink:
 
         assert result["filename"] == "file.mkv"
 
-    async def test_resolves_redirect_before_unlock(self, client: AllDebridClient) -> None:
-        redirect_payload = {"status": "success", "data": {"links": ["https://1fichier.com/?abc123"]}}
-        unlock_payload = {"status": "success", "data": {"link": "https://cdn.example.com/file.mkv"}}
-
-        redirect_response = _mock_response(200, redirect_payload)
-        unlock_response = _mock_response(200, unlock_payload)
-
-        call_count = 0
-
-        def get_side_effect(url, **kwargs):
-            nonlocal call_count
-            call_count += 1
-            return redirect_response if call_count == 1 else unlock_response
-
-        session = MagicMock()
-        session.get = MagicMock(side_effect=get_side_effect)
-        session.__aenter__ = AsyncMock(return_value=session)
-        session.__aexit__ = AsyncMock(return_value=False)
-
-        with patch("app.services.alldebrid.aiohttp.ClientSession", return_value=session):
-            result = await client.debrid_link("https://dl-protect.link/abc")
-
-        assert result["link"] == "https://cdn.example.com/file.mkv"
-
     async def test_raises_on_http_error(self, client: AllDebridClient) -> None:
         session = _mock_session(_mock_response(401, {}))
 
