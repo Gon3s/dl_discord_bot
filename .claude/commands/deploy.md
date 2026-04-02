@@ -1,10 +1,10 @@
-Lance ou redémarre la stack complète via docker-compose. Argument optionnel : `$ARGUMENTS` (ex: `backend`, `frontend`, `bot` pour cibler un seul service).
+Lance ou redémarre la stack complète via systemd. Argument optionnel : `$ARGUMENTS` (ex: `backend`, `bot` pour cibler un seul service).
 
 ## Prérequis
 
-- Docker et docker-compose installés
 - Fichier `.env` présent à la racine (copié depuis `.env.example`)
-- `DOWNLOAD_PATH` défini et le répertoire existant sur l'hôte
+- Services systemd installés : `bash deploy/install.sh` (première fois uniquement)
+- `uv` installé sur le serveur (`~/.local/bin/uv`)
 
 ## Étapes à suivre
 
@@ -14,65 +14,61 @@ Lance ou redémarre la stack complète via docker-compose. Argument optionnel : 
    ```
    Arrêter si des tests échouent — ne pas déployer du code cassé.
 
-2. **Vérifier le fichier `.env`** :
-   - Confirmer que `DISCORD_TOKEN`, `ALLDEBRID_API_KEY`, `DOWNLOAD_PATH` sont renseignés
-   - Confirmer que `DOWNLOAD_PATH` existe sur le système hôte :
-     ```bash
-     ls "$DOWNLOAD_PATH"
-     ```
+2. **Synchroniser les dépendances** :
+   ```bash
+   cd backend && uv sync
+   cd ../bot && uv sync
+   ```
 
-3. **Builder et démarrer** :
+3. **Redémarrer les services** :
    ```bash
    # Stack complète
-   docker-compose up --build -d
+   sudo systemctl restart dl_backend.service discord_bot.service
 
    # Ou un seul service (si $ARGUMENTS est renseigné)
-   docker-compose up --build -d $ARGUMENTS
+   sudo systemctl restart dl_$ARGUMENTS.service   # ex: dl_backend.service
+   # ou
+   sudo systemctl restart discord_bot.service     # pour le bot
    ```
 
 4. **Vérifier que les services sont UP** :
    ```bash
-   docker-compose ps
+   systemctl status dl_backend.service discord_bot.service --no-pager
    ```
-   Les 3 services doivent être `running` : `backend`, `bot`, `frontend`
+   Les deux doivent afficher `active (running)`.
 
 5. **Vérifier les logs au démarrage** :
    ```bash
-   # Backend
-   docker-compose logs --tail=50 backend
-
-   # Bot
-   docker-compose logs --tail=20 bot
+   journalctl -u dl_backend -u discord_bot -n 30 --no-pager
    ```
    Signaux OK à chercher :
    - Backend : `Application startup complete`
-   - Bot : `Logged in as`
+   - Bot : `Bot connecté en tant que`
 
 6. **Test de santé** :
    ```bash
-   curl -s http://localhost:8000/api/v1/status | python3 -m json.tool
-   curl -s http://localhost:80
+   curl -s http://127.0.0.1:8000/api/v1/status | python3 -m json.tool
    ```
 
 ## Commandes utiles
 
 ```bash
 # Voir les logs en temps réel
-docker-compose logs -f
+journalctl -u dl_backend -u discord_bot -f
 
-# Redémarrer un service sans rebuild
-docker-compose restart backend
+# Statut rapide
+systemctl status dl_backend discord_bot
 
-# Stopper la stack
-docker-compose down
+# Arrêter les services
+sudo systemctl stop dl_backend.service discord_bot.service
 
-# Stopper et supprimer les volumes (reset BDD)
-docker-compose down -v
+# Première installation des services
+bash deploy/install.sh
 ```
 
 ## En cas d'erreur
 
-- **Port déjà utilisé** : vérifier avec `ss -tlnp | grep 8000` ou `ss -tlnp | grep 80`
-- **SQLite verrouillé** : un process local tourne encore — `docker-compose down` puis relancer
-- **Selenium crash** : vérifier que le container backend a accès à Chrome (`--shm-size` dans docker-compose)
-- **Bot ne se connecte pas au backend** : vérifier `BACKEND_URL=http://backend:8000` dans `.env` (nom du service docker, pas localhost)
+- **Port 8000 déjà utilisé** : `ss -tlnp | grep 8000` pour identifier le process
+- **Service qui redémarre en boucle** : `journalctl -u dl_backend -n 50` pour voir l'erreur
+- **Bot ne joint pas le backend** : vérifier `BACKEND_URL=http://localhost:8000` dans `.env`
+- **Alembic error** : `cd backend && uv run alembic upgrade head`

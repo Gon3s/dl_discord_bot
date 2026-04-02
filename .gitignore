@@ -1,5 +1,6 @@
-# PyCharm
+# IDE
 .idea/
+.vscode/
 
 # Environments
 .env
@@ -7,16 +8,23 @@
 env/
 venv/
 
+# Logs & debug
 *.log
-*.txt
 *.html
 *.png
 *.csv
-
-__pycache__/
-/downloaded_files/
+/logs/
 /summary/
 
-# SQLite databases
+# Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Data
+/downloaded_files/
 *.db
 *.sqlite
+
+# OS
+.DS_Store
