@@ -16,6 +16,9 @@ venv/
 /logs/
 /summary/
 
+# Allow mockups HTML files
+!mockups/*.html
+
 # Python
 __pycache__/
 *.pyc

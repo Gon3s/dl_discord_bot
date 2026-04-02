@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="fr" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DL Bot — History</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root { --black:#000; --dark:#3E432E; --mid:#616F39; --lime:#A7D129; }
+    body { background: var(--black); color: #e8ecd8; font-family: 'ui-monospace','Cascadia Code','Fira Mono',monospace; }
+    .sidebar { background: #0a0a0a; border-right: 1px solid #1a1f10; }
+    .logo-box { background: var(--lime); }
+    .nav-link { color: #6b7a4a; border-left: 2px solid transparent; transition: all .15s; }
+    .nav-link:hover { color: #c8d890; background: rgba(167,209,41,.06); border-left-color: var(--mid); }
+    .nav-active { color: var(--lime); background: rgba(167,209,41,.1); border-left: 2px solid var(--lime); }
+    .badge { background: var(--lime); color: #000; font-weight: 900; }
+
+    .card { background: #0c0c0c; border: 1px solid #1a1f10; }
+    .input { background: #111; border: 1px solid #1a1f10; color: #c8d890; font-family: inherit; }
+    .input:focus { outline: none; border-color: var(--lime); box-shadow: 0 0 0 2px rgba(167,209,41,.12); }
+    .input::placeholder { color: #2d3520; }
+    .btn-ghost { background: transparent; border: 1px solid #1a1f10; color: #6b7a4a; font-family: inherit; }
+    .btn-ghost:hover { border-color: var(--mid); color: #c8d890; }
+
+    /* Table rows */
+    .tbl-row { border-left: 2px solid transparent; transition: border-color .12s, background .12s; }
+    .tbl-row:hover { border-left-color: var(--lime); background: rgba(167,209,41,.03); }
+    .tbl-row:hover .row-act { opacity: 1; }
+    .row-act { opacity: 0; transition: opacity .12s; }
+
+    ::-webkit-scrollbar { width: 3px; } ::-webkit-scrollbar-thumb { background: #1a1f10; border-radius: 2px; }
+  </style>
+</head>
+<body class="min-h-screen flex">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar w-52 shrink-0 fixed top-0 left-0 h-screen flex flex-col z-20">
+    <div class="px-4 py-5 border-b border-[#1a1f10]">
+      <div class="flex items-center gap-3">
+        <div class="logo-box w-7 h-7 rounded flex items-center justify-center text-black font-black text-xs">DL</div>
+        <div><p class="text-xs font-black tracking-widest uppercase text-[#e8ecd8]">MediaBot</p><p class="text-[9px] text-[#3a4022] tracking-wider">v2.0.0</p></div>
+      </div>
+    </div>
+    <nav class="flex-1 px-2 py-4 space-y-0.5 text-xs">
+      <a href="search.html"    class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>SEARCH
+      </a>
+      <a href="downloads.html" class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>DOWNLOADS
+        <span class="badge ml-auto text-[9px] px-1.5 py-0.5 rounded">2</span>
+      </a>
+      <a href="history.html"   class="nav-link nav-active flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>HISTORY
+      </a>
+      <a href="settings.html"  class="nav-link flex items-center gap-2.5 px-3 py-2 rounded-r">
+        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>SETTINGS
+      </a>
+    </nav>
+    <div class="px-4 py-3 border-t border-[#1a1f10] flex items-center gap-2">
+      <span class="w-1.5 h-1.5 rounded-full" style="background:var(--lime)"></span>
+      <span class="text-[9px] tracking-widest" style="color:#4a5a2a">API ONLINE</span>
+    </div>
+  </aside>
+
+  <!-- CONTENT -->
+  <div class="ml-52 flex-1 flex flex-col">
+
+    <header class="sticky top-0 z-10 px-7 py-4 border-b border-[#1a1f10] flex items-center gap-4" style="background:#000">
+      <div class="flex-1">
+        <p class="text-sm font-black tracking-widest uppercase text-[#e8ecd8]">History</p>
+        <p class="text-[10px] tracking-wider mt-0.5" style="color:#3a4022">ALL PAST DOWNLOADS</p>
+      </div>
+      <div class="flex gap-1.5 text-[9px] tracking-wider">
+        <span class="px-2 py-1 rounded" style="background:rgba(62,67,46,.4);color:#6b7a4a;border:1px solid #1a1f10">142 TOTAL</span>
+        <span class="px-2 py-1 rounded" style="background:rgba(167,209,41,.1);color:var(--lime);border:1px solid rgba(167,209,41,.2)">1.2 TB</span>
+      </div>
+    </header>
+
+    <main class="flex-1 px-7 py-5">
+
+      <!-- Toolbar -->
+      <div class="flex flex-wrap gap-2 mb-3">
+        <div class="relative flex-1 min-w-[180px]">
+          <span class="absolute inset-y-0 left-2.5 flex items-center" style="color:#2d3520">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z"/></svg>
+          </span>
+          <input type="text" value="Dragon" placeholder="SEARCH…" class="input w-full pl-7 pr-3 py-1.5 rounded text-xs" />
+        </div>
+        <select class="input rounded px-2.5 py-1.5 text-xs">
+          <option>ALL STATUS</option>
+          <option selected>SUCCESS</option>
+          <option>FAILED</option>
+        </select>
+        <select class="input rounded px-2.5 py-1.5 text-xs">
+          <option>ALL PROVIDERS</option>
+          <option selected>1fichier</option>
+          <option>Turbobit</option>
+          <option>Rapidgator</option>
+        </select>
+        <input type="date" value="2024-01-01" class="input rounded px-2.5 py-1.5 text-xs" style="color:#4a5a2a" />
+        <input type="date" value="2024-12-31" class="input rounded px-2.5 py-1.5 text-xs" style="color:#4a5a2a" />
+        <button class="btn-ghost rounded px-3 py-1.5 text-xs transition flex items-center gap-1.5">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+          CSV
+        </button>
+      </div>
+
+      <!-- Active filters -->
+      <div class="flex gap-1.5 mb-3 flex-wrap">
+        <span class="flex items-center gap-1 text-[9px] px-2 py-1 rounded" style="background:rgba(167,209,41,.1);color:var(--lime);border:1px solid rgba(167,209,41,.2)">"Dragon" <button class="opacity-60 hover:opacity-100 ml-0.5">×</button></span>
+        <span class="flex items-center gap-1 text-[9px] px-2 py-1 rounded" style="background:rgba(62,67,46,.4);color:#6b7a4a;border:1px solid #1a1f10">SUCCESS <button class="opacity-60 hover:opacity-100 ml-0.5">×</button></span>
+        <span class="flex items-center gap-1 text-[9px] px-2 py-1 rounded" style="background:rgba(62,67,46,.4);color:#6b7a4a;border:1px solid #1a1f10">1fichier <button class="opacity-60 hover:opacity-100 ml-0.5">×</button></span>
+      </div>
+
+      <!-- Table -->
+      <div class="card rounded-lg overflow-hidden mb-4">
+        <table class="w-full text-[11px]">
+          <thead>
+            <tr style="border-bottom:1px solid #1a1f10">
+              <th class="text-left px-4 py-2.5 text-[9px] tracking-widest font-black" style="color:#3a4022">
+                <button class="flex items-center gap-1 hover:text-[#6b7a4a] transition">TITLE <span>↓</span></button>
+              </th>
+              <th class="text-left px-4 py-2.5 text-[9px] tracking-widest font-black" style="color:#3a4022">
+                <button class="flex items-center gap-1 hover:text-[#6b7a4a] transition">DATE <span>↑</span></button>
+              </th>
+              <th class="text-left px-4 py-2.5 text-[9px] tracking-widest font-black" style="color:#3a4022">PROVIDER</th>
+              <th class="text-left px-4 py-2.5 text-[9px] tracking-widest font-black" style="color:#3a4022">SIZE</th>
+              <th class="text-left px-4 py-2.5 text-[9px] tracking-widest font-black" style="color:#3a4022">STATUS</th>
+              <th class="px-4 py-2.5"></th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-[#111]">
+
+            <!-- Row 1 -->
+            <tr class="tbl-row">
+              <td class="px-4 py-3">
+                <p class="font-bold text-[#c8d890]">Dragon.Ball.Super.S01E01.1080p.FRENCH.mkv</p>
+                <div class="flex gap-1 mt-0.5">
+                  <span class="text-[9px] font-black px-1.5 py-0.5 rounded" style="background:rgba(167,209,41,.1);color:var(--lime);border:1px solid rgba(167,209,41,.2)">1080p</span>
+                  <span class="text-[9px]" style="color:#3a4022">🇫🇷</span>
+                </div>
+              </td>
+              <td class="px-4 py-3 font-mono" style="color:#4a5a2a;white-space:nowrap">2024-12-15 14:32</td>
+              <td class="px-4 py-3">
+                <span class="text-[9px] font-black px-1.5 py-0.5 rounded" style="background:rgba(167,209,41,.1);color:var(--lime);border:1px solid rgba(167,209,41,.2)">1fichier</span>
+              </td>
+              <td class="px-4 py-3 font-mono" style="color:#4a5a2a">6.7 GB</td>
+              <td class="px-4 py-3">
+                <span class="text-[9px] font-black" style="color:var(--lime)">✓ OK</span>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <div class="row-act flex gap-1 justify-end">
+                  <button class="btn-ghost px-2 py-1 rounded text-[9px] transition hover:border-[var(--mid)] hover:text-[#c8d890]">↺</button>
+                  <button class="px-2 py-1 rounded text-[9px] transition" style="background:transparent;border:1px solid #1a1f10;color:#3a4022" onmouseover="this.style.borderColor='#5a1a1a';this.style.color='#c04040'" onmouseout="this.style.borderColor='#1a1f10';this.style.color='#3a4022'">✕</button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 2 -->
+            <tr class="tbl-row">
+              <td class="px-4 py-3">
+                <p class="font-bold text-[#c8d890]">Dragon.Ball.Super.S01E02.1080p.FRENCH.mkv</p>
+                <div class="flex gap-1 mt-0.5">
+                  <span class="text-[9px] font-black px-1.5 py-0.5 rounded" style="background:rgba(167,209,41,.1);color:var(--lime);border:1px solid rgba(167,209,41,.2)">1080p</span>
+                  <span class="text-[9px]" style="color:#3a4022">🇫🇷</span>
+                </div>
+              </td>
+              <td class="px-4 py-3 font-mono" style="color:#4a5a2a;white-space:nowrap">2024-12-15 15:01</td>
+              <td class="px-4 py-3">
+                <span class="text-[9px] font-black px-1.5 py-0.5 rounded" style="background:rgba(167,209,41,.1);color:var(--lime);border:1px solid rgba(167,209,41,.2)">1fichier</span>
+              </td>
+              <td class="px-4 py-3 font-mono" style="color:#4a5a2a">5.9 GB</td>
+              <td class="px-4 py-3">
+                <span class="text-[9px] font-black" style="color:var(--lime)">✓ OK</span>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <div class="row-act flex gap-1 justify-end">
+                  <button class="btn-ghost px-2 py-1 rounded text-[9px] transition hover:border-[var(--mid)] hover:text-[#c8d890]">↺</button>
+                  <button class="px-2 py-1 rounded text-[9px] transition" style="background:transparent;border:1px solid #1a1f10;color:#3a4022" onmouseover="this.style.borderColor='#5a1a1a';this.style.color='#c04040'" onmouseout="this.style.borderColor='#1a1f10';this.style.color='#3a4022'">✕</button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 3 – Failed -->
+            <tr class="tbl-row opacity-60">
+              <td class="px-4 py-3">
+                <p class="font-bold text-[#6b7a4a]">Dragon.Ball.GT.S01E01.720p.FRENCH.mkv</p>
+                <div class="flex gap-1 mt-0.5">
+                  <span class="text-[9px] px-1.5 py-0.5 rounded" style="background:rgba(62,67,46,.4);color:#4a5a2a;border:1px solid #1a1f10">720p</span>
+                  <span class="text-[9px]" style="color:#3a4022">🇫🇷</span>
+                </div>
+              </td>
+              <td class="px-4 py-3 font-mono" style="color:#3a4022;white-space:nowrap">2024-12-14 09:15</td>
+              <td class="px-4 py-3">
+                <span class="text-[9px] px-1.5 py-0.5 rounded" style="background:rgba(97,111,57,.12);color:#6b7a4a;border:1px solid #2d3520">Turbobit</span>
+              </td>
+              <td class="px-4 py-3 font-mono" style="color:#3a4022">—</td>
+              <td class="px-4 py-3">
+                <span class="text-[9px] font-black text-red-700">✕ ERR</span>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <div class="row-act">
+                  <button class="btn-ghost px-2 py-1 rounded text-[9px] transition">RETRY</button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 4 -->
+            <tr class="tbl-row">
+              <td class="px-4 py-3">
+                <p class="font-bold text-[#c8d890]">Inception.2010.2160p.4K.BluRay.MULTI.mkv</p>
+                <div class="flex gap-1 mt-0.5">
+                  <span class="text-[9px] font-black px-1.5 py-0.5 rounded" style="background:rgba(97,111,57,.15);color:#8a9a55;border:1px solid #2d3520">4K</span>
+                  <span class="text-[9px]" style="color:#3a4022">🇫🇷🇬🇧</span>
+                </div>
+              </td>
+              <td class="px-4 py-3 font-mono" style="color:#4a5a2a;white-space:nowrap">2024-12-13 22:44</td>
+              <td class="px-4 py-3">
+                <span class="text-[9px] px-1.5 py-0.5 rounded" style="background:rgba(62,67,46,.3);color:#6b7a4a;border:1px solid #2d3520">Rapidgator</span>
+              </td>
+              <td class="px-4 py-3 font-mono" style="color:#4a5a2a">28.4 GB</td>
+              <td class="px-4 py-3">
+                <span class="text-[9px] font-black" style="color:var(--lime)">✓ OK</span>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <div class="row-act flex gap-1 justify-end">
+                  <button class="btn-ghost px-2 py-1 rounded text-[9px] transition hover:border-[var(--mid)] hover:text-[#c8d890]">↺</button>
+                  <button class="px-2 py-1 rounded text-[9px] transition" style="background:transparent;border:1px solid #1a1f10;color:#3a4022" onmouseover="this.style.borderColor='#5a1a1a';this.style.color='#c04040'" onmouseout="this.style.borderColor='#1a1f10';this.style.color='#3a4022'">✕</button>
+                </div>
+              </td>
+            </tr>
+
+            <!-- Row 5 -->
+            <tr class="tbl-row">
+              <td class="px-4 py-3">
+                <p class="font-bold text-[#c8d890]">The.Dark.Knight.2008.1080p.FRENCH.mkv</p>
+                <div class="flex gap-1 mt-0.5">
+                  <span class="text-[9px] font-black px-1.5 py-0.5 rounded" style="background:rgba(167,209,41,.1);color:var(--lime);border:1px solid rgba(167,209,41,.2)">1080p</span>
+                  <span class="text-[9px]" style="color:#3a4022">🇫🇷</span>
+                </div>
+              </td>
+              <td class="px-4 py-3 font-mono" style="color:#4a5a2a;white-space:nowrap">2024-12-12 18:07</td>
+              <td class="px-4 py-3">
+                <span class="text-[9px] font-black px-1.5 py-0.5 rounded" style="background:rgba(167,209,41,.1);color:var(--lime);border:1px solid rgba(167,209,41,.2)">1fichier</span>
+              </td>
+              <td class="px-4 py-3 font-mono" style="color:#4a5a2a">12.1 GB</td>
+              <td class="px-4 py-3">
+                <span class="text-[9px] font-black" style="color:var(--lime)">✓ OK</span>
+              </td>
+              <td class="px-4 py-3 text-right">
+                <div class="row-act flex gap-1 justify-end">
+                  <button class="btn-ghost px-2 py-1 rounded text-[9px] transition hover:border-[var(--mid)] hover:text-[#c8d890]">↺</button>
+                  <button class="px-2 py-1 rounded text-[9px] transition" style="background:transparent;border:1px solid #1a1f10;color:#3a4022" onmouseover="this.style.borderColor='#5a1a1a';this.style.color='#c04040'" onmouseout="this.style.borderColor='#1a1f10';this.style.color='#3a4022'">✕</button>
+                </div>
+              </td>
+            </tr>
+
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      <div class="flex items-center justify-between">
+        <p class="text-[9px] tracking-wider" style="color:#3a4022">
+          ROWS <span style="color:#8a9a55">1–5</span> OF <span style="color:#8a9a55">28</span>
+        </p>
+        <div class="flex items-center gap-2">
+          <select class="input rounded px-2 py-1 text-[9px]">
+            <option>10 / PAGE</option><option>25 / PAGE</option><option>50 / PAGE</option>
+          </select>
+          <div class="flex gap-1 text-[9px]">
+            <button class="btn-ghost px-2.5 py-1 rounded cursor-not-allowed opacity-30">←</button>
+            <button class="px-2.5 py-1 rounded font-black" style="background:var(--lime);color:#000">1</button>
+            <button class="btn-ghost px-2.5 py-1 rounded transition hover:border-[var(--mid)]">2</button>
+            <button class="btn-ghost px-2.5 py-1 rounded transition hover:border-[var(--mid)]">3</button>
+            <span class="px-1.5 py-1" style="color:#2d3520">…</span>
+            <button class="btn-ghost px-2.5 py-1 rounded transition hover:border-[var(--mid)]">→</button>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+</body>
+</html>
