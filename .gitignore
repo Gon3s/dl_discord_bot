@@ -1,5 +1,6 @@
-# PyCharm
+# IDE
 .idea/
+.vscode/
 
 # Environments
 .env
@@ -7,15 +8,26 @@
 env/
 venv/
 
+# Logs & debug
 *.log
-*.txt
 *.html
 *.png
 *.csv
+/logs/
+/summary/
 
 # Allow mockups HTML files
 !mockups/*.html
 
+# Python
 __pycache__/
+*.pyc
+*.pyo
+
+# Data
 /downloaded_files/
-/summary/
+*.db
+*.sqlite
+
+# OS
+.DS_Store

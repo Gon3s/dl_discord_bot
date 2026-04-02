@@ -1,0 +1,17 @@
+meta {
+  name: Delete download
+  type: http
+  seq: 5
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/downloads/{{downloadId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("status 204", function() {
+    expect(res.status).to.equal(204);
+  });
+}

@@ -1,0 +1,33 @@
+meta {
+  name: Update settings
+  type: http
+  seq: 2
+}
+
+put {
+  url: {{baseUrl}}/api/v1/settings
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "settings": {
+      "max_concurrent_downloads": "2",
+      "download_path": "/data/media"
+    }
+  }
+}
+
+tests {
+  test("status 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("returns updated settings", function() {
+    expect(res.body).to.be.an("array");
+    const keys = res.body.map(function(s) { return s.key; });
+    expect(keys).to.include("max_concurrent_downloads");
+    expect(keys).to.include("download_path");
+  });
+}

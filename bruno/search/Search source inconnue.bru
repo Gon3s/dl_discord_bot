@@ -1,0 +1,17 @@
+meta {
+  name: Search source inconnue (400)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/search?q=inception&source=unknown_source&category=films
+  body: none
+  auth: none
+}
+
+tests {
+  test("status 400", function() {
+    expect(res.status).to.equal(400);
+  });
+}

@@ -1,0 +1,21 @@
+meta {
+  name: Get settings
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/api/v1/settings
+  body: none
+  auth: none
+}
+
+tests {
+  test("status 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("returns array", function() {
+    expect(res.body).to.be.an("array");
+  });
+}

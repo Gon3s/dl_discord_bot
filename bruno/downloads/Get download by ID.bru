@@ -1,0 +1,24 @@
+meta {
+  name: Get download by ID
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/downloads/{{downloadId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("status 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("has required fields", function() {
+    expect(res.body).to.have.property("id");
+    expect(res.body).to.have.property("title");
+    expect(res.body).to.have.property("status");
+    expect(res.body).to.have.property("progress_pct");
+  });
+}

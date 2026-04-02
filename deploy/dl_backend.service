@@ -1,0 +1,17 @@
+[Unit]
+Description=dl_discord_bot — Backend FastAPI
+After=network.target
+
+[Service]
+Type=simple
+User=gones
+WorkingDirectory=/home/gones/Project/python/dl_discord_bot/backend
+EnvironmentFile=/home/gones/Project/python/dl_discord_bot/.env
+ExecStart=/home/gones/.local/bin/uv run uvicorn app.main:app --host 127.0.0.1 --port 8000
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
