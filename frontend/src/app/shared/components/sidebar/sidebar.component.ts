@@ -1,59 +1,37 @@
-import { Component, OnInit, OnDestroy, signal, inject } from '@angular/core';
+import { Component, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
-import { Subscription, interval } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
-import { ApiService } from '../../../services/api.service';
-import { WsService } from '../../../services/ws.service';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { interval } from 'rxjs';
+import { ApiService } from '../../../core/services/api.service';
+import { WsService } from '../../../core/services/ws.service';
 
 @Component({
   selector: 'app-sidebar',
   imports: [RouterLink, RouterLinkActive],
   templateUrl: './sidebar.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SidebarComponent implements OnInit, OnDestroy {
+export class SidebarComponent {
   private readonly api = inject(ApiService);
   private readonly ws = inject(WsService);
 
-  protected apiOnline = signal(false);
+  protected readonly statusResource = rxResource({
+    stream: () => this.api.getStatus(),
+  });
+
+  protected apiOnline = computed(() => !!this.statusResource.value() && !this.statusResource.error());
+  protected activeCount = computed(() => {
+    const s = this.statusResource.value();
+    return s ? s.active + s.queue_size : 0;
+  });
   protected wsLive = signal(false);
-  protected activeCount = signal(0);
 
-  private subs = new Subscription();
+  constructor() {
+    interval(10_000).pipe(takeUntilDestroyed()).subscribe(() => this.statusResource.reload());
 
-  ngOnInit(): void {
-    // Poll API status every 10s
-    this.subs.add(
-      interval(10_000).pipe(
-        switchMap(() => this.api.getStatus()),
-      ).subscribe({
-        next: (s) => {
-          this.apiOnline.set(true);
-          this.activeCount.set(s.active + s.queue_size);
-        },
-        error: () => this.apiOnline.set(false),
-      })
-    );
-
-    // Initial status check
-    this.api.getStatus().subscribe({
-      next: (s) => {
-        this.apiOnline.set(true);
-        this.activeCount.set(s.active + s.queue_size);
-      },
-      error: () => this.apiOnline.set(false),
+    this.ws.watchQueue().pipe(takeUntilDestroyed()).subscribe({
+      next: () => this.wsLive.set(true),
+      error: () => this.wsLive.set(false),
     });
-
-    // Watch WS queue for live indicator
-    this.subs.add(
-      this.ws.watchQueue().subscribe({
-        next: () => this.wsLive.set(true),
-        error: () => this.wsLive.set(false),
-      })
-    );
-  }
-
-  ngOnDestroy(): void {
-    this.subs.unsubscribe();
-    this.ws.closeQueue();
   }
 }

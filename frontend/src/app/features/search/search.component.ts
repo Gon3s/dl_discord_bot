@@ -1,12 +1,22 @@
-import { Component, signal, inject } from '@angular/core';
+import { Component, signal, computed, linkedSignal, inject, ChangeDetectionStrategy } from '@angular/core';
+import { rxResource } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ApiService, SearchResult, StartDownloadPayload } from '../../services/api.service';
+import { ApiService } from '../../core/services/api.service';
+import type { SearchResult, StartDownloadPayload } from '../../core/models/api.models';
+
+interface SearchParams {
+  q: string;
+  category: string;
+  year?: string;
+  sort?: string;
+}
 
 @Component({
   selector: 'app-search',
   imports: [FormsModule],
   templateUrl: './search.component.html',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SearchComponent {
   private readonly api = inject(ApiService);
@@ -15,18 +25,27 @@ export class SearchComponent {
   protected query = signal('');
   protected category = signal('films');
   protected year = signal('');
-  protected sort = signal('');
-  protected results = signal<SearchResult[]>([]);
-  protected loading = signal(false);
-  protected error = signal('');
 
-  protected modalOpen = signal(false);
-  protected selectedResult = signal<SearchResult | null>(null);
-  protected selectedDestination = signal<'server' | 'client'>('server');
-  protected launching = signal(false);
-  protected launchError = signal('');
+  // Resets automatically when category changes
+  protected sort = linkedSignal<string>(() => { this.category(); return ''; });
 
-  protected readonly categories = ['films', 'series', 'mangas'];
+  // Only triggers resource when user explicitly submits
+  protected searchParams = signal<SearchParams | undefined>(undefined);
+
+  protected readonly searchResource = rxResource({
+    params: () => this.searchParams(),
+    stream: ({ params }) =>
+      this.api.search(params.q, params.category, params.year, 20, params.sort),
+  });
+
+  protected results = computed(() => this.searchResource.value()?.results ?? []);
+  protected loading = computed(() => this.searchResource.isLoading());
+  protected errorMsg = computed(() => {
+    if (!this.searchParams() || this.searchResource.isLoading()) return '';
+    return this.searchResource.error() ? 'Search failed — is the backend running?' : '';
+  });
+
+  protected readonly categories = ['films', 'series', 'mangas'] as const;
 
   protected readonly sortOptions: Record<string, { label: string; value: string }[]> = {
     films: [
@@ -56,15 +75,21 @@ export class SearchComponent {
 
   protected readonly skeletons = Array.from({ length: 6 });
 
+  // Modal state
+  protected modalOpen = signal(false);
+  protected selectedResult = signal<SearchResult | null>(null);
+  protected selectedDestination = signal<'server' | 'client'>('server');
+  protected launching = signal(false);
+  protected launchError = signal('');
+
   search(): void {
-    const q = this.query();
-    if (!q.trim()) return;
-    this.loading.set(true);
-    this.error.set('');
-    this.results.set([]);
-    this.api.search(q, this.category(), this.year() || undefined, 20, this.sort() || undefined).subscribe({
-      next: (res) => { this.results.set(res.results); this.loading.set(false); },
-      error: () => { this.error.set('Search failed — is the backend running?'); this.loading.set(false); },
+    const q = this.query().trim();
+    if (!q) return;
+    this.searchParams.set({
+      q,
+      category: this.category(),
+      year: this.year() || undefined,
+      sort: this.sort() || undefined,
     });
   }
 
@@ -90,8 +115,15 @@ export class SearchComponent {
     };
     this.launching.set(true);
     this.api.startDownload(payload).subscribe({
-      next: () => { this.launching.set(false); this.closeModal(); this.router.navigate(['/downloads']); },
-      error: () => { this.launchError.set('Failed to start download'); this.launching.set(false); },
+      next: () => {
+        this.launching.set(false);
+        this.closeModal();
+        this.router.navigate(['/downloads']);
+      },
+      error: () => {
+        this.launchError.set('Failed to start download');
+        this.launching.set(false);
+      },
     });
   }
 
