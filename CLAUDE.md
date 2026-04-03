@@ -113,10 +113,18 @@ Aucune autre modification n'est nécessaire. Le registre est automatique.
 - Exceptions custom dans `app/core/exceptions.py` — pas de `assert False` ni de `print()`
 
 ### TypeScript (frontend)
-- **Angular 21 standalone components** uniquement — pas de NgModule
-- **Signals** pour l'état local des composants
+- **Angular 21 standalone components** uniquement — pas de NgModule, pas de `standalone: true` (défaut Angular 20+)
+- **`ChangeDetectionStrategy.OnPush`** obligatoire sur tous les composants
+- **`signal()` / `computed()`** pour l'état local — pas de propriétés mutables ordinaires
+- **`linkedSignal()`** pour l'état dérivé mais modifiable (ex: champ form initialisé depuis une resource, sort qui reset sur changement de catégorie)
+- **`rxResource({ params, stream })`** pour tous les chargements HTTP asynchrones — remplace `ngOnInit + subscribe`
+  - `params: () => ...` déclare la dépendance réactive qui déclenche le chargement
+  - `stream: ({ params }) => Observable<T>` retourne l'Observable
+  - `.reload()` pour forcer un rechargement manuel
+- **`takeUntilDestroyed()`** pour les subscriptions dans le constructeur — remplace `OnDestroy + Subscription`
 - `ApiService` pour tous les appels HTTP — pas de `HttpClient` en direct dans les composants
 - `WsService` pour toutes les connexions WebSocket
+- `inject()` à la place de l'injection par constructeur
 
 ---
 
@@ -150,8 +158,13 @@ Schémas Pydantic dans `backend/app/models/schemas.py`.
 | `backend/app/core/events.py` | Bus événements WebSocket (dict UUID→Queue) |
 | `backend/app/scrapers/base.py` | BaseScraper ABC + registre de scrapers |
 | `backend/app/services/download_service.py` | Logique debrid + téléchargement + progression |
-| `frontend/src/app/services/api.service.ts` | Wrapper HttpClient |
-| `frontend/src/app/services/ws.service.ts` | RxJS WebSocketSubject |
+| `frontend/src/app/core/models/api.models.ts` | Interfaces TypeScript (SearchResult, Download, etc.) |
+| `frontend/src/app/core/services/api.service.ts` | Wrapper HttpClient → backend :8000 |
+| `frontend/src/app/core/services/ws.service.ts` | RxJS WebSocketSubject → WS :8000 |
+| `frontend/src/app/features/search/` | Feature search (component + routes) |
+| `frontend/src/app/features/downloads/` | Feature downloads (component + routes) |
+| `frontend/src/app/features/history/` | Feature history (component + routes) |
+| `frontend/src/app/features/settings/` | Feature settings (component + routes) |
 | `bot/client.py` | Thin client HTTP vers le backend |
 
 ---
