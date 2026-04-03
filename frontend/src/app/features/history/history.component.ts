@@ -1,10 +1,11 @@
-import { Component, signal, computed, inject, ChangeDetectionStrategy } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { Component, signal, computed, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { SlicePipe } from '@angular/common';
-import { ApiService } from '../../core/services/api.service';
+import { ApiService } from '#core/services/api.service';
+import { ALL_PROVIDERS } from '#core/constants/media';
 
-interface HistoryParams {
+type HistoryParams = {
   q: string;
   status: string;
   provider: string;
@@ -12,7 +13,7 @@ interface HistoryParams {
   to: string;
   page: number;
   pageSize: number;
-}
+};
 
 @Component({
   selector: 'app-history',
@@ -23,6 +24,7 @@ interface HistoryParams {
 export class HistoryComponent {
   protected readonly Math = Math;
   private readonly api = inject(ApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   // Form fields — local editable state, only committed on applyFilters()
   protected filterQuery = signal('');
@@ -38,7 +40,7 @@ export class HistoryComponent {
   });
 
   protected readonly resource = rxResource({
-    params: () => this.params(),
+    params: this.params,
     stream: ({ params }) =>
       this.api.getHistory({
         q: params.q || undefined,
@@ -66,7 +68,7 @@ export class HistoryComponent {
   });
 
   protected readonly pageSizes = [10, 25, 50];
-  protected readonly providers = ['', '1fichier', 'Turbobit', 'Rapidgator'];
+  protected readonly providers = ['', ...ALL_PROVIDERS];
 
   applyFilters(): void {
     this.params.set({
@@ -93,7 +95,9 @@ export class HistoryComponent {
   }
 
   delete(id: string): void {
-    this.api.deleteHistory(id).subscribe({ next: () => this.resource.reload() });
+    this.api.deleteHistory(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.resource.reload(),
+    });
   }
 
   pageNumbers(): number[] {

@@ -1,9 +1,10 @@
-import { Component, computed, linkedSignal, inject, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, linkedSignal, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
-import { ApiService } from '../../core/services/api.service';
-import { WsService } from '../../core/services/ws.service';
-import type { Download } from '../../core/models/api.models';
+import { ApiService } from '#core/services/api.service';
+import { WsService } from '#core/services/ws.service';
+import { ACTIVE_STATUSES, COMPLETED_STATUSES, STATUS_LABEL } from '#core/constants/download-status';
+import type { Download } from '#core/models/download.type';
 
 @Component({
   selector: 'app-downloads',
@@ -14,6 +15,7 @@ import type { Download } from '../../core/models/api.models';
 export class DownloadsComponent {
   private readonly api = inject(ApiService);
   private readonly ws = inject(WsService);
+  private readonly destroyRef = inject(DestroyRef);
 
   private readonly resource = rxResource({
     stream: () => this.api.getDownloads(),
@@ -23,9 +25,7 @@ export class DownloadsComponent {
   protected downloads = linkedSignal<Download[]>(() => this.resource.value() ?? []);
 
   protected active = computed(() =>
-    this.downloads().filter(d =>
-      ['scraping', 'resolving', 'debriding', 'downloading'].includes(d.status)
-    )
+    this.downloads().filter(d => (ACTIVE_STATUSES as readonly string[]).includes(d.status))
   );
   protected queued = computed(() => this.downloads().filter(d => d.status === 'queued'));
   protected done = computed(() => this.downloads().filter(d => d.status === 'completed'));
@@ -33,7 +33,7 @@ export class DownloadsComponent {
     this.downloads().filter(d => ['error', 'cancelled'].includes(d.status))
   );
   protected completed = computed(() =>
-    this.downloads().filter(d => ['completed', 'error', 'cancelled'].includes(d.status))
+    this.downloads().filter(d => (COMPLETED_STATUSES as readonly string[]).includes(d.status))
   );
 
   constructor() {
@@ -60,27 +60,18 @@ export class DownloadsComponent {
   }
 
   cancel(id: string): void {
-    this.api.cancelDownload(id).subscribe({ next: () => this.resource.reload() });
+    this.api.cancelDownload(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.resource.reload(),
+    });
   }
 
   remove(id: string): void {
-    this.api.cancelDownload(id).subscribe({
+    this.api.cancelDownload(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.downloads.update(list => list.filter(d => d.id !== id)),
     });
   }
 
   statusLabel(status: string): string {
-    const map: Record<string, string> = {
-      queued: 'WAITING',
-      scraping: 'SCRAPING…',
-      resolving: 'RESOLVING…',
-      debriding: 'DEBRIDING…',
-      downloading: 'DOWNLOADING',
-      completed: '✓ DONE',
-      error: '✕ ERROR',
-      cancelled: 'CANCELLED',
-      ready_for_client: 'READY',
-    };
-    return map[status] ?? status.toUpperCase();
+    return STATUS_LABEL[status] ?? status.toUpperCase();
   }
 }

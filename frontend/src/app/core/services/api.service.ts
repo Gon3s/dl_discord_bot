@@ -1,15 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import type {
-  SearchResponse,
-  Download,
-  DownloadCreated,
-  HistoryList,
-  SettingRead,
-  StartDownloadPayload,
-  ApiStatus,
-} from '../models/api.models';
+import type { SearchResponse } from '../models/search.type';
+import type { Download, DownloadCreated, StartDownloadPayload } from '../models/download.type';
+import type { HistoryList } from '../models/history.type';
+import type { SettingRead } from '../models/setting.type';
+import type { ApiStatus } from '../models/api-status.type';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {

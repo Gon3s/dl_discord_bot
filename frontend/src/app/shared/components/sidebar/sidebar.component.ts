@@ -2,8 +2,8 @@ import { Component, signal, computed, inject, ChangeDetectionStrategy } from '@a
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { interval } from 'rxjs';
-import { ApiService } from '../../../core/services/api.service';
-import { WsService } from '../../../core/services/ws.service';
+import { ApiService } from '#core/services/api.service';
+import { WsService } from '#core/services/ws.service';
 
 @Component({
   selector: 'app-sidebar',

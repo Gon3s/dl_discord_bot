@@ -1,7 +1,9 @@
-import { Component, signal, computed, linkedSignal, inject, ChangeDetectionStrategy } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { Component, signal, computed, linkedSignal, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { ApiService } from '../../core/services/api.service';
+import { ApiService } from '#core/services/api.service';
+import { CATEGORIES } from '#core/constants/media';
+import { ALL_PROVIDERS } from '#core/constants/media';
 
 @Component({
   selector: 'app-settings',
@@ -11,6 +13,7 @@ import { ApiService } from '../../core/services/api.service';
 })
 export class SettingsComponent {
   private readonly api = inject(ApiService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly resource = rxResource({
     stream: () => this.api.getSettings(),
@@ -30,15 +33,15 @@ export class SettingsComponent {
   protected alldebridApiKey = linkedSignal(() => this.getSetting('alldebrid_api_key'));
   protected enabledProviders = linkedSignal<string[]>(() => {
     const v = this.getSetting('default_providers');
-    try { return v ? JSON.parse(v) : [...this.allProviders]; } catch { return [...this.allProviders]; }
+    try { return v ? JSON.parse(v) : [...ALL_PROVIDERS]; } catch { return [...ALL_PROVIDERS]; }
   });
 
   protected saving = signal(false);
   protected saved = signal(false);
   protected showApiKey = signal(false);
 
-  protected readonly categories = ['films', 'series', 'mangas'];
-  protected readonly allProviders = ['1fichier', 'Turbobit', 'Rapidgator'];
+  protected readonly categories = CATEGORIES;
+  protected readonly allProviders = ALL_PROVIDERS;
 
   isProviderEnabled(p: string): boolean {
     return this.enabledProviders().includes(p);
@@ -59,7 +62,7 @@ export class SettingsComponent {
       max_concurrent_downloads: this.maxConcurrent(),
       alldebrid_api_key: this.alldebridApiKey(),
       default_providers: JSON.stringify(this.enabledProviders()),
-    }).subscribe({
+    }).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.resource.reload();
         this.saving.set(false);

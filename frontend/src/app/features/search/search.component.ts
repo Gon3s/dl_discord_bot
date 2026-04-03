@@ -1,16 +1,18 @@
-import { Component, signal, computed, linkedSignal, inject, ChangeDetectionStrategy } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { Component, signal, computed, linkedSignal, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
-import { ApiService } from '../../core/services/api.service';
-import type { SearchResult, StartDownloadPayload } from '../../core/models/api.models';
+import { ApiService } from '#core/services/api.service';
+import { CATEGORIES } from '#core/constants/media';
+import type { SearchResult } from '#core/models/search.type';
+import type { StartDownloadPayload } from '#core/models/download.type';
 
-interface SearchParams {
+type SearchParams = {
   q: string;
   category: string;
   year?: string;
   sort?: string;
-}
+};
 
 @Component({
   selector: 'app-search',
@@ -21,6 +23,7 @@ interface SearchParams {
 export class SearchComponent {
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected query = signal('');
   protected category = signal('films');
@@ -33,7 +36,7 @@ export class SearchComponent {
   protected searchParams = signal<SearchParams | undefined>(undefined);
 
   protected readonly searchResource = rxResource({
-    params: () => this.searchParams(),
+    params: this.searchParams,
     stream: ({ params }) =>
       this.api.search(params.q, params.category, params.year, 20, params.sort),
   });
@@ -45,7 +48,7 @@ export class SearchComponent {
     return this.searchResource.error() ? 'Search failed — is the backend running?' : '';
   });
 
-  protected readonly categories = ['films', 'series', 'mangas'] as const;
+  protected readonly categories = CATEGORIES;
 
   protected readonly sortOptions: Record<string, { label: string; value: string }[]> = {
     films: [
@@ -114,7 +117,7 @@ export class SearchComponent {
       destination: this.selectedDestination(),
     };
     this.launching.set(true);
-    this.api.startDownload(payload).subscribe({
+    this.api.startDownload(payload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.launching.set(false);
         this.closeModal();
