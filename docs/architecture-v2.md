@@ -336,18 +336,22 @@ dl_discord_bot/                     ← monorepo racine
 │   │   └── download.py             ← !url, !status → POST /api/v1/downloads
 │   └── pyproject.toml              ← sans selenium/pandas/beautifulsoup4
 │
-├── frontend/                       ← Angular 21 + Tailwind CSS v4
+├── frontend/                       ← Angular 21 + Tailwind CSS v3
 │   ├── src/app/
-│   │   ├── pages/
-│   │   │   ├── search/             ← recherche + grille résultats + modal
-│   │   │   ├── downloads/          ← file active + barres de progression WS
-│   │   │   ├── history/            ← tableau paginé + recherche
-│   │   │   └── settings/           ← config download_path, providers, source
-│   │   ├── services/
-│   │   │   ├── api.service.ts      ← HttpClient → :8000/api/v1
-│   │   │   └── ws.service.ts       ← RxJS WebSocketSubject → :8000/ws
+│   │   ├── core/
+│   │   │   ├── models/
+│   │   │   │   └── api.models.ts   ← interfaces TypeScript partagées
+│   │   │   └── services/
+│   │   │       ├── api.service.ts  ← HttpClient → :8000/api/v1
+│   │   │       └── ws.service.ts   ← RxJS WebSocketSubject → :8000/ws
+│   │   ├── features/               ← lazy-loaded via loadChildren
+│   │   │   ├── search/             ← rxResource search + modal téléchargement
+│   │   │   ├── downloads/          ← linkedSignal + WS patch en temps réel
+│   │   │   ├── history/            ← params signal + pagination
+│   │   │   └── settings/           ← linkedSignal par champ initialisé depuis API
 │   │   └── shared/
-│   │       └── components/         ← progress-bar, badge, toast, poster-card
+│   │       └── components/
+│   │           └── sidebar/        ← rxResource status + polling 10s
 │   └── package.json
 │
 ├── docs/
