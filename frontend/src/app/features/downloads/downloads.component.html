@@ -1,0 +1,171 @@
+<!-- Header -->
+<header class="sticky top-0 z-10 px-7 py-4 flex items-center gap-4"
+        style="background:#000;border-bottom:1px solid #1a1f10">
+  <div class="flex-1">
+    <p class="text-sm font-black tracking-widest uppercase" style="color:#e8ecd8">Downloads</p>
+    <p class="text-[10px] tracking-wider mt-0.5" style="color:#3a4022">QUEUE · PROGRESS · STATUS</p>
+  </div>
+  <div class="flex gap-1.5 text-[9px] tracking-wider">
+    @if (active().length > 0) {
+      <span class="px-2 py-1 rounded"
+            style="background:rgba(167,209,41,.12);color:var(--lime);border:1px solid rgba(167,209,41,.2)">
+        {{ active().length }} ACTIVE
+      </span>
+    }
+    @if (queued().length > 0) {
+      <span class="px-2 py-1 rounded"
+            style="background:rgba(97,111,57,.15);color:#8a9a55;border:1px solid #2d3520">
+        {{ queued().length }} QUEUED
+      </span>
+    }
+    @if (done().length > 0) {
+      <span class="px-2 py-1 rounded"
+            style="background:rgba(62,67,46,.4);color:#6b7a4a;border:1px solid #1a1f10">
+        {{ done().length }} DONE
+      </span>
+    }
+    @if (failed().length > 0) {
+      <span class="px-2 py-1 rounded"
+            style="background:rgba(80,10,10,.3);color:#c04040;border:1px solid rgba(120,20,20,.3)">
+        {{ failed().length }} ERR
+      </span>
+    }
+  </div>
+</header>
+
+<main class="flex-1 px-7 py-5 space-y-6">
+
+  <!-- ACTIVE -->
+  @if (active().length > 0) {
+    <section>
+      <p class="text-[9px] tracking-widest mb-3" style="color:#4a5a2a">// ACTIVE TRANSFERS</p>
+      <div class="space-y-2">
+        @for (d of active(); track d.id) {
+          <div class="rounded-lg p-4" style="background:#0c0c0c;border:1px solid #1a1f10">
+            <div class="flex items-start gap-3 mb-3">
+              <div class="w-8 h-8 rounded flex items-center justify-center shrink-0"
+                   style="background:rgba(167,209,41,.1);border:1px solid rgba(167,209,41,.2)">
+                <svg class="w-4 h-4" style="color:var(--lime)" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-xs font-bold truncate mb-0.5" style="color:#c8d890">{{ d.filename ?? d.title }}</p>
+                <p class="text-[9px] font-mono" style="color:#3a4022">{{ statusLabel(d.status) }}</p>
+              </div>
+              <button (click)="cancel(d.id)"
+                      class="w-7 h-7 rounded flex items-center justify-center transition text-xs shrink-0"
+                      style="background:transparent;border:1px solid #1a1f10;color:#3a4022"
+                      onmouseover="this.style.borderColor='#5a1a1a';this.style.color='#c04040'"
+                      onmouseout="this.style.borderColor='#1a1f10';this.style.color='#3a4022'">✕</button>
+            </div>
+
+            @if (d.status === 'downloading') {
+              <div class="relative w-full h-1 rounded-full overflow-hidden mb-2" style="background:#111">
+                <div class="h-1 rounded-full"
+                     style="background:linear-gradient(90deg,var(--dark),var(--mid),var(--lime));box-shadow:0 0 8px rgba(167,209,41,.35)"
+                     [style.width]="d.progress_pct + '%'"></div>
+              </div>
+              <div class="flex justify-between text-[9px]">
+                <span class="font-mono" style="color:#4a5a2a">{{ d.progress_pct | number:'1.0-0' }}%</span>
+                <div class="flex items-center gap-3">
+                  @if (d.eta_s) {
+                    <span class="font-mono" style="color:#6b7a4a">ETA {{ formatEta(d.eta_s) }}</span>
+                  }
+                  @if (d.speed_mbps) {
+                    <span class="font-mono font-black" style="color:var(--lime);animation:flicker .85s ease infinite">
+                      ↓ {{ d.speed_mbps | number:'1.1-1' }} MB/s
+                    </span>
+                  }
+                </div>
+              </div>
+            } @else {
+              <div class="relative w-full h-1 rounded-full overflow-hidden" style="background:#111">
+                <div style="position:absolute;top:0;height:100%;border-radius:9999px;background:rgba(167,209,41,.25);animation:ind 1.7s ease infinite"></div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  }
+
+  <!-- QUEUE -->
+  @if (queued().length > 0) {
+    <section>
+      <p class="text-[9px] tracking-widest mb-3" style="color:#4a5a2a">// QUEUE</p>
+      <div class="rounded-lg overflow-hidden" style="background:#0c0c0c;border:1px solid #1a1f10">
+        <div class="divide-y" style="border-color:#1a1f10">
+          @for (d of queued(); track d.id; let i = $index) {
+            <div class="q-row px-4 py-3 flex items-center gap-3">
+              <span class="text-[9px] font-mono w-5 shrink-0" style="color:#2d3520">
+                {{ (i + 1).toString().padStart(2, '0') }}
+              </span>
+              <div class="flex-1 min-w-0">
+                <p class="text-[11px] font-bold truncate" style="color:#8a9a55">{{ d.filename ?? d.title }}</p>
+                <p class="text-[9px] mt-0.5 font-mono" style="color:#3a4022">WAITING</p>
+              </div>
+              <div class="w-24 relative h-0.5 rounded-full overflow-hidden" style="background:#111">
+                <div style="position:absolute;top:0;height:100%;border-radius:9999px;background:rgba(167,209,41,.25);animation:ind 1.7s ease infinite"></div>
+              </div>
+              <button (click)="cancel(d.id)"
+                      class="transition text-xs ml-1" style="color:#2d3520"
+                      onmouseover="this.style.color='#c04040'"
+                      onmouseout="this.style.color='#2d3520'">✕</button>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- COMPLETED -->
+  @if (completed().length > 0) {
+    <section>
+      <p class="text-[9px] tracking-widest mb-3" style="color:#4a5a2a">// RECENTLY COMPLETED</p>
+      <div class="rounded-lg overflow-hidden" style="background:#0c0c0c;border:1px solid #1a1f10">
+        <div class="divide-y" style="border-color:#1a1f10">
+          @for (d of completed(); track d.id) {
+            <div class="px-4 py-3 flex items-center gap-3"
+                 [style.opacity]="d.status === 'error' ? '0.6' : '1'">
+              <span class="text-[9px] font-black"
+                    [style.color]="d.status === 'completed' ? 'var(--lime)' : '#c04040'">
+                {{ d.status === 'completed' ? '✓' : '✕' }}
+              </span>
+              <div class="flex-1 min-w-0">
+                <p class="text-[11px] font-bold truncate" style="color:#6b7a4a">{{ d.filename ?? d.title }}</p>
+                @if (d.error) {
+                  <p class="text-[9px] font-mono" style="color:#c04040">{{ d.error }}</p>
+                }
+              </div>
+              @if (d.status === 'completed') {
+                <div class="w-24 h-0.5 rounded-full" style="background:var(--mid)"></div>
+                <span class="text-[9px] font-black ml-2" style="color:var(--lime)">100%</span>
+              }
+              <button (click)="remove(d.id)"
+                      class="w-7 h-7 rounded flex items-center justify-center transition text-xs shrink-0 ml-1"
+                      style="background:transparent;border:1px solid #1a1f10;color:#3a4022"
+                      onmouseover="this.style.borderColor='#5a1a1a';this.style.color='#c04040'"
+                      onmouseout="this.style.borderColor='#1a1f10';this.style.color='#3a4022'">✕</button>
+            </div>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
+  <!-- Empty state -->
+  @if (downloads().length === 0) {
+    <div class="flex flex-col items-center justify-center py-20 text-center">
+      <p class="text-[10px] tracking-widest mb-2" style="color:#3a4022">NO DOWNLOADS</p>
+      <p class="text-[9px]" style="color:#2d3520">Start from the Search page</p>
+    </div>
+  }
+
+</main>
+
+<style>
+  .q-row { border-left: 2px solid transparent; transition: border-color .15s, background .15s; }
+  .q-row:hover { border-left-color: var(--lime); background: rgba(167,209,41,.03); }
+</style>

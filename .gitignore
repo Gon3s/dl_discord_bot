@@ -18,6 +18,8 @@ venv/
 
 # Allow mockups HTML files
 !mockups/*.html
+# Allow Angular component templates
+!frontend/**/*.html
 
 # Python
 __pycache__/
