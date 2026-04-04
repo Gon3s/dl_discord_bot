@@ -1,4 +1,4 @@
-from app.scrapers.base import BaseScraper, ProviderLinks, SearchResult, register
+from app.scrapers.base import BaseScraper, Episode, ProviderLinks, SearchResult, register
 
 
 @register
@@ -20,4 +20,11 @@ class DarkiworldScraper(BaseScraper):
         url: str,
         providers: list[str],
     ) -> list[ProviderLinks]:
+        raise NotImplementedError("darkiworld: not implemented yet")
+
+    async def get_episodes(
+        self,
+        url: str,
+        providers: list[str] | None = None,
+    ) -> list[Episode]:
         raise NotImplementedError("darkiworld: not implemented yet")

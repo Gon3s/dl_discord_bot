@@ -1,4 +1,4 @@
-import { Component, computed, linkedSignal, effect, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { Component, computed, linkedSignal, effect, inject, ChangeDetectionStrategy, DestroyRef, DOCUMENT } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
 import { ApiService } from '#core/services/api.service';
@@ -16,6 +16,7 @@ export class DownloadsComponent {
   private readonly api = inject(ApiService);
   private readonly ws = inject(WsService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly document = inject(DOCUMENT);
 
   private readonly resource = rxResource({
     stream: () => this.api.getDownloads(),
@@ -50,10 +51,14 @@ export class DownloadsComponent {
                   progress_pct: event.progress_pct ?? d.progress_pct,
                   speed_mbps: event.speed_mbps ?? d.speed_mbps,
                   eta_s: event.eta_s ?? d.eta_s,
+                  debrid_url: event.debrid_url ?? d.debrid_url,
                 }
               : d
           )
         );
+        if (event.debrid_url) {
+          this.triggerBrowserDownload(event.debrid_url, event.filename ?? undefined);
+        }
         if (['completed', 'error', 'cancelled', 'queued'].includes(event.status)) {
           this.resource.reload();
         }
@@ -88,8 +93,20 @@ export class DownloadsComponent {
           )
         );
       },
+      error: () => this.subscribedIds.delete(id),
       complete: () => this.subscribedIds.delete(id),
     });
+  }
+
+  triggerBrowserDownload(url: string, filename?: string): void {
+    const a = this.document.createElement('a');
+    a.href = url;
+    if (filename) a.download = filename;
+    a.target = '_blank';
+    a.rel = 'noopener';
+    this.document.body.appendChild(a);
+    a.click();
+    this.document.body.removeChild(a);
   }
 
   formatEta(seconds: number): string {

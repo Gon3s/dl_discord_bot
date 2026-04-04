@@ -24,6 +24,13 @@ class ProviderLinks:
     urls: list[str] = field(default_factory=list)
 
 
+@dataclass
+class Episode:
+    title: str
+    number: int
+    provider_links: list[ProviderLinks] = field(default_factory=list)
+
+
 def register(cls: type["BaseScraper"]) -> type["BaseScraper"]:
     _registry[cls.source_name] = cls
     logger.debug("Registered scraper: %s", cls.source_name)
@@ -55,6 +62,13 @@ class BaseScraper(ABC):
         url: str,
         providers: list[str],
     ) -> list[ProviderLinks]: ...
+
+    @abstractmethod
+    async def get_episodes(
+        self,
+        url: str,
+        providers: list[str] | None = None,
+    ) -> list[Episode]: ...
 
     async def resolve_link(self, url: str) -> str:
         """Resolve any link protection layer and return the real provider URL.

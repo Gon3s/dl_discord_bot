@@ -24,6 +24,20 @@ class SearchResponse(BaseModel):
     source: str
 
 
+# --- Episodes ---
+
+
+class EpisodeLinkRead(BaseModel):
+    provider: str
+    url: str
+
+
+class EpisodeRead(BaseModel):
+    title: str
+    number: int
+    links: list[EpisodeLinkRead]
+
+
 # --- Downloads ---
 
 
@@ -116,3 +130,4 @@ class WsProgressEvent(BaseModel):
     speed_mbps: float | None = None
     eta_s: int | None = None
     filename: str | None = None
+    debrid_url: str | None = None

@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
+import { defer, retry } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
 
 export interface QueueEvent {
@@ -20,15 +21,14 @@ export class WsService {
   private queueSocket?: WebSocketSubject<QueueEvent>;
 
   watchQueue(): Observable<QueueEvent> {
-    if (!this.queueSocket || this.queueSocket.closed) {
+    return defer(() => {
       this.queueSocket = webSocket<QueueEvent>(`${this.wsBase}/queue`);
-    }
-    return this.queueSocket.asObservable();
+      return this.queueSocket;
+    }).pipe(retry({ delay: 3000 }));
   }
 
   watchDownload(id: string): Observable<QueueEvent> {
-    const socket = webSocket<QueueEvent>(`${this.wsBase}/downloads/${id}`);
-    return socket.asObservable();
+    return webSocket<QueueEvent>(`${this.wsBase}/downloads/${id}`);
   }
 
   closeQueue(): void {

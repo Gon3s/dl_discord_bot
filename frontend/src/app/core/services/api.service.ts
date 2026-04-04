@@ -6,6 +6,7 @@ import type { Download, DownloadCreated, StartDownloadPayload } from '../models/
 import type { HistoryList } from '../models/history.type';
 import type { SettingRead } from '../models/setting.type';
 import type { ApiStatus } from '../models/api-status.type';
+import type { Episode } from '../models/episode.type';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -67,5 +68,11 @@ export class ApiService {
 
   getStatus(): Observable<ApiStatus> {
     return this.http.get<ApiStatus>(`${this.base}/status`);
+  }
+
+  getEpisodes(url: string, source = 'wawacity', providers?: string[]): Observable<Episode[]> {
+    let params = new HttpParams().set('url', url).set('source', source);
+    if (providers?.length) params = params.set('providers', providers.join(','));
+    return this.http.get<Episode[]>(`${this.base}/episodes`, { params });
   }
 }

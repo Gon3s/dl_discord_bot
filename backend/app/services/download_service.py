@@ -81,12 +81,13 @@ class DownloadService:
     # Download execution
     # ------------------------------------------------------------------
 
-    def _scraper_for_url(self, url: str) -> BaseScraper:
+    def _scraper_for_url(self, url: str) -> BaseScraper | None:
+        """Return the scraper for the given URL, or None if it's a direct provider link."""
         netloc = urlparse(url).netloc
         for keyword, source_name in _SCRAPER_DOMAINS.items():
             if keyword in netloc:
                 return get_scraper(source_name)
-        raise DownloadError(f"No scraper available for host: {netloc}")
+        return None
 
     async def run(self, download_id: str) -> None:
         """Scrape provider links, debrid, then download. Called by the queue worker."""
@@ -95,36 +96,43 @@ class DownloadService:
             raise DownloadNotFoundError(download_id)
 
         try:
-            # Step 1 — scrape provider links from the source page
-            await self._set_status(download, "scraping")
-            await _emit(
-                download_id,
-                WsProgressEvent(
-                    download_id=download_id, status="scraping", progress_pct=0.0
-                ).model_dump(),
-            )
-
             scraper = self._scraper_for_url(download.source_url)
-            provider_links = await scraper.get_provider_links(download.source_url, [])
 
-            if not provider_links:
-                raise DownloadError("No provider links found on the page")
+            if scraper is not None:
+                # Step 1 — scrape provider links from the source page
+                await self._set_status(download, "scraping")
+                await _emit(
+                    download_id,
+                    WsProgressEvent(
+                        download_id=download_id, status="scraping", progress_pct=0.0
+                    ).model_dump(),
+                )
 
-            _PREFERRED_PROVIDERS = ["Turbobit", "Rapidgator", "1fichier"]
-            chosen = next(
-                (pl for name in _PREFERRED_PROVIDERS for pl in provider_links if pl.provider == name and pl.urls),
-                next((pl for pl in provider_links if pl.urls), None),
-            )
-            if chosen is None:
-                raise DownloadError("No usable provider link found on the page")
+                provider_links = await scraper.get_provider_links(download.source_url, [])
 
-            dl_protect_url = chosen.urls[0]
-            logger.info(
-                "Download %s — provider: %s dl-protect: %s",
-                download_id,
-                chosen.provider,
-                dl_protect_url,
-            )
+                if not provider_links:
+                    raise DownloadError("No provider links found on the page")
+
+                _PREFERRED_PROVIDERS = ["Turbobit", "Rapidgator", "1fichier"]
+                chosen = next(
+                    (pl for name in _PREFERRED_PROVIDERS for pl in provider_links if pl.provider == name and pl.urls),
+                    next((pl for pl in provider_links if pl.urls), None),
+                )
+                if chosen is None:
+                    raise DownloadError("No usable provider link found on the page")
+
+                dl_protect_url = chosen.urls[0]
+                logger.info(
+                    "Download %s — provider: %s dl-protect: %s",
+                    download_id,
+                    chosen.provider,
+                    dl_protect_url,
+                )
+            else:
+                # source_url is already a direct provider/dl-protect link (e.g. episode download)
+                dl_protect_url = download.source_url
+                scraper = get_scraper("wawacity")
+                logger.info("Download %s — direct provider URL: %s", download_id, dl_protect_url)
 
             # Step 2 — resolve dl-protect intermediary to real provider URL
             await self._set_status(download, "resolving")
