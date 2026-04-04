@@ -106,7 +106,7 @@
     @for (r of results(); track r.url) {
       <div class="result-card rounded overflow-hidden cursor-pointer"
            style="background:#0c0c0c;border:1px solid #1a1f10"
-           (click)="openModal(r)">
+           (click)="openResult(r)">
         <div class="relative">
           @if (r.poster_url) {
             <img [src]="r.poster_url" [alt]="r.title"
@@ -117,7 +117,9 @@
           }
           <div class="card-cta absolute inset-0 flex items-end p-2"
                style="background:linear-gradient(to top,rgba(0,0,0,.95) 0%,rgba(0,0,0,.5) 60%,transparent 100%)">
-            <span class="text-[10px] font-black" style="color:var(--lime)">[ DOWNLOAD ]</span>
+            <span class="text-[10px] font-black" style="color:var(--lime)">
+            {{ category() === 'series' ? '[ ÉPISODES ]' : '[ DOWNLOAD ]' }}
+          </span>
           </div>
           @if (r.quality) {
             <span class="absolute top-1.5 right-1.5 text-[9px] font-black px-1.5 py-0.5 rounded"
@@ -225,9 +227,126 @@
   </div>
 }
 
+<!-- Episodes panel -->
+@if (episodePanelOpen() && selectedResult()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4"
+       style="background:rgba(0,0,0,.85)"
+       (click)="closeEpisodePanel()">
+    <div class="w-full max-w-md rounded-lg overflow-hidden flex flex-col"
+         style="background:#080808;border:1px solid #1a1f10;max-height:85vh"
+         (click)="$event.stopPropagation()">
+
+      <div style="height:2px;background:linear-gradient(90deg,var(--dark),var(--mid),var(--lime))"></div>
+
+      <!-- Header -->
+      <div class="px-5 pt-4 pb-3 flex items-start gap-3 shrink-0"
+           style="border-bottom:1px solid #1a1f10">
+        @if (selectedResult()!.poster_url) {
+          <img [src]="selectedResult()!.poster_url" [alt]="selectedResult()!.title"
+               class="w-12 rounded shrink-0" style="border:1px solid #2d3520" />
+        }
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-black leading-tight truncate" style="color:#e8ecd8">
+            {{ selectedResult()!.title }}
+          </p>
+          <p class="text-[9px] tracking-widest mt-1" style="color:#4a5a2a">// SÉLECTIONNER LES ÉPISODES</p>
+        </div>
+        <button (click)="closeEpisodePanel()" style="color:#3a4022;font-size:1.25rem;line-height:1"
+                onmouseover="this.style.color='#8a9a55'"
+                onmouseout="this.style.color='#3a4022'">&times;</button>
+      </div>
+
+      <!-- Destination -->
+      <div class="px-5 py-3 shrink-0" style="border-bottom:1px solid #1a1f10">
+        <div class="flex gap-1.5">
+          <button class="flex-1 py-1.5 rounded text-[11px] font-black flex items-center justify-center gap-1 transition"
+                  [style.background]="selectedDestination() === 'server' ? 'var(--dark)' : 'transparent'"
+                  [style.color]="selectedDestination() === 'server' ? 'var(--lime)' : '#6b7a4a'"
+                  [style.border]="selectedDestination() === 'server' ? '1px solid var(--mid)' : '1px solid #1a1f10'"
+                  (click)="selectedDestination.set('server')">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+            </svg>
+            Server
+          </button>
+          <button class="flex-1 py-1.5 rounded text-[11px] font-black flex items-center justify-center gap-1 transition"
+                  [style.background]="selectedDestination() === 'client' ? 'var(--dark)' : 'transparent'"
+                  [style.color]="selectedDestination() === 'client' ? 'var(--lime)' : '#6b7a4a'"
+                  [style.border]="selectedDestination() === 'client' ? '1px solid var(--mid)' : '1px solid #1a1f10'"
+                  (click)="selectedDestination.set('client')">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.1-1.1m.758-4.9a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+            </svg>
+            Direct
+          </button>
+        </div>
+      </div>
+
+      <!-- Episode list -->
+      <div class="overflow-y-auto flex-1">
+        @if (episodesLoading()) {
+          <div class="px-5 py-8 text-center">
+            <p class="text-[10px] tracking-widest" style="color:#3a4022">CHARGEMENT DES ÉPISODES…</p>
+          </div>
+        } @else if (episodes().length === 0) {
+          <div class="px-5 py-8 text-center">
+            <p class="text-[10px] tracking-widest" style="color:#3a4022">AUCUN ÉPISODE TROUVÉ</p>
+          </div>
+        } @else {
+          <div class="divide-y" style="border-color:#1a1f10">
+            @for (ep of episodes(); track ep.number) {
+              <div class="ep-row px-5 py-3 flex items-center gap-3">
+                <span class="text-[9px] font-mono w-6 shrink-0 text-right" style="color:#2d3520">
+                  {{ ep.number.toString().padStart(2, '0') }}
+                </span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-bold" style="color:#c8d890">{{ ep.title }}</p>
+                  <div class="flex gap-1 mt-0.5 flex-wrap">
+                    @for (link of ep.links; track link.provider) {
+                      <span class="text-[8px] px-1 py-0.5 rounded font-mono"
+                            style="background:rgba(62,67,46,.3);color:#6b7a4a;border:1px solid #1a1f10">
+                        {{ link.provider }}
+                      </span>
+                    }
+                  </div>
+                </div>
+                <button (click)="downloadEpisode(ep)" [disabled]="launching()"
+                        class="shrink-0 w-7 h-7 rounded flex items-center justify-center transition"
+                        style="background:rgba(167,209,41,.1);border:1px solid rgba(167,209,41,.2);color:var(--lime)"
+                        onmouseover="this.style.background='rgba(167,209,41,.2)'"
+                        onmouseout="this.style.background='rgba(167,209,41,.1)'">
+                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                  </svg>
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Footer -->
+      @if (episodes().length > 0) {
+        <div class="px-5 py-3 shrink-0" style="border-top:1px solid #1a1f10">
+          <button (click)="downloadAll()" [disabled]="launchingAll() || launching()"
+                  class="w-full py-2 rounded text-xs font-black transition"
+                  style="background:var(--lime);color:#000">
+            {{ launchingAll() ? '…' : 'TOUT TÉLÉCHARGER (' + episodes().length + ' épisodes) →' }}
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}
+
 <style>
   .result-card { transition: transform .18s, border-color .18s; }
   .result-card:hover { transform: translateY(-4px); border-color: var(--lime) !important; }
   .result-card:hover .card-cta { opacity: 1; }
   .card-cta { opacity: 0; transition: opacity .18s; }
+  .ep-row { transition: background .15s; }
+  .ep-row:hover { background: rgba(167,209,41,.03); }
 </style>

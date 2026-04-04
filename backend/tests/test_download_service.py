@@ -7,6 +7,7 @@ from app.core import events
 from app.core.exceptions import DownloadError, DownloadNotFoundError
 from app.models.orm import Download
 from app.models.schemas import DownloadCreate
+from app.scrapers.wawacity import WawacityScraper
 from app.services.download_service import DownloadService
 
 
@@ -101,6 +102,18 @@ class TestListActive:
         assert any(x.id == d.id for x in active)
 
 
+class TestScraperForUrl:
+    def test_returns_wawacity_scraper_for_wawacity_url(self, service: DownloadService) -> None:
+        scraper = service._scraper_for_url("https://www.wawacity.pizza?p=film&id=1")
+        assert isinstance(scraper, WawacityScraper)
+
+    def test_returns_none_for_dl_protect_url(self, service: DownloadService) -> None:
+        assert service._scraper_for_url("https://dl-protect.link/abc123") is None
+
+    def test_returns_none_for_unknown_host(self, service: DownloadService) -> None:
+        assert service._scraper_for_url("https://1fichier.com/?abc") is None
+
+
 def _mock_scraper(provider_url: str = "https://turbobit.net/abc123"):
     """Return a mock scraper that yields one Turbobit provider link."""
     from app.scrapers.base import ProviderLinks
@@ -168,6 +181,60 @@ class TestRunClientDestination:
         ):
             await service.run(download.id)
             mock_open.assert_not_called()
+
+
+class TestRunDirectUrl:
+    """When source_url is a direct dl-protect link (episode), scraping is skipped."""
+
+    async def test_direct_url_skips_scraping_and_completes(
+        self, service: DownloadService
+    ) -> None:
+        data = DownloadCreate(
+            source_url="https://dl-protect.link/ep1abc",
+            title="Breaking Bad S01E01",
+            media_type="serie",
+            destination="client",
+        )
+        download = await service.create(data)
+
+        debrid_data = {"link": "https://cdn.example.com/bb.mkv", "filename": "bb.mkv"}
+        mock_scraper = MagicMock()
+        mock_scraper.resolve_link = AsyncMock(return_value="https://rapidgator.net/file/abc")
+
+        with (
+            patch("app.services.download_service.get_scraper", return_value=mock_scraper),
+            patch.object(service._alldebrid, "debrid_link", new=AsyncMock(return_value=debrid_data)),
+            patch("app.services.download_service.events.emit", new=AsyncMock()),
+        ):
+            await service.run(download.id)
+
+        refreshed = await service.get(download.id)
+        assert refreshed is not None
+        assert refreshed.status == "completed"
+        mock_scraper.resolve_link.assert_awaited_once_with("https://dl-protect.link/ep1abc")
+
+    async def test_direct_url_never_calls_get_provider_links(
+        self, service: DownloadService
+    ) -> None:
+        data = DownloadCreate(
+            source_url="https://dl-protect.link/ep1abc",
+            title="Episode Test",
+            media_type="serie",
+            destination="client",
+        )
+        download = await service.create(data)
+
+        mock_scraper = MagicMock()
+        mock_scraper.resolve_link = AsyncMock(return_value="https://rapidgator.net/file/abc")
+
+        with (
+            patch("app.services.download_service.get_scraper", return_value=mock_scraper),
+            patch.object(service._alldebrid, "debrid_link", new=AsyncMock(return_value={"link": "https://cdn.example.com/ep.mkv", "filename": "ep.mkv"})),
+            patch("app.services.download_service.events.emit", new=AsyncMock()),
+        ):
+            await service.run(download.id)
+
+        mock_scraper.get_provider_links.assert_not_called()
 
 
 class TestRunErrors:

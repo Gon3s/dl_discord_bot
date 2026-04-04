@@ -1,0 +1,17 @@
+meta {
+  name: Get episodes source inconnue (400)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/api/v1/episodes?url=https://example.com&source=unknown_source
+  body: none
+  auth: none
+}
+
+tests {
+  test("status 400", function() {
+    expect(res.status).to.equal(400);
+  });
+}

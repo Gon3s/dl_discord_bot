@@ -12,6 +12,7 @@ export type Download = {
   created_at: string;
   completed_at: string | null;
   error: string | null;
+  debrid_url: string | null;
 };
 
 export type DownloadCreated = {

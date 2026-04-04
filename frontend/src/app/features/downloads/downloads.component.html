@@ -140,8 +140,16 @@
                 }
               </div>
               @if (d.status === 'completed') {
-                <div class="w-24 h-0.5 rounded-full" style="background:var(--mid)"></div>
-                <span class="text-[9px] font-black ml-2" style="color:var(--lime)">100%</span>
+                @if (d.debrid_url) {
+                  <a [href]="d.debrid_url" target="_blank" rel="noopener"
+                     class="text-[9px] font-black px-2 py-1 rounded transition"
+                     style="background:rgba(167,209,41,.12);color:var(--lime);border:1px solid rgba(167,209,41,.2)">
+                    ↓ RÉCUPÉRER
+                  </a>
+                } @else {
+                  <div class="w-24 h-0.5 rounded-full" style="background:var(--mid)"></div>
+                  <span class="text-[9px] font-black ml-2" style="color:var(--lime)">100%</span>
+                }
               }
               <button (click)="remove(d.id)"
                       class="w-7 h-7 rounded flex items-center justify-center transition text-xs shrink-0 ml-1"

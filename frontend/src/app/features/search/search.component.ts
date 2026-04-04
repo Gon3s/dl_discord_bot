@@ -2,10 +2,12 @@ import { Component, signal, computed, linkedSignal, inject, ChangeDetectionStrat
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
+import { EMPTY, forkJoin } from 'rxjs';
 import { ApiService } from '#core/services/api.service';
 import { CATEGORIES } from '#core/constants/media';
 import type { SearchResult } from '#core/models/search.type';
 import type { StartDownloadPayload } from '#core/models/download.type';
+import type { Episode, EpisodeLink } from '#core/models/episode.type';
 
 type SearchParams = {
   q: string;
@@ -13,6 +15,8 @@ type SearchParams = {
   year?: string;
   sort?: string;
 };
+
+const PREFERRED_PROVIDERS = ['Turbobit', 'Rapidgator', '1fichier'];
 
 @Component({
   selector: 'app-search',
@@ -78,12 +82,24 @@ export class SearchComponent {
 
   protected readonly skeletons = Array.from({ length: 6 });
 
-  // Modal state
+  // --- Film/manga modal ---
   protected modalOpen = signal(false);
   protected selectedResult = signal<SearchResult | null>(null);
   protected selectedDestination = signal<'server' | 'client'>('server');
   protected launching = signal(false);
   protected launchError = signal('');
+
+  // --- Episodes panel ---
+  protected episodePanelOpen = signal(false);
+  protected launchingAll = signal(false);
+
+  protected readonly episodesResource = rxResource({
+    params: () => this.episodePanelOpen() ? this.selectedResult() : null,
+    stream: ({ params }) => params ? this.api.getEpisodes(params.url) : EMPTY,
+  });
+
+  protected episodes = computed(() => this.episodesResource.value() ?? []);
+  protected episodesLoading = computed(() => this.episodesResource.isLoading());
 
   search(): void {
     const q = this.query().trim();
@@ -96,15 +112,23 @@ export class SearchComponent {
     });
   }
 
-  openModal(result: SearchResult): void {
+  openResult(result: SearchResult): void {
     this.selectedResult.set(result);
     this.selectedDestination.set('server');
     this.launchError.set('');
-    this.modalOpen.set(true);
+    if (this.category() === 'series') {
+      this.episodePanelOpen.set(true);
+    } else {
+      this.modalOpen.set(true);
+    }
   }
 
   closeModal(): void {
     this.modalOpen.set(false);
+  }
+
+  closeEpisodePanel(): void {
+    this.episodePanelOpen.set(false);
   }
 
   startDownload(): void {
@@ -130,10 +154,72 @@ export class SearchComponent {
     });
   }
 
+  downloadEpisode(ep: Episode): void {
+    const url = this.pickBestLink(ep.links);
+    if (!url) return;
+    const r = this.selectedResult()!;
+    const payload: StartDownloadPayload = {
+      source_url: url,
+      title: `${r.title} — ${ep.title}`,
+      media_type: 'series',
+      destination: this.selectedDestination(),
+    };
+    this.launching.set(true);
+    this.api.startDownload(payload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.launching.set(false);
+        this.closeEpisodePanel();
+        this.router.navigate(['/downloads']);
+      },
+      error: () => {
+        this.launching.set(false);
+      },
+    });
+  }
+
+  downloadAll(): void {
+    const r = this.selectedResult();
+    const eps = this.episodes();
+    if (!r || !eps.length) return;
+
+    const requests = eps
+      .map(ep => ({ ep, url: this.pickBestLink(ep.links) }))
+      .filter(({ url }) => !!url)
+      .map(({ ep, url }) =>
+        this.api.startDownload({
+          source_url: url!,
+          title: `${r.title} — ${ep.title}`,
+          media_type: 'series',
+          destination: this.selectedDestination(),
+        })
+      );
+
+    if (!requests.length) return;
+    this.launchingAll.set(true);
+    forkJoin(requests).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => {
+        this.launchingAll.set(false);
+        this.closeEpisodePanel();
+        this.router.navigate(['/downloads']);
+      },
+      error: () => {
+        this.launchingAll.set(false);
+      },
+    });
+  }
+
   qualityColor(quality: string | null): string {
     if (!quality) return '#8a9a55';
     if (quality === '4K' || quality === '2160p') return '#e8d62a';
     if (quality === '1080p') return 'var(--lime)';
     return '#8a9a55';
+  }
+
+  private pickBestLink(links: EpisodeLink[]): string | null {
+    for (const provider of PREFERRED_PROVIDERS) {
+      const link = links.find(l => l.provider === provider);
+      if (link) return link.url;
+    }
+    return links[0]?.url ?? null;
   }
 }

@@ -1,0 +1,17 @@
+meta {
+  name: Get episodes Darkiworld (501)
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/episodes?url=https://darkiworld.com/serie&source=darkiworld
+  body: none
+  auth: none
+}
+
+tests {
+  test("status 501", function() {
+    expect(res.status).to.equal(501);
+  });
+}

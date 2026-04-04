@@ -10,7 +10,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from seleniumbase import Driver, SB
 
 from app.config import settings
-from app.scrapers.base import BaseScraper, ProviderLinks, SearchResult, register
+from app.scrapers.base import BaseScraper, Episode, ProviderLinks, SearchResult, register
 
 logger = logging.getLogger(__name__)
 
@@ -158,6 +158,94 @@ class WawacityScraper(BaseScraper):
         return await loop.run_in_executor(
             None, self._fetch_provider_links, url, providers
         )
+
+    async def get_episodes(
+        self,
+        url: str,
+        providers: list[str] | None = None,
+    ) -> list[Episode]:
+        headers = {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
+        }
+        try:
+            async with aiohttp.ClientSession(headers=headers) as session:
+                async with session.get(url, allow_redirects=True) as resp:
+                    if resp.status != 200:
+                        logger.error("Wawacity episodes returned HTTP %d", resp.status)
+                        return []
+                    data = await resp.read()
+        except aiohttp.ClientError as exc:
+            logger.error("Wawacity episodes request failed: %s", exc)
+            return []
+
+        return self._parse_episodes(data.decode("utf-8", errors="replace"), providers or [])
+
+    def _parse_episodes(self, html: str, providers: list[str]) -> list[Episode]:
+        soup = BeautifulSoup(html, "html.parser")
+        table = soup.find("table", id="DDLLinks")
+        if table is None:
+            logger.warning("DDLLinks table not found on episode page")
+            return []
+
+        episodes: list[Episode] = []
+        current_title: str | None = None
+        current_number: int = 0
+        current_links: dict[str, list[str]] = {}
+
+        for tr in table.find_all("tr"):
+            classes = tr.get("class", [])
+
+            if "episode-title" in classes:
+                # Save the previous episode group
+                if current_title is not None:
+                    episodes.append(Episode(
+                        title=current_title,
+                        number=current_number,
+                        provider_links=[
+                            ProviderLinks(provider=p, urls=urls)
+                            for p, urls in current_links.items()
+                        ],
+                    ))
+                # Parse the new episode title
+                td = tr.find("td")
+                text = td.get_text(strip=True) if td else ""
+                text = re.sub(
+                    r"\s*en\s+t[eé]l[eé]chargement.*$", "", text, flags=re.IGNORECASE
+                ).strip()
+                m = re.search(r"[ÉéEe]pisode\s+(\d+)", text)
+                current_number = int(m.group(1)) if m else len(episodes) + 1
+                current_title = f"Épisode {current_number}"
+                current_links = {}
+
+            elif "link-row" in classes and current_title is not None:
+                tds = tr.find_all("td")
+                if len(tds) < 2:
+                    continue
+                a = tds[0].find("a", href=True)
+                provider_name = tds[1].get_text(strip=True)
+                if not a or not provider_name:
+                    continue
+                if providers and provider_name not in providers:
+                    continue
+                current_links.setdefault(provider_name, []).append(a["href"])
+
+        # Save the last episode group
+        if current_title is not None:
+            episodes.append(Episode(
+                title=current_title,
+                number=current_number,
+                provider_links=[
+                    ProviderLinks(provider=p, urls=urls)
+                    for p, urls in current_links.items()
+                ],
+            ))
+
+        return episodes
 
     async def resolve_link(self, url: str) -> str:
         """Resolve dl-protect intermediary pages to the actual provider URL."""
