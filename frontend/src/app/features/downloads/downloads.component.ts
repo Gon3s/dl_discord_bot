@@ -1,4 +1,4 @@
-import { Component, computed, linkedSignal, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { Component, computed, linkedSignal, effect, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
 import { ApiService } from '#core/services/api.service';
@@ -36,6 +36,8 @@ export class DownloadsComponent {
     this.downloads().filter(d => (COMPLETED_STATUSES as readonly string[]).includes(d.status))
   );
 
+  private readonly subscribedIds = new Set<string>();
+
   constructor() {
     this.ws.watchQueue().pipe(takeUntilDestroyed()).subscribe({
       next: (event) => {
@@ -47,6 +49,7 @@ export class DownloadsComponent {
                   status: event.status ?? d.status,
                   progress_pct: event.progress_pct ?? d.progress_pct,
                   speed_mbps: event.speed_mbps ?? d.speed_mbps,
+                  eta_s: event.eta_s ?? d.eta_s,
                 }
               : d
           )
@@ -57,6 +60,43 @@ export class DownloadsComponent {
       },
       error: () => {},
     });
+
+    // Subscribe to individual WS for each active download (granular progress)
+    effect(() => {
+      for (const d of this.active()) {
+        this.subscribeToDownload(d.id);
+      }
+    });
+  }
+
+  private subscribeToDownload(id: string): void {
+    if (this.subscribedIds.has(id)) return;
+    this.subscribedIds.add(id);
+    this.ws.watchDownload(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (event) => {
+        this.downloads.update(list =>
+          list.map(d =>
+            d.id === id
+              ? {
+                  ...d,
+                  progress_pct: event.progress_pct ?? d.progress_pct,
+                  speed_mbps: event.speed_mbps ?? d.speed_mbps,
+                  eta_s: event.eta_s ?? d.eta_s,
+                  status: event.status ?? d.status,
+                }
+              : d
+          )
+        );
+      },
+      complete: () => this.subscribedIds.delete(id),
+    });
+  }
+
+  formatEta(seconds: number): string {
+    if (seconds <= 0) return '';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return m > 0 ? `${m}m ${s}s` : `${s}s`;
   }
 
   cancel(id: string): void {

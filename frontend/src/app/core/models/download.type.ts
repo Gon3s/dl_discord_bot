@@ -7,6 +7,7 @@ export type Download = {
   status: string;
   progress_pct: number;
   speed_mbps: number | null;
+  eta_s: number | null;
   filename: string | null;
   created_at: string;
   completed_at: string | null;

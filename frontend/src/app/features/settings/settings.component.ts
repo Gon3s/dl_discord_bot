@@ -1,5 +1,6 @@
 import { Component, signal, computed, linkedSignal, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { DecimalPipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ApiService } from '#core/services/api.service';
 import { CATEGORIES } from '#core/constants/media';
@@ -7,7 +8,7 @@ import { ALL_PROVIDERS } from '#core/constants/media';
 
 @Component({
   selector: 'app-settings',
-  imports: [FormsModule],
+  imports: [FormsModule, DecimalPipe],
   templateUrl: './settings.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -19,7 +20,13 @@ export class SettingsComponent {
     stream: () => this.api.getSettings(),
   });
 
+  protected readonly statusResource = rxResource({
+    stream: () => this.api.getStatus(),
+  });
+
   protected loading = computed(() => this.resource.isLoading());
+  protected alldebridOk = computed(() => this.statusResource.value()?.alldebrid_ok);
+  protected diskFreeGb = computed(() => this.statusResource.value()?.disk_free_gb);
 
   private getSetting(key: string, fallback = ''): string {
     return this.resource.value()?.find(s => s.key === key)?.value ?? fallback;
