@@ -1,7 +1,7 @@
-import { Component, signal, computed, linkedSignal, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { Component, signal, computed, linkedSignal, effect, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { EMPTY, forkJoin } from 'rxjs';
 import { ApiService } from '#core/services/api.service';
 import { CATEGORIES } from '#core/constants/media';
@@ -27,6 +27,7 @@ const PREFERRED_PROVIDERS = ['Turbobit', 'Rapidgator', '1fichier'];
 export class SearchComponent {
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
 
   protected query = signal('');
@@ -38,6 +39,28 @@ export class SearchComponent {
 
   // Only triggers resource when user explicitly submits
   protected searchParams = signal<SearchParams | undefined>(undefined);
+
+  constructor() {
+    // Restore state from URL query params on init
+    const p = this.route.snapshot.queryParamMap;
+    const q = p.get('q') ?? '';
+    const cat = p.get('category') ?? 'films';
+    const yr = p.get('year') ?? '';
+    const srt = p.get('sort') ?? '';
+
+    this.query.set(q);
+    this.category.set(cat);
+    this.year.set(yr);
+    this.sort.set(srt);
+
+    if (q) {
+      this.searchParams.set({ q, category: cat, year: yr || undefined, sort: srt || undefined });
+    }
+
+    effect(() => {
+      localStorage.setItem('destination', this.selectedDestination());
+    });
+  }
 
   protected readonly searchResource = rxResource({
     params: this.searchParams,
@@ -85,7 +108,9 @@ export class SearchComponent {
   // --- Film/manga modal ---
   protected modalOpen = signal(false);
   protected selectedResult = signal<SearchResult | null>(null);
-  protected selectedDestination = signal<'server' | 'client'>('server');
+  protected selectedDestination = signal<'server' | 'client'>(
+    (localStorage.getItem('destination') as 'server' | 'client') ?? 'server'
+  );
   protected launching = signal(false);
   protected launchError = signal('');
 
@@ -104,11 +129,17 @@ export class SearchComponent {
   search(): void {
     const q = this.query().trim();
     if (!q) return;
-    this.searchParams.set({
+    const params: SearchParams = {
       q,
       category: this.category(),
       year: this.year() || undefined,
       sort: this.sort() || undefined,
+    };
+    this.searchParams.set(params);
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: { q, category: params.category, year: params.year || null, sort: params.sort || null },
+      replaceUrl: true,
     });
   }
 

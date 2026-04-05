@@ -52,6 +52,7 @@ export class DownloadsComponent {
                   speed_mbps: event.speed_mbps ?? d.speed_mbps,
                   eta_s: event.eta_s ?? d.eta_s,
                   debrid_url: event.debrid_url ?? d.debrid_url,
+                  error: event.error ?? d.error,
                 }
               : d
           )
@@ -118,6 +119,12 @@ export class DownloadsComponent {
 
   cancel(id: string): void {
     this.api.cancelDownload(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.resource.reload(),
+    });
+  }
+
+  retry(id: string): void {
+    this.api.retryDownload(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.resource.reload(),
     });
   }

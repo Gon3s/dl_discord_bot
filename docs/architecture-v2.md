@@ -11,6 +11,7 @@ graph TB
 
     subgraph Backend["⚙️ Backend FastAPI :8000"]
         direction TB
+        SPA[Fichiers statiques<br/>Angular dist/ — catch-all /*]
         API[REST API<br/>/api/v1/*]
         WS[WebSocket<br/>/ws/*]
         SVC[Services Layer<br/>search · download · alldebrid]
@@ -31,6 +32,7 @@ graph TB
     end
 
     DC -->|HTTP + aiohttp| API
+    WB -->|"GET /* — app shell + assets"| SPA
     WB -->|HTTP + Angular HttpClient| API
     WB -->|RxJS WebSocketSubject| WS
 
@@ -342,8 +344,8 @@ dl_discord_bot/                     ← monorepo racine
 │   │   │   ├── models/
 │   │   │   │   └── api.models.ts   ← interfaces TypeScript partagées
 │   │   │   └── services/
-│   │   │       ├── api.service.ts  ← HttpClient → :8000/api/v1
-│   │   │       └── ws.service.ts   ← RxJS WebSocketSubject → :8000/ws
+│   │   │       ├── api.service.ts  ← HttpClient → /api/v1 (même origin)
+│   │   │       └── ws.service.ts   ← RxJS WebSocketSubject → /ws
 │   │   ├── features/               ← lazy-loaded via loadChildren
 │   │   │   ├── search/             ← rxResource search + modal téléchargement
 │   │   │   ├── downloads/          ← linkedSignal + WS patch en temps réel
@@ -352,6 +354,7 @@ dl_discord_bot/                     ← monorepo racine
 │   │   └── shared/
 │   │       └── components/
 │   │           └── sidebar/        ← rxResource status + polling 10s
+│   ├── dist/frontend/browser/      ← build prod (ng build) servi par FastAPI
 │   └── package.json
 │
 ├── docs/
@@ -368,25 +371,22 @@ dl_discord_bot/                     ← monorepo racine
 graph TB
     subgraph docker["docker-compose.yml"]
         subgraph net["réseau interne dl_network"]
-            BE["backend<br/>:8000<br/>image: python:3.12-slim<br/>uvicorn app.main:app"]
+            BE["backend<br/>:8000<br/>image: python:3.12-slim<br/>ng build + uvicorn app.main:app<br/>(API + frontend statique)"]
             BOT["bot<br/>image: python:3.12-slim<br/>depends_on: backend"]
-            FE["frontend<br/>:80<br/>image: node + nginx<br/>ng build → nginx"]
         end
 
         V1[("volume<br/>download_path<br/>/data/media")]
         V2[("volume<br/>sqlite_db<br/>/data/db")]
     end
 
-    USER["👤 Utilisateur<br/>réseau local / VPN"] -->|:80| FE
+    USER["👤 Utilisateur<br/>réseau local / VPN"] -->|":8000 (UI + API)"| BE
     USER -->|Discord| BOT
-    FE -->|:8000| BE
     BOT -->|:8000| BE
     BE --- V1
     BE --- V2
 
     style BE fill:#009688,color:#fff
     style BOT fill:#5865F2,color:#fff
-    style FE fill:#DD0031,color:#fff
 ```
 
 > † Darkiworld : stub prévu en Phase 4, implémentation future

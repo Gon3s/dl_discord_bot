@@ -14,6 +14,10 @@ from app.scrapers.base import BaseScraper, Episode, ProviderLinks, SearchResult,
 
 logger = logging.getLogger(__name__)
 
+# Selenium ne supporte pas plusieurs sessions Chrome simultanées —
+# on sérialise les appels _dl_protect_sync avec un semaphore à 1 slot.
+_dl_protect_sem = asyncio.Semaphore(1)
+
 _XPATH_LINK = '//*[@id="protected-container"]/div[2]/div/ul/li/a'
 
 _LANGUAGE_MAP: dict[str, str] = {
@@ -296,7 +300,8 @@ class WawacityScraper(BaseScraper):
 
     async def _resolve_dl_protect(self, url: str) -> str:
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(None, self._dl_protect_sync, url)
+        async with _dl_protect_sem:
+            return await loop.run_in_executor(None, self._dl_protect_sync, url)
 
     def _dl_protect_sync(self, url: str) -> str:
         with SB(uc=True, test=False) as sb:
