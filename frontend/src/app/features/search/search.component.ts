@@ -105,7 +105,6 @@ export class SearchComponent {
 
   openResult(result: SearchResult): void {
     this.selectedResult.set(result);
-    this.selectedDestination.set('server');
     this.launchError.set('');
     if (this.category() === 'series') {
       this.episodePanelOpen.set(true);
