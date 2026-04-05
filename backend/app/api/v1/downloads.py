@@ -49,3 +49,16 @@ async def delete_download(
     deleted = await service.delete(download_id)
     if not deleted:
         raise HTTPException(status_code=404, detail="Download not found")
+
+
+@router.post("/downloads/{download_id}/retry", response_model=DownloadCreated)
+async def retry_download(
+    download_id: str,
+    session: AsyncSession = Depends(get_db),
+) -> DownloadCreated:
+    service = DownloadService(session)
+    download = await service.retry(download_id)
+    if download is None:
+        raise HTTPException(status_code=404, detail="Download not found or not in error state")
+    await download_queue.enqueue(download.id)
+    return DownloadCreated(download_id=download.id, status=download.status)

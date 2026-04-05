@@ -151,6 +151,15 @@
                   <span class="text-[9px] font-black ml-2" style="color:var(--lime)">100%</span>
                 }
               }
+              @if (d.status === 'error') {
+                <button (click)="retry(d.id)"
+                        class="text-[9px] font-black px-2 py-1 rounded transition"
+                        style="background:rgba(167,209,41,.08);color:#8a9a55;border:1px solid #2d3520"
+                        onmouseover="this.style.background='rgba(167,209,41,.15)';this.style.color='var(--lime)';this.style.borderColor='rgba(167,209,41,.3)'"
+                        onmouseout="this.style.background='rgba(167,209,41,.08)';this.style.color='#8a9a55';this.style.borderColor='#2d3520'">
+                  ↺ RETRY
+                </button>
+              }
               <button (click)="remove(d.id)"
                       class="w-7 h-7 rounded flex items-center justify-center transition text-xs shrink-0 ml-1"
                       style="background:transparent;border:1px solid #1a1f10;color:#3a4022"

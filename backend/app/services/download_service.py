@@ -77,6 +77,20 @@ class DownloadService:
         await self._session.commit()
         return True
 
+    async def retry(self, download_id: str) -> Download | None:
+        """Reset a failed download and re-enqueue it."""
+        download = await self.get(download_id)
+        if download is None or download.status != "error":
+            return None
+        download.status = "queued"
+        download.error = None
+        download.progress_pct = 0.0
+        download.speed_mbps = None
+        download.completed_at = None
+        await self._session.commit()
+        await self._session.refresh(download)
+        return download
+
     # ------------------------------------------------------------------
     # Download execution
     # ------------------------------------------------------------------

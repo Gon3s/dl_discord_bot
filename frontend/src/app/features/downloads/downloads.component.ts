@@ -123,6 +123,12 @@ export class DownloadsComponent {
     });
   }
 
+  retry(id: string): void {
+    this.api.retryDownload(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: () => this.resource.reload(),
+    });
+  }
+
   remove(id: string): void {
     this.api.cancelDownload(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => this.downloads.update(list => list.filter(d => d.id !== id)),

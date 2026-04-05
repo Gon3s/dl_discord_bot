@@ -36,6 +36,10 @@ export class ApiService {
     return this.http.delete<void>(`${this.base}/downloads/${id}`);
   }
 
+  retryDownload(id: string): Observable<DownloadCreated> {
+    return this.http.post<DownloadCreated>(`${this.base}/downloads/${id}/retry`, {});
+  }
+
   getHistory(params?: {
     q?: string;
     status?: string;
