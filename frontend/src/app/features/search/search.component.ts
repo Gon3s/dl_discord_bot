@@ -1,4 +1,4 @@
-import { Component, signal, computed, linkedSignal, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { Component, signal, computed, linkedSignal, effect, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -56,6 +56,10 @@ export class SearchComponent {
     if (q) {
       this.searchParams.set({ q, category: cat, year: yr || undefined, sort: srt || undefined });
     }
+
+    effect(() => {
+      localStorage.setItem('destination', this.selectedDestination());
+    });
   }
 
   protected readonly searchResource = rxResource({
@@ -104,7 +108,9 @@ export class SearchComponent {
   // --- Film/manga modal ---
   protected modalOpen = signal(false);
   protected selectedResult = signal<SearchResult | null>(null);
-  protected selectedDestination = signal<'server' | 'client'>('server');
+  protected selectedDestination = signal<'server' | 'client'>(
+    (localStorage.getItem('destination') as 'server' | 'client') ?? 'server'
+  );
   protected launching = signal(false);
   protected launchError = signal('');
 
