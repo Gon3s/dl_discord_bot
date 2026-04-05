@@ -52,6 +52,7 @@ export class DownloadsComponent {
                   speed_mbps: event.speed_mbps ?? d.speed_mbps,
                   eta_s: event.eta_s ?? d.eta_s,
                   debrid_url: event.debrid_url ?? d.debrid_url,
+                  error: event.error ?? d.error,
                 }
               : d
           )

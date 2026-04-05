@@ -6,6 +6,8 @@ from pathlib import Path
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi import HTTPException
+from fastapi.responses import FileResponse
 from sqlalchemy import func, select
 
 from app.api.v1.router import router as api_v1_router
@@ -107,7 +109,37 @@ def create_app() -> FastAPI:
     app.include_router(api_v1_router)
     app.include_router(ws_router)
 
+    _mount_frontend(app)
+
     return app
+
+
+def _mount_frontend(app: FastAPI) -> None:
+    """Monte le build Angular en fichiers statiques si disponible.
+
+    Doit être appelé en dernier dans create_app() pour que les routes API
+    soient prioritaires sur le catch-all SPA.
+    """
+    frontend_dist = (
+        Path(__file__).resolve().parents[2] / "frontend" / "dist" / "frontend" / "browser"
+    ).resolve()
+
+    if not frontend_dist.exists():
+        return
+
+    index_html = frontend_dist / "index.html"
+
+    # Catch-all SPA : sert les fichiers statiques Angular si présents,
+    # sinon index.html pour que le router Angular gère la route.
+    # Les routes /api/ et /ws/ ne sont pas interceptées (404 natif FastAPI).
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def spa_fallback(full_path: str) -> FileResponse:
+        if full_path.startswith(("api/", "ws/")):
+            raise HTTPException(status_code=404)
+        candidate = frontend_dist / full_path
+        if full_path and candidate.exists() and candidate.is_file():
+            return FileResponse(candidate)
+        return FileResponse(index_html)
 
 
 app = create_app()

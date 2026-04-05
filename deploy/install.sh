@@ -11,6 +11,11 @@ if [[ ! -f "$PROJECT_DIR/.env" ]]; then
     exit 1
 fi
 
+echo "==> Build du frontend Angular..."
+cd "$PROJECT_DIR/frontend"
+npm ci --silent
+npx ng build --configuration production
+
 echo "==> Application de la migration Alembic..."
 cd "$PROJECT_DIR/backend"
 /home/gones/.local/bin/uv run alembic upgrade head

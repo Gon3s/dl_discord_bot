@@ -17,11 +17,11 @@ Docs complètes : `docs/plan-v2.md` et `docs/architecture-v2.md`
 ### Développement (local)
 
 ```bash
-# Backend
+# Backend (sert aussi le frontend buildé sur :8000)
 cd backend
 uv run uvicorn app.main:app --reload --port 8000
 
-# Frontend
+# Frontend hot-reload (dev uniquement)
 cd frontend
 ng serve --port 4200
 
@@ -33,12 +33,18 @@ uv run python main.py
 ### Production (systemd)
 
 ```bash
-# Première installation
+# Première installation (build Angular + migrations + services)
 bash deploy/install.sh
 
-# Redémarrer après une mise à jour
+# Redémarrer après une mise à jour du backend
 sudo systemctl restart dl_backend.service discord_bot.service
+
+# Redémarrer après une mise à jour du frontend
+cd frontend && ng build --configuration production
+sudo systemctl restart dl_backend.service
 ```
+
+> L'interface web est accessible sur **`http://<serveur>:8000`** — servie directement par FastAPI.
 
 ---
 

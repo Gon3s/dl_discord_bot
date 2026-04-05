@@ -131,3 +131,4 @@ class WsProgressEvent(BaseModel):
     eta_s: int | None = None
     filename: str | None = None
     debrid_url: str | None = None
+    error: str | None = None

@@ -29,15 +29,18 @@ cp .env.example .env
 ### 2. Développement local
 
 ```bash
-# Backend
+# Backend (sert aussi le frontend buildé sur :8000)
 cd backend && uv run uvicorn app.main:app --reload --port 8000
 
-# Frontend
+# Frontend (hot-reload dev uniquement)
 cd frontend && ng serve --port 4200
 
 # Bot Discord
 cd bot && uv run python main.py
 ```
+
+> En dev, utilise `ng serve :4200` pour le hot-reload.  
+> Le build Angular (`ng build`) est servi directement par FastAPI sur `:8000`.
 
 ### 3. Production (systemd)
 
@@ -45,7 +48,9 @@ cd bot && uv run python main.py
 bash deploy/install.sh
 ```
 
-> Installe et démarre `dl_backend.service` + `discord_bot.service`.  
+> Build le frontend Angular, applique les migrations, puis installe et démarre  
+> `dl_backend.service` + `discord_bot.service`.  
+> L'interface web est accessible sur **`http://<serveur>:8000`**.  
 > Voir `deploy/` pour les fichiers unit.
 
 ---

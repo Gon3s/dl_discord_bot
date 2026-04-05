@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core import events
-from app.core.exceptions import DownloadError, DownloadNotFoundError
+from app.core.exceptions import AllDebridAPIError, DownloadError, DownloadNotFoundError
 from app.models.orm import Download, History
 from app.models.schemas import DownloadCreate, WsProgressEvent
 from app.scrapers.base import BaseScraper, get_scraper
@@ -113,28 +113,32 @@ class DownloadService:
                 if not provider_links:
                     raise DownloadError("No provider links found on the page")
 
-                _PREFERRED_PROVIDERS = ["Turbobit", "Rapidgator", "1fichier"]
-                chosen = next(
-                    (pl for name in _PREFERRED_PROVIDERS for pl in provider_links if pl.provider == name and pl.urls),
-                    next((pl for pl in provider_links if pl.urls), None),
-                )
-                if chosen is None:
-                    raise DownloadError("No usable provider link found on the page")
+                # Build ordered candidate list — preferred providers first, then the rest
+                _PREFERRED = ["Turbobit", "Rapidgator", "1fichier"]
+                preferred = [
+                    (pl.provider, url)
+                    for name in _PREFERRED
+                    for pl in provider_links
+                    if pl.provider == name
+                    for url in pl.urls
+                ]
+                others = [
+                    (pl.provider, url)
+                    for pl in provider_links
+                    if pl.provider not in _PREFERRED
+                    for url in pl.urls
+                ]
+                candidates = preferred + others
 
-                dl_protect_url = chosen.urls[0]
-                logger.info(
-                    "Download %s — provider: %s dl-protect: %s",
-                    download_id,
-                    chosen.provider,
-                    dl_protect_url,
-                )
+                if not candidates:
+                    raise DownloadError("No usable provider link found on the page")
             else:
                 # source_url is already a direct provider/dl-protect link (e.g. episode download)
-                dl_protect_url = download.source_url
                 scraper = get_scraper("wawacity")
-                logger.info("Download %s — direct provider URL: %s", download_id, dl_protect_url)
+                candidates = [("direct", download.source_url)]
+                logger.info("Download %s — direct provider URL: %s", download_id, download.source_url)
 
-            # Step 2 — resolve dl-protect intermediary to real provider URL
+            # Steps 2+3 — resolve dl-protect → debrid, with fallback on other providers
             await self._set_status(download, "resolving")
             await _emit(
                 download_id,
@@ -142,19 +146,38 @@ class DownloadService:
                     download_id=download_id, status="resolving", progress_pct=0.0
                 ).model_dump(),
             )
-            provider_url = await scraper.resolve_link(dl_protect_url)
-            logger.info("Download %s — resolved: %s", download_id, provider_url)
 
-            # Step 3 — debrid the provider link
-            await self._set_status(download, "debriding")
-            await _emit(
-                download_id,
-                WsProgressEvent(
-                    download_id=download_id, status="debriding", progress_pct=0.0
-                ).model_dump(),
-            )
+            debrid_data = None
+            last_error: Exception = DownloadError("All provider links failed")
+            for provider_name, dl_protect_url in candidates:
+                try:
+                    logger.info(
+                        "Download %s — trying provider: %s url: %s",
+                        download_id, provider_name, dl_protect_url,
+                    )
+                    provider_url = await scraper.resolve_link(dl_protect_url)
+                    logger.info("Download %s — resolved: %s", download_id, provider_url)
 
-            debrid_data = await self._alldebrid.debrid_link(provider_url)
+                    await self._set_status(download, "debriding")
+                    await _emit(
+                        download_id,
+                        WsProgressEvent(
+                            download_id=download_id, status="debriding", progress_pct=0.0
+                        ).model_dump(),
+                    )
+                    debrid_data = await self._alldebrid.debrid_link(provider_url)
+                    break
+                except AllDebridAPIError as exc:
+                    # provider_url is always defined here — error is raised after resolve_link
+                    logger.warning(
+                        "Download %s — AllDebrid rejected %s (%s): %s",
+                        download_id, provider_url, provider_name, exc,
+                    )
+                    last_error = exc
+
+            if debrid_data is None:
+                raise last_error
+
             direct_url: str | None = debrid_data.get("link") or (
                 debrid_data.get("links") or [None]
             )[0]
@@ -195,13 +218,15 @@ class DownloadService:
             await self._write_history(download, filename)
 
         except Exception as exc:
-            await self._set_status(download, "error", error=str(exc))
+            error_msg = str(exc)
+            await self._set_status(download, "error", error=error_msg)
             await _emit(
                 download_id,
                 WsProgressEvent(
                     download_id=download_id,
                     status="error",
                     progress_pct=download.progress_pct,
+                    error=error_msg,
                 ).model_dump(),
             )
             logger.exception("Download %s failed", download_id)
