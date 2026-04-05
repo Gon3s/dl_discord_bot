@@ -126,6 +126,10 @@
                   [style.color]="qualityColor(r.quality)"
                   style="background:#000;border:1px solid #2d3520">{{ r.quality }}</span>
           }
+          @if (state.isDownloaded(r.url, r.title)) {
+            <span class="absolute top-1.5 left-1.5 text-[9px] font-black px-1.5 py-0.5 rounded"
+                  style="background:rgba(0,0,0,.8);color:var(--lime);border:1px solid rgba(167,209,41,.35)">✓ DL</span>
+          }
         </div>
         <div class="p-2">
           <p class="text-[11px] font-bold leading-tight line-clamp-2" style="color:#c8d890">{{ r.title }}</p>
@@ -302,7 +306,13 @@
                   {{ ep.number.toString().padStart(2, '0') }}
                 </span>
                 <div class="flex-1 min-w-0">
-                  <p class="text-xs font-bold" style="color:#c8d890">{{ ep.title }}</p>
+                  <p class="text-xs font-bold flex items-center gap-1.5" style="color:#c8d890">
+                    {{ ep.title }}
+                    @if (state.isEpisodeDownloaded(selectedResult()!.title + ' — ' + ep.title)) {
+                      <span class="text-[8px] font-black px-1 py-0.5 rounded shrink-0"
+                            style="background:rgba(167,209,41,.12);color:var(--lime);border:1px solid rgba(167,209,41,.25)">✓</span>
+                    }
+                  </p>
                   <div class="flex gap-1 mt-0.5 flex-wrap">
                     @for (link of ep.links; track link.provider) {
                       <span class="text-[8px] px-1 py-0.5 rounded font-mono"
