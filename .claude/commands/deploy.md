@@ -8,19 +8,30 @@ Lance ou redémarre la stack complète via systemd. Argument optionnel : `$ARGUM
 
 ## Étapes à suivre
 
-1. **Lancer les tests avant de déployer** :
+1. **S'assurer d'être sur main à jour** :
+   ```bash
+   git checkout main && git pull origin main
+   ```
+
+2. **Lancer les tests avant de déployer** :
    ```bash
    cd backend && uv run pytest --tb=short -q
    ```
    Arrêter si des tests échouent — ne pas déployer du code cassé.
 
-2. **Synchroniser les dépendances** :
+3. **Synchroniser les dépendances** :
    ```bash
    cd backend && uv sync
    cd ../bot && uv sync
    ```
 
-3. **Redémarrer les services** :
+4. **Build du frontend Angular** (si des fichiers `frontend/` ont changé) :
+   ```bash
+   cd frontend && npm ci --silent && npx ng build --configuration production
+   ```
+   Le build produit dans `frontend/dist/frontend/browser/` est servi directement par FastAPI sur `:8000`.
+
+5. **Redémarrer les services** :
    ```bash
    # Stack complète
    sudo systemctl restart dl_backend.service discord_bot.service

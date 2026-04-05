@@ -116,6 +116,7 @@ Aucune autre modification n'est nécessaire. Le registre est automatique.
 - **Type hints** obligatoires sur toutes les fonctions publiques
 - Async partout dans le backend — pas de `requests` ni d'appels bloquants dans les coroutines
 - Les appels Selenium (bloquants) doivent être wrappés dans `asyncio.get_event_loop().run_in_executor(None, ...)`
+- **Selenium ne supporte pas la parallélisation** — utiliser `_dl_protect_sem = asyncio.Semaphore(1)` pour sérialiser les sessions Chrome
 - Exceptions custom dans `app/core/exceptions.py` — pas de `assert False` ni de `print()`
 
 ### TypeScript (frontend)
@@ -137,18 +138,20 @@ Aucune autre modification n'est nécessaire. Le registre est automatique.
 ## Structure des endpoints API
 
 ```
-GET  /api/v1/search
-POST /api/v1/downloads
-GET  /api/v1/downloads
-GET  /api/v1/downloads/{id}
+GET    /api/v1/search
+POST   /api/v1/downloads
+GET    /api/v1/downloads
+GET    /api/v1/downloads/{id}
 DELETE /api/v1/downloads/{id}
-GET  /api/v1/history
+POST   /api/v1/downloads/{id}/retry   ← reset + re-enqueue si status=error
+GET    /api/v1/episodes
+GET    /api/v1/history
 DELETE /api/v1/history/{id}
-GET  /api/v1/settings
-PUT  /api/v1/settings
-GET  /api/v1/status
-WS   /ws/downloads/{id}
-WS   /ws/queue
+GET    /api/v1/settings
+PUT    /api/v1/settings
+GET    /api/v1/status
+WS     /ws/downloads/{id}
+WS     /ws/queue
 ```
 
 Schémas Pydantic dans `backend/app/models/schemas.py`.
@@ -179,16 +182,18 @@ Schémas Pydantic dans `backend/app/models/schemas.py`.
 
 1. `/start-issue {numero} {nom}` — crée la branche `feat/{numero}-{nom}` depuis `main`
 2. Implémenter avec les skills ci-dessous
-3. Le skill crée une PR vers `main` en fin de tâche
+3. `/finish-issue {numero}` — met à jour docs + ferme l'issue + ouvre la PR
 4. **Attendre la revue et validation de la PR avant de merger**
+5. Après merge : `/deploy` pour mettre en prod
 
 ## Skills disponibles
 
 | Commande | Description |
 |---|---|
 | `/start-issue` | Crée une branche `feat/{numero}-{nom}` depuis `main` |
+| `/finish-issue` | Met à jour docs, ferme l'issue, ouvre la PR |
 | `/add-scraper` | Scaffolde un nouveau scraper + ouvre une PR |
 | `/db-migrate` | Crée et applique une migration Alembic + ouvre une PR |
 | `/check-api` | Vérifie que tous les endpoints API répondent correctement |
-| `/deploy` | Redémarre la stack via systemd (`dl_backend` + `discord_bot`) |
+| `/deploy` | Build frontend + redémarre la stack via systemd |
 | `/test` | Lance la suite de tests du backend |
