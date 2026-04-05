@@ -1,20 +1,14 @@
-import { Component, signal, computed, linkedSignal, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { Component, signal, computed, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { EMPTY, forkJoin } from 'rxjs';
 import { ApiService } from '#core/services/api.service';
+import { SearchStateService } from '#core/services/search-state.service';
 import { CATEGORIES } from '#core/constants/media';
 import type { SearchResult } from '#core/models/search.type';
 import type { StartDownloadPayload } from '#core/models/download.type';
 import type { Episode, EpisodeLink } from '#core/models/episode.type';
-
-type SearchParams = {
-  q: string;
-  category: string;
-  year?: string;
-  sort?: string;
-};
 
 const PREFERRED_PROVIDERS = ['Turbobit', 'Rapidgator', '1fichier'];
 
@@ -28,16 +22,13 @@ export class SearchComponent {
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
+  protected readonly state = inject(SearchStateService);
 
-  protected query = signal('');
-  protected category = signal('films');
-  protected year = signal('');
-
-  // Resets automatically when category changes
-  protected sort = linkedSignal<string>(() => { this.category(); return ''; });
-
-  // Only triggers resource when user explicitly submits
-  protected searchParams = signal<SearchParams | undefined>(undefined);
+  protected get query() { return this.state.query; }
+  protected get category() { return this.state.category; }
+  protected get year() { return this.state.year; }
+  protected get sort() { return this.state.sort; }
+  protected get searchParams() { return this.state.searchParams; }
 
   protected readonly searchResource = rxResource({
     params: this.searchParams,
@@ -85,7 +76,7 @@ export class SearchComponent {
   // --- Film/manga modal ---
   protected modalOpen = signal(false);
   protected selectedResult = signal<SearchResult | null>(null);
-  protected selectedDestination = signal<'server' | 'client'>('server');
+  protected get selectedDestination() { return this.state.destination; }
   protected launching = signal(false);
   protected launchError = signal('');
 
