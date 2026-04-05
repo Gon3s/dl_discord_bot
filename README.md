@@ -3,10 +3,29 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi)
 ![Angular](https://img.shields.io/badge/Angular-21-DD0031?logo=angular)
-![Tests](https://img.shields.io/badge/tests-89%20passed-brightgreen?logo=pytest)
+![Tests](https://img.shields.io/badge/tests-109%20passed-brightgreen?logo=pytest)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 Application trois tiers pour rechercher et télécharger des films, séries et mangas depuis **Wawacity** via **AllDebrid**.
+
+![Demo](demo/demo.gif)
+
+<details>
+<summary>📸 Screenshots</summary>
+
+| Search | Modal téléchargement |
+|---|---|
+| ![Search](demo/screenshots/02_search_results.png) | ![Modal](demo/screenshots/03_download_modal.png) |
+
+| Épisodes | Downloads |
+|---|---|
+| ![Episodes](demo/screenshots/05_episodes_panel.png) | ![Downloads](demo/screenshots/06_downloads.png) |
+
+| Historique | Paramètres |
+|---|---|
+| ![History](demo/screenshots/07_history.png) | ![Settings](demo/screenshots/08_settings.png) |
+
+</details>
 
 ```
 dl_discord_bot/
