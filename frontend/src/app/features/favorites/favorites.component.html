@@ -1,0 +1,119 @@
+<!-- Header -->
+<header class="sticky top-0 z-10 px-7 py-4 flex items-center gap-4"
+        style="background:#000;border-bottom:1px solid #1a1f10">
+  <div>
+    <p class="text-sm font-black tracking-widest uppercase" style="color:#e8ecd8">Favorites</p>
+    <p class="text-[10px] tracking-wider mt-0.5" style="color:#3a4022">YOUR WATCHLIST</p>
+  </div>
+  <span class="ml-auto text-[10px] px-2 py-0.5 rounded font-black"
+        style="background:rgba(232,57,90,.15);color:#e8395a;border:1px solid rgba(232,57,90,.3)">
+    {{ favoriteService.favorites().length }}
+  </span>
+</header>
+
+<main class="flex-1 px-7 py-5">
+
+  <!-- Filters -->
+  <div class="flex items-center gap-3 mb-5 flex-wrap">
+
+    <!-- Category filter -->
+    <div class="flex rounded overflow-hidden text-[11px]"
+         style="border:1px solid #1a1f10">
+      @for (cat of categories; track cat) {
+        <button class="px-3 py-2 transition font-black capitalize"
+                [style.background]="filterCategory() === cat ? 'var(--lime)' : 'transparent'"
+                [style.color]="filterCategory() === cat ? '#000' : '#6b7a4a'"
+                (click)="filterCategory.set(cat)">
+          {{ cat.toUpperCase() }}
+        </button>
+      }
+    </div>
+
+    <!-- Sort -->
+    <div class="flex items-center gap-2 ml-auto">
+      <span class="text-[9px] tracking-widest" style="color:#3a4022">SORT</span>
+      <div class="flex rounded overflow-hidden text-[11px]"
+           style="border:1px solid #1a1f10">
+        <button class="px-3 py-2 transition font-black"
+                [style.background]="sortBy() === 'added_at' ? 'var(--dark)' : 'transparent'"
+                [style.color]="sortBy() === 'added_at' ? 'var(--lime)' : '#6b7a4a'"
+                (click)="sortBy.set('added_at')">DATE</button>
+        <button class="px-3 py-2 transition font-black"
+                [style.background]="sortBy() === 'title' ? 'var(--dark)' : 'transparent'"
+                [style.color]="sortBy() === 'title' ? 'var(--lime)' : '#6b7a4a'"
+                (click)="sortBy.set('title')">A–Z</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty state -->
+  @if (favoriteService.favorites().length === 0) {
+    <div class="flex flex-col items-center justify-center py-24 gap-4">
+      <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"
+           style="color:#2d3520">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
+      </svg>
+      <p class="text-[11px] tracking-widest" style="color:#3a4022">NO FAVORITES YET</p>
+      <p class="text-[10px]" style="color:#2d3520">Add a ❤️ from the search results</p>
+    </div>
+  } @else if (filtered().length === 0) {
+    <div class="flex flex-col items-center justify-center py-24">
+      <p class="text-[11px] tracking-widest" style="color:#3a4022">NO RESULTS FOR THIS FILTER</p>
+    </div>
+  } @else {
+
+    <!-- Grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+      @for (fav of filtered(); track fav.id) {
+        <div class="fav-card rounded overflow-hidden cursor-pointer"
+             style="background:#0c0c0c;border:1px solid #1a1f10"
+             (click)="openFavorite(fav)">
+
+          <div class="relative">
+            @if (fav.poster_url) {
+              <img [src]="fav.poster_url" [alt]="fav.title"
+                   class="w-full aspect-[2/3] object-cover" loading="lazy" />
+            } @else {
+              <div class="w-full aspect-[2/3] flex items-center justify-center text-[10px] font-black"
+                   style="background:#111;color:var(--mid)">NO IMG</div>
+            }
+            <div class="card-cta absolute inset-0 flex items-end p-2"
+                 style="background:linear-gradient(to top,rgba(0,0,0,.95) 0%,rgba(0,0,0,.5) 60%,transparent 100%)">
+              <span class="text-[10px] font-black" style="color:var(--lime)">
+                {{ fav.category === 'series' ? '[ ÉPISODES ]' : '[ DOWNLOAD ]' }}
+              </span>
+            </div>
+            @if (fav.quality) {
+              <span class="absolute top-1.5 right-1.5 text-[9px] font-black px-1.5 py-0.5 rounded"
+                    [style.color]="qualityColor(fav.quality)"
+                    style="background:#000;border:1px solid #2d3520">{{ fav.quality }}</span>
+            }
+            <!-- Heart badge -->
+            <span class="absolute bottom-1.5 right-1.5 w-6 h-6 flex items-center justify-center rounded"
+                  style="background:rgba(0,0,0,.7)">
+              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" style="color:#e8395a">
+                <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+              </svg>
+            </span>
+          </div>
+
+          <div class="p-2">
+            <p class="text-[11px] font-bold leading-tight line-clamp-2" style="color:#c8d890">{{ fav.title }}</p>
+            <p class="text-[9px] mt-0.5" style="color:#4a5a2a">
+              {{ fav.language ?? '' }}{{ fav.language && fav.year ? ' · ' : '' }}{{ fav.year ?? '' }}
+            </p>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+</main>
+
+<style>
+  .fav-card { transition: transform .18s, border-color .18s; }
+  .fav-card:hover { transform: translateY(-4px); border-color: #e8395a !important; }
+  .fav-card:hover .card-cta { opacity: 1; }
+  .card-cta { opacity: 0; transition: opacity .18s; }
+</style>

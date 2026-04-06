@@ -1,6 +1,7 @@
 import { Injectable, computed, effect, inject, linkedSignal, signal } from '@angular/core';
 import { rxResource } from '@angular/core/rxjs-interop';
 import { ApiService } from './api.service';
+import type { SearchResult } from '../models/search.type';
 
 export type SearchParams = {
   q: string;
@@ -64,6 +65,9 @@ export class SearchStateService {
   isEpisodeDownloaded(fullTitle: string): boolean {
     return this.downloadedTitles().includes(fullTitle.toLowerCase());
   }
+
+  /** Résultat à ouvrir automatiquement lors de la prochaine visite de SearchComponent (depuis Favoris). */
+  readonly pendingResult = signal<SearchResult | null>(null);
 
   setDestination(value: 'server' | 'client'): void {
     this.destination.set(value);
