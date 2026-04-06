@@ -120,6 +120,35 @@ class StatusRead(BaseModel):
     alldebrid_ok: bool
 
 
+# --- Favorites ---
+
+
+class FavoriteCreate(BaseModel):
+    title: str
+    url: str
+    category: str | None = None
+    year: int | None = None
+    quality: str | None = None
+    language: str | None = None
+    source: str
+    poster_url: str | None = None
+
+
+class FavoriteRead(BaseModel):
+    id: str
+    title: str
+    url: str
+    category: str | None
+    year: int | None
+    quality: str | None
+    language: str | None
+    source: str
+    poster_url: str | None
+    added_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
 # --- WebSocket events ---
 
 

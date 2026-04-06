@@ -7,6 +7,7 @@ import type { HistoryList } from '../models/history.type';
 import type { SettingRead } from '../models/setting.type';
 import type { ApiStatus } from '../models/api-status.type';
 import type { Episode } from '../models/episode.type';
+import type { Favorite, FavoriteCreate } from '../models/favorite.type';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -72,6 +73,18 @@ export class ApiService {
 
   getStatus(): Observable<ApiStatus> {
     return this.http.get<ApiStatus>(`${this.base}/status`);
+  }
+
+  getFavorites(): Observable<Favorite[]> {
+    return this.http.get<Favorite[]>(`${this.base}/favorites`);
+  }
+
+  addFavorite(payload: FavoriteCreate): Observable<Favorite> {
+    return this.http.post<Favorite>(`${this.base}/favorites`, payload);
+  }
+
+  removeFavorite(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/favorites/${id}`);
   }
 
   getEpisodes(url: string, source = 'wawacity', providers?: string[]): Observable<Episode[]> {

@@ -5,5 +5,6 @@ export const routes: Routes = [
   { path: 'search', loadChildren: () => import('./features/search/search.routes') },
   { path: 'downloads', loadChildren: () => import('./features/downloads/downloads.routes') },
   { path: 'history', loadChildren: () => import('./features/history/history.routes') },
+  { path: 'favorites', loadChildren: () => import('./features/favorites/favorites.routes') },
   { path: 'settings', loadChildren: () => import('./features/settings/settings.routes') },
 ];

@@ -5,6 +5,7 @@ import { Router } from '@angular/router';
 import { EMPTY, forkJoin } from 'rxjs';
 import { ApiService } from '#core/services/api.service';
 import { SearchStateService } from '#core/services/search-state.service';
+import { FavoriteService } from '#core/services/favorite.service';
 import { CATEGORIES } from '#core/constants/media';
 import type { SearchResult } from '#core/models/search.type';
 import type { StartDownloadPayload } from '#core/models/download.type';
@@ -23,6 +24,7 @@ export class SearchComponent {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly state = inject(SearchStateService);
+  protected readonly favorites = inject(FavoriteService);
 
   protected get query() { return this.state.query; }
   protected get category() { return this.state.category; }
@@ -72,6 +74,14 @@ export class SearchComponent {
   };
 
   protected readonly skeletons = Array.from({ length: 6 });
+
+  constructor() {
+    const pending = this.state.pendingResult();
+    if (pending) {
+      this.state.pendingResult.set(null);
+      this.openResult(pending);
+    }
+  }
 
   // --- Film/manga modal ---
   protected modalOpen = signal(false);

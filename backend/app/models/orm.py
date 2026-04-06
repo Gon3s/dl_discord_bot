@@ -41,3 +41,18 @@ class Setting(Base):
 
     key: Mapped[str] = mapped_column(String(100), primary_key=True)
     value: Mapped[str] = mapped_column(Text)
+
+
+class Favorite(Base):
+    __tablename__ = "favorites"
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    title: Mapped[str] = mapped_column(String(500))
+    url: Mapped[str] = mapped_column(Text, unique=True)
+    category: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    quality: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    language: Mapped[str | None] = mapped_column(String(50), nullable=True)
+    source: Mapped[str] = mapped_column(String(100))
+    poster_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    added_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
