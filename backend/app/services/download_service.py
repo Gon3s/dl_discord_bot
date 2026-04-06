@@ -27,6 +27,8 @@ logger = logging.getLogger(__name__)
 _CHUNK_SIZE = 64 * 1024  # 64 KB
 _DB_UPDATE_INTERVAL = 2.0  # seconds between DB writes during streaming
 _WS_EMIT_INTERVAL = 0.5  # seconds between WebSocket events during streaming
+# No total timeout (large files), but abort if no data for 60s (stalled connection)
+_HTTP_TIMEOUT = aiohttp.ClientTimeout(total=None, sock_connect=30, sock_read=60)
 
 
 async def _emit(download_id: str, event: dict) -> None:
@@ -280,7 +282,7 @@ class DownloadService:
         last_db_update = start
         last_ws_emit = start
 
-        async with aiohttp.ClientSession() as http:
+        async with aiohttp.ClientSession(timeout=_HTTP_TIMEOUT) as http:
             async with http.get(url) as response:
                 if response.status != 200:
                     raise DownloadError(f"HTTP {response.status} when fetching {url}")
