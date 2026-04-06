@@ -33,6 +33,8 @@ class History(Base):
     filename: Mapped[str | None] = mapped_column(String(500), nullable=True)
     media_type: Mapped[str] = mapped_column(String(50))
     source: Mapped[str] = mapped_column(String(100))
+    status: Mapped[str] = mapped_column(String(50), default="completed")
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
     downloaded_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
 

@@ -109,7 +109,12 @@
               </span>
             </td>
             <td class="px-4 py-3">
-              <span class="text-[9px] font-black" style="color:var(--lime)">✓ OK</span>
+              @if (item.status === 'completed') {
+                <span class="text-[9px] font-black" style="color:var(--lime)">✓ OK</span>
+              } @else {
+                <span class="text-[9px] font-black" style="color:#c04040"
+                      [title]="item.error ?? ''">✕ FAILED</span>
+              }
             </td>
             <td class="px-4 py-3 text-right">
               <div class="row-act flex gap-1 justify-end">

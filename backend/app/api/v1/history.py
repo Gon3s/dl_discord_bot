@@ -14,11 +14,17 @@ async def list_history(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     q: str | None = Query(None, description="Filter by title"),
+    status: str | None = Query(None, description="Filter by status"),
+    provider: str | None = Query(None, description="Filter by source/provider"),
     session: AsyncSession = Depends(get_db),
 ) -> HistoryList:
     base_query = select(History)
     if q:
         base_query = base_query.where(History.title.ilike(f"%{q}%"))
+    if status:
+        base_query = base_query.where(History.status == status)
+    if provider:
+        base_query = base_query.where(History.source == provider)
 
     count_result = await session.execute(
         select(func.count()).select_from(base_query.subquery())

@@ -232,7 +232,8 @@ class DownloadService:
             await self._write_history(download, filename)
 
         except Exception as exc:
-            error_msg = str(exc)
+            error_msg = str(exc) or type(exc).__name__
+            await self._write_history(download, download.filename, status="error", error=error_msg)
             await self._set_status(download, "error", error=error_msg)
             await _emit(
                 download_id,
@@ -346,13 +347,21 @@ class DownloadService:
         )
         logger.info("Download %s completed → %s", download_id, dest)
 
-    async def _write_history(self, download: Download, filename: str | None) -> None:
+    async def _write_history(
+        self,
+        download: Download,
+        filename: str | None,
+        status: str = "completed",
+        error: str | None = None,
+    ) -> None:
         history = History(
             title=download.title,
             source_url=download.source_url,
             filename=filename,
             media_type=download.media_type,
             source="alldebrid",
+            status=status,
+            error=error,
         )
         self._session.add(history)
         await self._session.commit()

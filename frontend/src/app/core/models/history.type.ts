@@ -5,6 +5,8 @@ export type HistoryRead = {
   filename: string | null;
   media_type: string;
   source: string;
+  status: string;
+  error: string | null;
   downloaded_at: string;
 };
 

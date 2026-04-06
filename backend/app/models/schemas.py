@@ -84,6 +84,8 @@ class HistoryRead(BaseModel):
     filename: str | None
     media_type: str
     source: str
+    status: str
+    error: str | None
     downloaded_at: datetime
 
     model_config = {"from_attributes": True}
