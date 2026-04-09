@@ -124,6 +124,9 @@ export class SearchComponent {
 
   protected episodes = computed(() => this.episodesResource.value() ?? []);
   protected episodesLoading = computed(() => this.episodesResource.isLoading());
+  protected seriesHasDownloads = computed(() =>
+    this.episodes().some(ep => this.state.isEpisodeDownloaded(this.epFullTitle(ep)))
+  );
 
   search(): void {
     const q = this.query().trim();
