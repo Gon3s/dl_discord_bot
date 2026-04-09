@@ -1,5 +1,6 @@
 import { Injectable, computed, effect, inject, linkedSignal, signal } from '@angular/core';
-import { rxResource } from '@angular/core/rxjs-interop';
+import { toSignal, rxResource } from '@angular/core/rxjs-interop';
+import { BehaviorSubject, switchMap, map } from 'rxjs';
 import { ApiService } from './api.service';
 import type { SearchResult } from '../models/search.type';
 
@@ -45,23 +46,23 @@ export class SearchStateService {
     stream: () => this.api.getHistory({ page_size: 1000 }),
   });
 
-  // Téléchargements actifs — rechargé via trigger signal après chaque lancement
-  private readonly downloadsTrigger = signal(0);
-  private readonly downloadsResource = rxResource({
-    params: this.downloadsTrigger,
-    stream: () => this.api.getDownloads(),
-  });
+  // Téléchargements actifs — BehaviorSubject + toSignal pour une réactivité garantie
+  private readonly refreshTrigger$ = new BehaviorSubject<void>(undefined);
 
-  readonly activeTitles = computed(() =>
-    new Set(
-      (this.downloadsResource.value() ?? [])
-        .filter(d => ACTIVE_STATUSES.has(d.status))
-        .map(d => d.title.toLowerCase())
-    )
+  readonly activeTitles = toSignal(
+    this.refreshTrigger$.pipe(
+      switchMap(() => this.api.getDownloads()),
+      map(downloads => new Set(
+        downloads
+          .filter(d => ACTIVE_STATUSES.has(d.status))
+          .map(d => d.title.toLowerCase())
+      ))
+    ),
+    { initialValue: new Set<string>() }
   );
 
   refreshDownloads(): void {
-    this.downloadsTrigger.update(n => n + 1);
+    this.refreshTrigger$.next();
   }
 
   // Set des source_url téléchargées — lookup O(1)
