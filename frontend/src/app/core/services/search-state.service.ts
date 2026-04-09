@@ -50,17 +50,13 @@ export class SearchStateService {
     stream: () => this.api.getDownloads(),
   });
 
-  private readonly activeTitles = computed(() =>
+  readonly activeTitles = computed(() =>
     new Set(
       (this.downloadsResource.value() ?? [])
         .filter(d => ACTIVE_STATUSES.has(d.status))
         .map(d => d.title.toLowerCase())
     )
   );
-
-  isDownloading(title: string): boolean {
-    return this.activeTitles().has(title.toLowerCase());
-  }
 
   refreshDownloads(): void {
     this.downloadsResource.reload();

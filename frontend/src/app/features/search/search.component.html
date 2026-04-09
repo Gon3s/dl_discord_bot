@@ -308,7 +308,7 @@
                     {{ ep.title }}
                     @if (state.isEpisodeDownloaded(epFullTitle(ep))) {
                       <span class="text-[8px] font-black px-1 py-0.5 rounded shrink-0 bg-lime/[12%] text-lime border border-lime/25">✓</span>
-                    } @else if (state.isDownloading(epFullTitle(ep))) {
+                    } @else if (state.activeTitles().has(epFullTitle(ep).toLowerCase())) {
                       <span class="text-[8px] font-black px-1 py-0.5 rounded shrink-0 bg-[#3a4022]/60 text-[#8a9a55] border border-[#3a4022]">↓ EN COURS</span>
                     }
                   </p>
@@ -326,7 +326,7 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
                     </svg>
                   </div>
-                } @else if (state.isDownloading(epFullTitle(ep))) {
+                } @else if (state.activeTitles().has(epFullTitle(ep).toLowerCase())) {
                   <div class="shrink-0 w-7 h-7 rounded flex items-center justify-center bg-[#3a4022]/60 border border-[#3a4022] text-[#8a9a55]">
                     <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
