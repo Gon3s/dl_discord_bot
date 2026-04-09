@@ -310,7 +310,7 @@
                       <span class="text-[8px] font-black px-1 py-0.5 rounded shrink-0 bg-lime/[12%] text-lime border border-lime/25">✓</span>
                     } @else if (state.activeTitles().has(epFullTitle(ep).toLowerCase())) {
                       <span class="text-[8px] font-black px-1 py-0.5 rounded shrink-0 bg-[#3a4022]/60 text-[#8a9a55] border border-[#3a4022]">↓ EN COURS</span>
-                    } @else if (seriesHasDownloads()) {
+                    } @else if (lastDownloadedEp() >= 0 && ep.number > lastDownloadedEp()) {
                       <span class="text-[8px] font-black px-1 py-0.5 rounded shrink-0 bg-[#1a3a1a] text-[#6ddf6d] border border-[#2a5a2a]">NOUVEAU</span>
                     }
                   </p>

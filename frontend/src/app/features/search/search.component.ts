@@ -124,9 +124,12 @@ export class SearchComponent {
 
   protected episodes = computed(() => this.episodesResource.value() ?? []);
   protected episodesLoading = computed(() => this.episodesResource.isLoading());
-  protected seriesHasDownloads = computed(() =>
-    this.episodes().some(ep => this.state.isEpisodeDownloaded(this.epFullTitle(ep)))
-  );
+  protected lastDownloadedEp = computed(() => {
+    const nums = this.episodes()
+      .filter(ep => this.state.isEpisodeDownloaded(this.epFullTitle(ep)))
+      .map(ep => ep.number);
+    return nums.length ? Math.max(...nums) : -1;
+  });
 
   search(): void {
     const q = this.query().trim();
