@@ -45,8 +45,10 @@ export class SearchStateService {
     stream: () => this.api.getHistory({ page_size: 1000 }),
   });
 
-  // Téléchargements actifs — rechargé après chaque démarrage de téléchargement
+  // Téléchargements actifs — rechargé via trigger signal après chaque lancement
+  private readonly downloadsTrigger = signal(0);
   private readonly downloadsResource = rxResource({
+    params: this.downloadsTrigger,
     stream: () => this.api.getDownloads(),
   });
 
@@ -59,7 +61,7 @@ export class SearchStateService {
   );
 
   refreshDownloads(): void {
-    this.downloadsResource.reload();
+    this.downloadsTrigger.update(n => n + 1);
   }
 
   // Set des source_url téléchargées — lookup O(1)
