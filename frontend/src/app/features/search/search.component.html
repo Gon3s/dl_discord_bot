@@ -306,8 +306,10 @@
                 <div class="flex-1 min-w-0">
                   <p class="text-xs font-bold flex items-center gap-1.5 text-[#c8d890]">
                     {{ ep.title }}
-                    @if (state.isEpisodeDownloaded(selectedResult()!.title + ' — ' + ep.title)) {
+                    @if (state.isEpisodeDownloaded(epFullTitle(ep))) {
                       <span class="text-[8px] font-black px-1 py-0.5 rounded shrink-0 bg-lime/[12%] text-lime border border-lime/25">✓</span>
+                    } @else if (state.isDownloading(epFullTitle(ep))) {
+                      <span class="text-[8px] font-black px-1 py-0.5 rounded shrink-0 bg-[#3a4022]/60 text-[#8a9a55] border border-[#3a4022]">↓ EN COURS</span>
                     }
                   </p>
                   <div class="flex gap-1 mt-0.5 flex-wrap">
@@ -318,14 +320,29 @@
                     }
                   </div>
                 </div>
-                <button (click)="downloadEpisode(ep)" [disabled]="launching()"
-                        class="shrink-0 w-7 h-7 rounded flex items-center justify-center transition
-                               bg-lime/10 hover:bg-lime/20 border border-lime/20 text-lime">
-                  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                          d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                  </svg>
-                </button>
+                @if (state.isEpisodeDownloaded(epFullTitle(ep))) {
+                  <div class="shrink-0 w-7 h-7 rounded flex items-center justify-center bg-lime/[12%] border border-lime/25 text-lime">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </div>
+                } @else if (state.isDownloading(epFullTitle(ep))) {
+                  <div class="shrink-0 w-7 h-7 rounded flex items-center justify-center bg-[#3a4022]/60 border border-[#3a4022] text-[#8a9a55]">
+                    <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                  </div>
+                } @else {
+                  <button (click)="downloadEpisode(ep)" [disabled]="launching()"
+                          class="shrink-0 w-7 h-7 rounded flex items-center justify-center transition
+                                 bg-lime/10 hover:bg-lime/20 border border-lime/20 text-lime">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                  </button>
+                }
               </div>
             }
           </div>

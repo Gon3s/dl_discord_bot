@@ -182,13 +182,16 @@ export class SearchComponent {
     });
   }
 
+  epFullTitle(ep: Episode): string {
+    return `${this.selectedResult()!.title} — ${ep.title}`;
+  }
+
   downloadEpisode(ep: Episode): void {
     const url = this.pickBestLink(ep.links);
     if (!url) return;
-    const r = this.selectedResult()!;
     const payload: StartDownloadPayload = {
       source_url: url,
-      title: `${r.title} — ${ep.title}`,
+      title: this.epFullTitle(ep),
       media_type: 'series',
       destination: this.selectedDestination(),
     };
@@ -196,8 +199,7 @@ export class SearchComponent {
     this.api.startDownload(payload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: () => {
         this.launching.set(false);
-        this.closeEpisodePanel();
-        this.router.navigate(['/downloads']);
+        this.state.refreshDownloads();
       },
       error: () => {
         this.launching.set(false);

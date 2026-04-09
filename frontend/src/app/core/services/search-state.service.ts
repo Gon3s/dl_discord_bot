@@ -3,6 +3,8 @@ import { rxResource } from '@angular/core/rxjs-interop';
 import { ApiService } from './api.service';
 import type { SearchResult } from '../models/search.type';
 
+const ACTIVE_STATUSES = new Set(['queued', 'scraping', 'resolving', 'debriding', 'downloading']);
+
 export type SearchParams = {
   q: string;
   category: string;
@@ -42,6 +44,27 @@ export class SearchStateService {
   private readonly historyResource = rxResource({
     stream: () => this.api.getHistory({ page_size: 1000 }),
   });
+
+  // Téléchargements actifs — rechargé après chaque démarrage de téléchargement
+  private readonly downloadsResource = rxResource({
+    stream: () => this.api.getDownloads(),
+  });
+
+  private readonly activeTitles = computed(() =>
+    new Set(
+      (this.downloadsResource.value() ?? [])
+        .filter(d => ACTIVE_STATUSES.has(d.status))
+        .map(d => d.title.toLowerCase())
+    )
+  );
+
+  isDownloading(title: string): boolean {
+    return this.activeTitles().has(title.toLowerCase());
+  }
+
+  refreshDownloads(): void {
+    this.downloadsResource.reload();
+  }
 
   // Set des source_url téléchargées — lookup O(1)
   readonly downloadedUrls = computed(() =>
