@@ -51,7 +51,7 @@ export class SearchComponent {
   protected loadingMore = computed(() => this.searchResource.isLoading() && this.currentPage() > 1);
   protected hasMore = computed(() => {
     const val = this.searchResource.value();
-    return !!val && val.results.length >= 20;
+    return !!val && val.results.length > 0;
   });
   protected errorMsg = computed(() => {
     if (!this.searchParams() || this.searchResource.isLoading()) return '';
