@@ -12,6 +12,7 @@ class DarkiworldScraper(BaseScraper):
         year: int | None = None,
         limit: int = 10,
         sort: str | None = None,
+        page: int = 1,
     ) -> list[SearchResult]:
         raise NotImplementedError("darkiworld: not implemented yet")
 

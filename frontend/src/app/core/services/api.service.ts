@@ -14,8 +14,8 @@ export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly base = '/api/v1';
 
-  search(query: string, category: string, year?: string, limit = 20, sort?: string): Observable<SearchResponse> {
-    let params = new HttpParams().set('q', query).set('category', category).set('limit', limit);
+  search(query: string, category: string, year?: string, limit = 20, sort?: string, page = 1): Observable<SearchResponse> {
+    let params = new HttpParams().set('q', query).set('category', category).set('limit', limit).set('page', page);
     if (year) params = params.set('year', year);
     if (sort) params = params.set('sort', sort);
     return this.http.get<SearchResponse>(`${this.base}/search`, { params });

@@ -22,6 +22,7 @@ class SearchResponse(BaseModel):
     results: list[SearchResult]
     total: int
     source: str
+    page: int = 1
 
 
 # --- Episodes ---

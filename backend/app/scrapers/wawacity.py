@@ -56,6 +56,7 @@ class WawacityScraper(BaseScraper):
         year: int | None = None,
         limit: int = 10,
         sort: str | None = None,
+        page: int = 1,
     ) -> list[SearchResult]:
         wawa_category = _CATEGORY_MAP.get(category, category)
         params: dict[str, str | int] = {
@@ -65,6 +66,8 @@ class WawacityScraper(BaseScraper):
         }
         if year is not None:
             params["year"] = year
+        if page > 1:
+            params["paged"] = page
 
         headers = {
             "User-Agent": (

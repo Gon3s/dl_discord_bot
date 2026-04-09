@@ -15,6 +15,7 @@ async def search(
     sort: str | None = Query(None, description="Sort / subsection filter (s= param)"),
     year: int | None = Query(None, description="Release year filter"),
     limit: int = Query(10, ge=1, le=50),
+    page: int = Query(1, ge=1),
 ) -> SearchResponse:
     try:
         scraper = get_scraper(source)
@@ -22,7 +23,7 @@ async def search(
         raise HTTPException(status_code=400, detail=f"Unknown source: {source!r}")
 
     try:
-        raw = await scraper.search(q, category, year, limit, sort=sort)
+        raw = await scraper.search(q, category, year, limit, sort=sort, page=page)
     except Exception as exc:
         raise HTTPException(status_code=503, detail=f"Scraper error: {exc}") from exc
 
@@ -39,4 +40,4 @@ async def search(
         )
         for r in raw
     ]
-    return SearchResponse(results=results, total=len(results), source=source)
+    return SearchResponse(results=results, total=len(results), source=source, page=page)

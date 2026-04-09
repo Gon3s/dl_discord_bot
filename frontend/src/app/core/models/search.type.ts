@@ -13,4 +13,5 @@ export type SearchResponse = {
   results: SearchResult[];
   total: number;
   source: string;
+  page: number;
 };

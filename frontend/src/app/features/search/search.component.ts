@@ -1,5 +1,6 @@
-import { Component, signal, computed, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
+import { Component, signal, computed, inject, ChangeDetectionStrategy, DestroyRef, effect } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { EMPTY, forkJoin } from 'rxjs';
@@ -15,7 +16,7 @@ const PREFERRED_PROVIDERS = ['Turbobit', 'Rapidgator', '1fichier'];
 
 @Component({
   selector: 'app-search',
-  imports: [FormsModule],
+  imports: [FormsModule, NgClass],
   templateUrl: './search.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -32,14 +33,26 @@ export class SearchComponent {
   protected get sort() { return this.state.sort; }
   protected get searchParams() { return this.state.searchParams; }
 
+  protected readonly currentPage = signal(1);
+  protected readonly accumulatedResults = signal<SearchResult[]>([]);
+
   protected readonly searchResource = rxResource({
-    params: this.searchParams,
+    params: () => {
+      const sp = this.searchParams();
+      if (!sp) return undefined;
+      return { ...sp, page: this.currentPage() };
+    },
     stream: ({ params }) =>
-      this.api.search(params.q, params.category, params.year, 20, params.sort),
+      this.api.search(params.q, params.category, params.year, 20, params.sort, params.page),
   });
 
-  protected results = computed(() => this.searchResource.value()?.results ?? []);
-  protected loading = computed(() => this.searchResource.isLoading());
+  protected results = computed(() => this.accumulatedResults());
+  protected loading = computed(() => this.searchResource.isLoading() && this.currentPage() === 1);
+  protected loadingMore = computed(() => this.searchResource.isLoading() && this.currentPage() > 1);
+  protected hasMore = computed(() => {
+    const val = this.searchResource.value();
+    return !!val && val.results.length >= 20;
+  });
   protected errorMsg = computed(() => {
     if (!this.searchParams() || this.searchResource.isLoading()) return '';
     return this.searchResource.error() ? 'Search failed — is the backend running?' : '';
@@ -76,6 +89,16 @@ export class SearchComponent {
   protected readonly skeletons = Array.from({ length: 6 });
 
   constructor() {
+    effect(() => {
+      const results = this.searchResource.value()?.results;
+      if (!results) return;
+      if (this.currentPage() === 1) {
+        this.accumulatedResults.set(results);
+      } else {
+        this.accumulatedResults.update(prev => [...prev, ...results]);
+      }
+    });
+
     const pending = this.state.pendingResult();
     if (pending) {
       this.state.pendingResult.set(null);
@@ -105,12 +128,17 @@ export class SearchComponent {
   search(): void {
     const q = this.query().trim();
     if (!q) return;
+    this.currentPage.set(1);
     this.searchParams.set({
       q,
       category: this.category(),
       year: this.year() || undefined,
       sort: this.sort() || undefined,
     });
+  }
+
+  loadMore(): void {
+    this.currentPage.update(p => p + 1);
   }
 
   openResult(result: SearchResult): void {
