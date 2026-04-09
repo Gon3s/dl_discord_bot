@@ -67,7 +67,7 @@ class WawacityScraper(BaseScraper):
         if year is not None:
             params["year"] = year
         if page > 1:
-            params["paged"] = page
+            params["page"] = page
 
         headers = {
             "User-Agent": (
