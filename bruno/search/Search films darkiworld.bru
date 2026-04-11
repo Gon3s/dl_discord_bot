@@ -1,0 +1,35 @@
+meta {
+  name: Search films darkiworld
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/api/v1/search?q=inception&source=darkiworld&category=films&limit=5
+  body: none
+  auth: none
+}
+
+tests {
+  test("status 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("has results array", function() {
+    expect(res.body).to.have.property("results");
+    expect(res.body.results).to.be.an("array");
+  });
+
+  test("source is darkiworld", function() {
+    expect(res.body.source).to.equal("darkiworld");
+  });
+
+  test("results have url and title", function() {
+    if (res.body.results.length > 0) {
+      const r = res.body.results[0];
+      expect(r).to.have.property("title");
+      expect(r).to.have.property("url");
+      expect(r.url).to.include("/titles/");
+    }
+  });
+}

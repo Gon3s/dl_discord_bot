@@ -1,0 +1,36 @@
+meta {
+  name: Create download darkiworld
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/api/v1/downloads
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "source_url": "https://dd.darkiworld16.com/titles/95180/espion-amateur",
+    "title": "Espion amateur (2001)",
+    "media_type": "film",
+    "destination": "server"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("downloadId", res.body.download_id);
+  }
+}
+
+tests {
+  test("status 201", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("has download_id", function() {
+    expect(res.body).to.have.property("download_id");
+  });
+}

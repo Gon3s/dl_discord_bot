@@ -1,17 +1,29 @@
 meta {
-  name: Get episodes Darkiworld (501)
+  name: Get episodes Darkiworld (série réelle)
   type: http
   seq: 3
 }
 
 get {
-  url: {{baseUrl}}/api/v1/episodes?url=https://darkiworld.com/serie&source=darkiworld
+  url: {{baseUrl}}/api/v1/episodes?url=https://dd.darkiworld16.com/titles/74064/naruto&source=darkiworld
   body: none
   auth: none
 }
 
 tests {
-  test("status 501", function() {
-    expect(res.status).to.equal(501);
+  test("status 200", function() {
+    expect(res.status).to.equal(200);
+  });
+
+  test("returns array", function() {
+    expect(res.body).to.be.an("array");
+  });
+
+  test("episodes have title and number", function() {
+    if (res.body.length > 0) {
+      const ep = res.body[0];
+      expect(ep).to.have.property("title");
+      expect(ep).to.have.property("number");
+    }
   });
 }

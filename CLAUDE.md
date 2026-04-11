@@ -59,6 +59,9 @@ Copier `.env.example` → `.env` à la racine. Variables clés :
 | `ALLDEBRID_API_KEY` | Clé API AllDebrid |
 | `DOWNLOAD_PATH` | Chemin de stockage des fichiers (ex: `/data/media`) |
 | `WAWACITY_URL` | URL de base Wawacity (ex: `https://www.wawacity.city/`) |
+| `DARKIWORLD_URL` | URL de base DarkiWorld (ex: `https://dd.darkiworld16.com`) |
+| `DARKIWORLD_EMAIL` | Email du compte DarkiWorld |
+| `DARKIWORLD_PASSWORD` | Mot de passe du compte DarkiWorld |
 | `DATABASE_URL` | `sqlite+aiosqlite:///./dl_bot.db` |
 | `MAX_CONCURRENT_DOWNLOADS` | Nombre de téléchargements simultanés (défaut: 2) |
 | `BACKEND_URL` | URL du backend pour le bot (ex: `http://localhost:8000`) |
@@ -104,7 +107,7 @@ Aucune autre modification n'est nécessaire. Le registre est automatique.
 
 **Sources actuelles :**
 - `wawacity` — implémenté (`backend/app/scrapers/wawacity.py`)
-- `darkiworld` — stub `NotImplementedError` (`backend/app/scrapers/darkiworld.py`)
+- `darkiworld` — implémenté (`backend/app/scrapers/darkiworld.py`) — nécessite `DARKIWORLD_EMAIL` + `DARKIWORLD_PASSWORD` dans `.env`
 
 ---
 

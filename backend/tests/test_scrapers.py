@@ -196,29 +196,321 @@ async def test_search_returns_empty_on_http_error(monkeypatch):
 
 
 # ---------------------------------------------------------------------------
-# DarkiworldScraper stubs
+# DarkiworldScraper — JSON fixtures
+# ---------------------------------------------------------------------------
+
+_DW_SEARCH_JSON = {
+    "pagination": {
+        "current_page": 1,
+        "data": [
+            {
+                "id": 42,
+                "name": "Inception",
+                "slug": "inception-2010",
+                "type": "movie",
+                "year": 2010,
+                "poster": "images/inception.jpg",
+                "language": "fr",
+            },
+            {
+                "id": 43,
+                "name": "Interstellar",
+                "slug": "interstellar-2014",
+                "type": "movie",
+                "year": 2014,
+                "poster": "https://cdn.example.com/interstellar.jpg",
+                "language": "multi",
+            },
+        ],
+        "next_page": None,
+        "per_page": 15,
+    }
+}
+
+_DW_SEASONS_JSON = {
+    "pagination": {
+        "data": [
+            {"id": 10, "number": 1},
+            {"id": 11, "number": 2},
+        ]
+    }
+}
+
+_DW_EPISODES_JSON = {
+    "pagination": {
+        "data": [
+            {"episode_number": 1, "name": "Pilot"},
+            {"episode_number": 2, "name": "Second Episode"},
+        ]
+    }
+}
+
+
+# ---------------------------------------------------------------------------
+# DarkiworldScraper._parse_search_response
+# ---------------------------------------------------------------------------
+
+
+def test_dw_parse_search_returns_results():
+    scraper = DarkiworldScraper()
+    results = scraper._parse_search_response(_DW_SEARCH_JSON, limit=10)
+    assert len(results) == 2
+    assert all(isinstance(r, SearchResult) for r in results)
+
+
+def test_dw_parse_search_extracts_title_and_year():
+    scraper = DarkiworldScraper()
+    results = scraper._parse_search_response(_DW_SEARCH_JSON, limit=10)
+    assert results[0].title == "Inception"
+    assert results[0].year == 2010
+    assert results[1].title == "Interstellar"
+    assert results[1].year == 2014
+
+
+def test_dw_parse_search_builds_url_with_id():
+    scraper = DarkiworldScraper()
+    results = scraper._parse_search_response(_DW_SEARCH_JSON, limit=10)
+    assert "/titles/42/" in results[0].url
+    assert "/titles/43/" in results[1].url
+
+
+def test_dw_parse_search_poster_relative_prefixed():
+    scraper = DarkiworldScraper()
+    results = scraper._parse_search_response(_DW_SEARCH_JSON, limit=10)
+    assert results[0].poster_url is not None
+    assert results[0].poster_url.startswith("http")
+    assert "images/inception.jpg" in results[0].poster_url
+
+
+def test_dw_parse_search_poster_absolute_kept():
+    scraper = DarkiworldScraper()
+    results = scraper._parse_search_response(_DW_SEARCH_JSON, limit=10)
+    assert results[1].poster_url == "https://cdn.example.com/interstellar.jpg"
+
+
+def test_dw_parse_search_respects_limit():
+    scraper = DarkiworldScraper()
+    results = scraper._parse_search_response(_DW_SEARCH_JSON, limit=1)
+    assert len(results) == 1
+
+
+def test_dw_parse_search_sets_source():
+    scraper = DarkiworldScraper()
+    results = scraper._parse_search_response(_DW_SEARCH_JSON, limit=10)
+    assert all(r.source == "darkiworld" for r in results)
+
+
+# ---------------------------------------------------------------------------
+# DarkiworldScraper.get_episodes — mock aiohttp (seasons + episodes)
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.asyncio
-async def test_darkiworld_search_raises_not_implemented():
+async def test_dw_get_episodes_returns_episodes(monkeypatch):
+    import aiohttp
+
+    call_count = 0
+
+    class FakeResponse:
+        def __init__(self, data):
+            self._data = data
+            self.status = 200
+            self.content_type = "application/json"
+
+        async def json(self):
+            return self._data
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+    class FakeSession:
+        def get(self, url, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if "/seasons" in url and "/episodes" not in url:
+                return FakeResponse(_DW_SEASONS_JSON)
+            return FakeResponse(_DW_EPISODES_JSON)
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
     scraper = DarkiworldScraper()
-    with pytest.raises(NotImplementedError):
-        await scraper.search("test", "films")
+    DarkiworldScraper._cookies = {"laravel_session": "fake"}
+    monkeypatch.setattr(aiohttp, "ClientSession", lambda **kwargs: FakeSession())
+
+    episodes = await scraper.get_episodes("https://dd.darkiworld16.com/titles/999/show")
+    assert len(episodes) == 4  # 2 seasons × 2 episodes each
+    assert episodes[0].number == 1
+    assert "S01E01" in episodes[0].title
+    assert "Pilot" in episodes[0].title
+
+    DarkiworldScraper._cookies = None
 
 
 @pytest.mark.asyncio
-async def test_darkiworld_get_provider_links_raises_not_implemented():
+async def test_dw_get_episodes_returns_empty_on_http_error(monkeypatch):
+    import aiohttp
+
+    class FakeResponse:
+        status = 503
+        content_type = "application/json"
+
+        async def json(self):
+            return {}
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+    class FakeSession:
+        def get(self, *args, **kwargs):
+            return FakeResponse()
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
     scraper = DarkiworldScraper()
-    with pytest.raises(NotImplementedError):
-        await scraper.get_provider_links("https://example.com", [])
+    DarkiworldScraper._cookies = {"laravel_session": "fake"}
+    monkeypatch.setattr(aiohttp, "ClientSession", lambda **kwargs: FakeSession())
+
+    episodes = await scraper.get_episodes("https://dd.darkiworld16.com/titles/999/show")
+    assert episodes == []
+
+    DarkiworldScraper._cookies = None
 
 
 @pytest.mark.asyncio
-async def test_darkiworld_get_episodes_raises_not_implemented():
+async def test_dw_get_episodes_returns_empty_for_bad_url():
     scraper = DarkiworldScraper()
-    with pytest.raises(NotImplementedError):
-        await scraper.get_episodes("https://example.com")
+    episodes = await scraper.get_episodes("https://dd.darkiworld16.com/not-a-title")
+    assert episodes == []
+
+
+# ---------------------------------------------------------------------------
+# DarkiworldScraper.search — mock aiohttp
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_dw_search_returns_results(monkeypatch):
+    import aiohttp
+
+    class FakeResponse:
+        status = 200
+        content_type = "application/json"
+
+        async def json(self):
+            return _DW_SEARCH_JSON
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+    class FakeSession:
+        def get(self, *args, **kwargs):
+            return FakeResponse()
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+    scraper = DarkiworldScraper()
+    DarkiworldScraper._cookies = {"laravel_session": "fake"}
+    monkeypatch.setattr(aiohttp, "ClientSession", lambda **kwargs: FakeSession())
+
+    results = await scraper.search("inception", "films", limit=10)
+    assert len(results) == 2
+    assert results[0].title == "Inception"
+
+    DarkiworldScraper._cookies = None
+
+
+@pytest.mark.asyncio
+async def test_dw_search_returns_empty_on_http_error(monkeypatch):
+    import aiohttp
+
+    class FakeResponse:
+        status = 503
+        content_type = "application/json"
+
+        async def json(self):
+            return {}
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+    class FakeSession:
+        def get(self, *args, **kwargs):
+            return FakeResponse()
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+    scraper = DarkiworldScraper()
+    DarkiworldScraper._cookies = {"laravel_session": "fake"}
+    monkeypatch.setattr(aiohttp, "ClientSession", lambda **kwargs: FakeSession())
+
+    results = await scraper.search("inception", "films")
+    assert results == []
+
+    DarkiworldScraper._cookies = None
+
+
+@pytest.mark.asyncio
+async def test_dw_search_invalidates_session_on_html_response(monkeypatch):
+    import aiohttp
+
+    class FakeResponse:
+        status = 200
+        content_type = "text/html"
+
+        async def json(self):
+            return {}
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+    class FakeSession:
+        def get(self, *args, **kwargs):
+            return FakeResponse()
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+    scraper = DarkiworldScraper()
+    DarkiworldScraper._cookies = {"laravel_session": "expired"}
+    monkeypatch.setattr(aiohttp, "ClientSession", lambda **kwargs: FakeSession())
+
+    results = await scraper.search("inception", "films")
+    assert results == []
+    assert DarkiworldScraper._cookies is None
 
 
 # ---------------------------------------------------------------------------
