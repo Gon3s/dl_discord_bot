@@ -11,6 +11,7 @@ export type SearchParams = {
   category: string;
   year?: string;
   sort?: string;
+  source: string;
 };
 
 @Injectable({ providedIn: 'root' })
@@ -20,7 +21,8 @@ export class SearchStateService {
   readonly query = signal('');
   readonly category = signal('films');
   readonly year = signal('');
-  readonly sort = linkedSignal<string>(() => { this.category(); return ''; });
+  readonly source = signal<string>(localStorage.getItem('dl_source') ?? 'wawacity');
+  readonly sort = linkedSignal<string>(() => { this.category(); this.source(); return ''; });
   readonly searchParams = signal<SearchParams | undefined>(undefined);
 
   private readonly settingsResource = rxResource({
@@ -94,5 +96,10 @@ export class SearchStateService {
   setDestination(value: 'server' | 'client'): void {
     this.destination.set(value);
     localStorage.setItem('dl_destination', value);
+  }
+
+  setSource(value: string): void {
+    this.source.set(value);
+    localStorage.setItem('dl_source', value);
   }
 }
