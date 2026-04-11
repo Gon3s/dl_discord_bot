@@ -227,50 +227,22 @@ _DW_SEARCH_JSON = {
     }
 }
 
-_DW_VIDEOS_JSON = {
-    "videos": [
-        {
-            "id": 1,
-            "quality": "1080p",
-            "links": [
-                {"host": {"name": "Turbobit"}, "url": "https://turbobit.net/xyz"},
-                {"host": {"name": "Rapidgator"}, "url": "https://rapidgator.net/xyz"},
-            ],
-        }
-    ]
+_DW_SEASONS_JSON = {
+    "pagination": {
+        "data": [
+            {"id": 10, "number": 1},
+            {"id": 11, "number": 2},
+        ]
+    }
 }
 
-_DW_SEASONS_JSON = {
-    "seasons": [
-        {
-            "number": 1,
-            "episodes": [
-                {
-                    "episode_number": 1,
-                    "name": "Pilot",
-                    "videos": [
-                        {
-                            "links": [
-                                {"host": {"name": "Turbobit"}, "url": "https://turbobit.net/ep1"},
-                            ]
-                        }
-                    ],
-                },
-                {
-                    "episode_number": 2,
-                    "name": "Second Episode",
-                    "videos": [
-                        {
-                            "links": [
-                                {"host": {"name": "Turbobit"}, "url": "https://turbobit.net/ep2"},
-                                {"host": {"name": "Rapidgator"}, "url": "https://rapidgator.net/ep2"},
-                            ]
-                        }
-                    ],
-                },
-            ],
-        }
-    ]
+_DW_EPISODES_JSON = {
+    "pagination": {
+        "data": [
+            {"episode_number": 1, "name": "Pilot"},
+            {"episode_number": 2, "name": "Second Episode"},
+        ]
+    }
 }
 
 
@@ -329,78 +301,99 @@ def test_dw_parse_search_sets_source():
 
 
 # ---------------------------------------------------------------------------
-# DarkiworldScraper._parse_provider_links
+# DarkiworldScraper.get_episodes — mock aiohttp (seasons + episodes)
 # ---------------------------------------------------------------------------
 
 
-def test_dw_parse_provider_links_returns_all():
+@pytest.mark.asyncio
+async def test_dw_get_episodes_returns_episodes(monkeypatch):
+    import aiohttp
+
+    call_count = 0
+
+    class FakeResponse:
+        def __init__(self, data):
+            self._data = data
+            self.status = 200
+            self.content_type = "application/json"
+
+        async def json(self):
+            return self._data
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+    class FakeSession:
+        def get(self, url, **kwargs):
+            nonlocal call_count
+            call_count += 1
+            if "/seasons" in url and "/episodes" not in url:
+                return FakeResponse(_DW_SEASONS_JSON)
+            return FakeResponse(_DW_EPISODES_JSON)
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
     scraper = DarkiworldScraper()
-    links = scraper._parse_provider_links(_DW_VIDEOS_JSON, providers=[])
-    providers = [pl.provider for pl in links]
-    assert "Turbobit" in providers
-    assert "Rapidgator" in providers
+    DarkiworldScraper._cookies = {"laravel_session": "fake"}
+    monkeypatch.setattr(aiohttp, "ClientSession", lambda **kwargs: FakeSession())
 
-
-def test_dw_parse_provider_links_filters_providers():
-    scraper = DarkiworldScraper()
-    links = scraper._parse_provider_links(_DW_VIDEOS_JSON, providers=["Turbobit"])
-    assert len(links) == 1
-    assert links[0].provider == "Turbobit"
-    assert links[0].urls == ["https://turbobit.net/xyz"]
-
-
-def test_dw_parse_provider_links_empty_videos():
-    scraper = DarkiworldScraper()
-    links = scraper._parse_provider_links({"videos": []}, providers=[])
-    assert links == []
-
-
-# ---------------------------------------------------------------------------
-# DarkiworldScraper._parse_seasons
-# ---------------------------------------------------------------------------
-
-
-def test_dw_parse_seasons_episode_count():
-    scraper = DarkiworldScraper()
-    episodes = scraper._parse_seasons(_DW_SEASONS_JSON, providers=[])
-    assert len(episodes) == 2
-    assert all(isinstance(ep, Episode) for ep in episodes)
-
-
-def test_dw_parse_seasons_episode_numbers():
-    scraper = DarkiworldScraper()
-    episodes = scraper._parse_seasons(_DW_SEASONS_JSON, providers=[])
+    episodes = await scraper.get_episodes("https://dd.darkiworld16.com/titles/999/show")
+    assert len(episodes) == 4  # 2 seasons × 2 episodes each
     assert episodes[0].number == 1
-    assert episodes[1].number == 2
-
-
-def test_dw_parse_seasons_episode_titles():
-    scraper = DarkiworldScraper()
-    episodes = scraper._parse_seasons(_DW_SEASONS_JSON, providers=[])
     assert "S01E01" in episodes[0].title
     assert "Pilot" in episodes[0].title
-    assert "S01E02" in episodes[1].title
+
+    DarkiworldScraper._cookies = None
 
 
-def test_dw_parse_seasons_provider_links():
+@pytest.mark.asyncio
+async def test_dw_get_episodes_returns_empty_on_http_error(monkeypatch):
+    import aiohttp
+
+    class FakeResponse:
+        status = 503
+        content_type = "application/json"
+
+        async def json(self):
+            return {}
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+    class FakeSession:
+        def get(self, *args, **kwargs):
+            return FakeResponse()
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
     scraper = DarkiworldScraper()
-    episodes = scraper._parse_seasons(_DW_SEASONS_JSON, providers=[])
-    ep2_providers = [pl.provider for pl in episodes[1].provider_links]
-    assert "Turbobit" in ep2_providers
-    assert "Rapidgator" in ep2_providers
+    DarkiworldScraper._cookies = {"laravel_session": "fake"}
+    monkeypatch.setattr(aiohttp, "ClientSession", lambda **kwargs: FakeSession())
+
+    episodes = await scraper.get_episodes("https://dd.darkiworld16.com/titles/999/show")
+    assert episodes == []
+
+    DarkiworldScraper._cookies = None
 
 
-def test_dw_parse_seasons_provider_filter():
+@pytest.mark.asyncio
+async def test_dw_get_episodes_returns_empty_for_bad_url():
     scraper = DarkiworldScraper()
-    episodes = scraper._parse_seasons(_DW_SEASONS_JSON, providers=["Rapidgator"])
-    for ep in episodes:
-        for pl in ep.provider_links:
-            assert pl.provider == "Rapidgator"
-
-
-def test_dw_parse_seasons_empty():
-    scraper = DarkiworldScraper()
-    episodes = scraper._parse_seasons({"seasons": []}, providers=[])
+    episodes = await scraper.get_episodes("https://dd.darkiworld16.com/not-a-title")
     assert episodes == []
 
 
