@@ -31,6 +31,7 @@ export class SearchComponent {
   protected get category() { return this.state.category; }
   protected get year() { return this.state.year; }
   protected get sort() { return this.state.sort; }
+  protected get source() { return this.state.source; }
   protected get searchParams() { return this.state.searchParams; }
 
   protected readonly currentPage = signal(1);
@@ -43,7 +44,7 @@ export class SearchComponent {
       return { ...sp, page: this.currentPage() };
     },
     stream: ({ params }) =>
-      this.api.search(params.q, params.category, params.year, 20, params.sort, params.page),
+      this.api.search(params.q, params.category, params.year, 20, params.sort, params.page, params.source),
   });
 
   protected results = computed(() => this.accumulatedResults());
@@ -59,6 +60,10 @@ export class SearchComponent {
   });
 
   protected readonly categories = CATEGORIES;
+  protected readonly sources = [
+    { value: 'wawacity', label: 'WAWACITY' },
+    { value: 'darkiworld', label: 'DARKIWORLD' },
+  ];
 
   protected readonly sortOptions: Record<string, { label: string; value: string }[]> = {
     films: [
@@ -119,7 +124,7 @@ export class SearchComponent {
 
   protected readonly episodesResource = rxResource({
     params: () => this.episodePanelOpen() ? this.selectedResult() : null,
-    stream: ({ params }) => params ? this.api.getEpisodes(params.url) : EMPTY,
+    stream: ({ params }) => params ? this.api.getEpisodes(params.url, params.source) : EMPTY,
   });
 
   protected episodes = computed(() => this.episodesResource.value() ?? []);
@@ -140,6 +145,7 @@ export class SearchComponent {
       category: this.category(),
       year: this.year() || undefined,
       sort: this.sort() || undefined,
+      source: this.source(),
     });
   }
 
