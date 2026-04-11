@@ -1,12 +1,10 @@
 <!-- Header -->
-<header class="sticky top-0 z-10 px-7 py-4 flex items-center gap-4"
-        style="background:#000;border-bottom:1px solid #1a1f10">
+<header class="sticky top-0 z-10 px-7 py-4 flex items-center gap-4 bg-black border-b border-[#1a1f10]">
   <div>
-    <p class="text-sm font-black tracking-widest uppercase" style="color:#e8ecd8">Favorites</p>
-    <p class="text-[10px] tracking-wider mt-0.5" style="color:#3a4022">YOUR WATCHLIST</p>
+    <p class="text-sm font-black tracking-widest uppercase text-[#e8ecd8]">Favorites</p>
+    <p class="text-[10px] tracking-wider mt-0.5 text-[#3a4022]">YOUR WATCHLIST</p>
   </div>
-  <span class="ml-auto text-[10px] px-2 py-0.5 rounded font-black"
-        style="background:rgba(232,57,90,.15);color:#e8395a;border:1px solid rgba(232,57,90,.3)">
+  <span class="ml-auto text-[10px] px-2 py-0.5 rounded font-black bg-[#e8395a]/15 text-[#e8395a] border border-[#e8395a]/30">
     {{ favoriteService.favorites().length }}
   </span>
 </header>
@@ -16,31 +14,24 @@
   <!-- Filters -->
   <div class="flex items-center gap-3 mb-5 flex-wrap">
 
-    <!-- Category filter -->
-    <div class="flex rounded overflow-hidden text-[11px]"
-         style="border:1px solid #1a1f10">
+    <div class="flex rounded overflow-hidden text-[11px] border border-[#1a1f10]">
       @for (cat of categories; track cat) {
         <button class="px-3 py-2 transition font-black capitalize"
-                [style.background]="filterCategory() === cat ? 'var(--lime)' : 'transparent'"
-                [style.color]="filterCategory() === cat ? '#000' : '#6b7a4a'"
+                [ngClass]="filterCategory() === cat ? 'bg-lime text-black' : 'bg-transparent text-[#6b7a4a]'"
                 (click)="filterCategory.set(cat)">
           {{ cat.toUpperCase() }}
         </button>
       }
     </div>
 
-    <!-- Sort -->
     <div class="flex items-center gap-2 ml-auto">
-      <span class="text-[9px] tracking-widest" style="color:#3a4022">SORT</span>
-      <div class="flex rounded overflow-hidden text-[11px]"
-           style="border:1px solid #1a1f10">
+      <span class="text-[9px] tracking-widest text-[#3a4022]">SORT</span>
+      <div class="flex rounded overflow-hidden text-[11px] border border-[#1a1f10]">
         <button class="px-3 py-2 transition font-black"
-                [style.background]="sortBy() === 'added_at' ? 'var(--dark)' : 'transparent'"
-                [style.color]="sortBy() === 'added_at' ? 'var(--lime)' : '#6b7a4a'"
+                [ngClass]="sortBy() === 'added_at' ? 'bg-dark text-lime' : 'bg-transparent text-[#6b7a4a]'"
                 (click)="sortBy.set('added_at')">DATE</button>
         <button class="px-3 py-2 transition font-black"
-                [style.background]="sortBy() === 'title' ? 'var(--dark)' : 'transparent'"
-                [style.color]="sortBy() === 'title' ? 'var(--lime)' : '#6b7a4a'"
+                [ngClass]="sortBy() === 'title' ? 'bg-dark text-lime' : 'bg-transparent text-[#6b7a4a]'"
                 (click)="sortBy.set('title')">A–Z</button>
       </div>
     </div>
@@ -49,58 +40,52 @@
   <!-- Empty state -->
   @if (favoriteService.favorites().length === 0) {
     <div class="flex flex-col items-center justify-center py-24 gap-4">
-      <svg class="w-10 h-10" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"
-           style="color:#2d3520">
+      <svg class="w-10 h-10 text-[#2d3520]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round"
               d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>
       </svg>
-      <p class="text-[11px] tracking-widest" style="color:#3a4022">NO FAVORITES YET</p>
-      <p class="text-[10px]" style="color:#2d3520">Add a ❤️ from the search results</p>
+      <p class="text-[11px] tracking-widest text-[#3a4022]">NO FAVORITES YET</p>
+      <p class="text-[10px] text-[#2d3520]">Add a ❤️ from the search results</p>
     </div>
   } @else if (filtered().length === 0) {
     <div class="flex flex-col items-center justify-center py-24">
-      <p class="text-[11px] tracking-widest" style="color:#3a4022">NO RESULTS FOR THIS FILTER</p>
+      <p class="text-[11px] tracking-widest text-[#3a4022]">NO RESULTS FOR THIS FILTER</p>
     </div>
   } @else {
 
     <!-- Grid -->
     <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
       @for (fav of filtered(); track fav.id) {
-        <div class="fav-card rounded overflow-hidden cursor-pointer"
-             style="background:#0c0c0c;border:1px solid #1a1f10"
+        <div class="fav-card rounded overflow-hidden cursor-pointer bg-[#0c0c0c] border border-[#1a1f10]"
              (click)="openFavorite(fav)">
-
           <div class="relative">
             @if (fav.poster_url) {
               <img [src]="fav.poster_url" [alt]="fav.title"
                    class="w-full aspect-[2/3] object-cover" loading="lazy" />
             } @else {
-              <div class="w-full aspect-[2/3] flex items-center justify-center text-[10px] font-black"
-                   style="background:#111;color:var(--mid)">NO IMG</div>
+              <div class="w-full aspect-[2/3] flex items-center justify-center text-[10px] font-black bg-[#111] text-mid">
+                NO IMG
+              </div>
             }
-            <div class="card-cta absolute inset-0 flex items-end p-2"
-                 style="background:linear-gradient(to top,rgba(0,0,0,.95) 0%,rgba(0,0,0,.5) 60%,transparent 100%)">
-              <span class="text-[10px] font-black" style="color:var(--lime)">
+            <div class="card-cta absolute inset-0 flex items-end p-2
+                        bg-[linear-gradient(to_top,rgba(0,0,0,.95)_0%,rgba(0,0,0,.5)_60%,transparent_100%)]">
+              <span class="text-[10px] font-black text-lime">
                 {{ fav.category === 'series' ? '[ ÉPISODES ]' : '[ DOWNLOAD ]' }}
               </span>
             </div>
             @if (fav.quality) {
-              <span class="absolute top-1.5 right-1.5 text-[9px] font-black px-1.5 py-0.5 rounded"
-                    [style.color]="qualityColor(fav.quality)"
-                    style="background:#000;border:1px solid #2d3520">{{ fav.quality }}</span>
+              <span class="absolute top-1.5 right-1.5 text-[9px] font-black px-1.5 py-0.5 rounded bg-black border border-[#2d3520]"
+                    [style.color]="qualityColor(fav.quality)">{{ fav.quality }}</span>
             }
-            <!-- Heart badge -->
-            <span class="absolute bottom-1.5 right-1.5 w-6 h-6 flex items-center justify-center rounded"
-                  style="background:rgba(0,0,0,.7)">
-              <svg class="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 24 24" style="color:#e8395a">
+            <span class="absolute bottom-1.5 right-1.5 w-6 h-6 flex items-center justify-center rounded bg-black/70">
+              <svg class="w-3.5 h-3.5 text-[#e8395a]" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
               </svg>
             </span>
           </div>
-
           <div class="p-2">
-            <p class="text-[11px] font-bold leading-tight line-clamp-2" style="color:#c8d890">{{ fav.title }}</p>
-            <p class="text-[9px] mt-0.5" style="color:#4a5a2a">
+            <p class="text-[11px] font-bold leading-tight line-clamp-2 text-[#c8d890]">{{ fav.title }}</p>
+            <p class="text-[9px] mt-0.5 text-[#4a5a2a]">
               {{ fav.language ?? '' }}{{ fav.language && fav.year ? ' · ' : '' }}{{ fav.year ?? '' }}
             </p>
           </div>
@@ -111,9 +96,135 @@
 
 </main>
 
+<!-- Episodes panel -->
+@if (episodePanelOpen() && selectedFav()) {
+  <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/[85%]"
+       (click)="closeEpisodePanel()">
+    <div class="w-full max-w-md rounded-lg overflow-hidden flex flex-col max-h-[85vh] bg-[#080808] border border-[#1a1f10]"
+         (click)="$event.stopPropagation()">
+
+      <div class="h-[2px] bg-[linear-gradient(90deg,#3E432E,#616F39,#A7D129)]"></div>
+
+      <!-- Header -->
+      <div class="px-5 pt-4 pb-3 flex items-start gap-3 shrink-0 border-b border-[#1a1f10]">
+        @if (selectedFav()!.poster_url) {
+          <img [src]="selectedFav()!.poster_url" [alt]="selectedFav()!.title"
+               class="w-12 rounded shrink-0 border border-[#2d3520]" />
+        }
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-black leading-tight truncate text-[#e8ecd8]">{{ selectedFav()!.title }}</p>
+          <p class="text-[9px] tracking-widest mt-1 text-[#4a5a2a]">// SÉLECTIONNER LES ÉPISODES</p>
+        </div>
+        <button (click)="closeEpisodePanel()" class="text-xl leading-none text-[#3a4022] hover:text-[#8a9a55] transition-colors">&times;</button>
+      </div>
+
+      <!-- Destination -->
+      <div class="px-5 py-3 shrink-0 border-b border-[#1a1f10]">
+        <div class="flex gap-1.5">
+          <button class="flex-1 py-1.5 rounded text-[11px] font-black flex items-center justify-center gap-1 transition"
+                  [ngClass]="selectedDestination() === 'server' ? 'bg-dark text-lime border border-mid' : 'bg-transparent text-[#6b7a4a] border border-[#1a1f10]'"
+                  (click)="state.setDestination('server')">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M5 19a2 2 0 01-2-2V7a2 2 0 012-2h4l2 2h4a2 2 0 012 2v1M5 19h14a2 2 0 002-2v-5a2 2 0 00-2-2H9a2 2 0 00-2 2v5a2 2 0 01-2 2z"/>
+            </svg>
+            Server
+          </button>
+          <button class="flex-1 py-1.5 rounded text-[11px] font-black flex items-center justify-center gap-1 transition"
+                  [ngClass]="selectedDestination() === 'client' ? 'bg-dark text-lime border border-mid' : 'bg-transparent text-[#6b7a4a] border border-[#1a1f10]'"
+                  (click)="state.setDestination('client')">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.1-1.1m.758-4.9a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/>
+            </svg>
+            Direct
+          </button>
+        </div>
+      </div>
+
+      <!-- Episode list -->
+      <div class="overflow-y-auto flex-1">
+        @if (episodesLoading()) {
+          <div class="px-5 py-8 text-center">
+            <p class="text-[10px] tracking-widest text-[#3a4022]">CHARGEMENT DES ÉPISODES…</p>
+          </div>
+        } @else if (episodes().length === 0) {
+          <div class="px-5 py-8 text-center">
+            <p class="text-[10px] tracking-widest text-[#3a4022]">AUCUN ÉPISODE TROUVÉ</p>
+          </div>
+        } @else {
+          <div class="divide-y divide-[#1a1f10]">
+            @for (ep of episodes(); track ep.number) {
+              <div class="ep-row px-5 py-3 flex items-center gap-3">
+                <span class="text-[9px] font-mono w-6 shrink-0 text-right text-[#2d3520]">
+                  {{ ep.number.toString().padStart(2, '0') }}
+                </span>
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-bold flex items-center gap-1.5 text-[#c8d890]">
+                    {{ ep.title }}
+                    @if (state.isEpisodeDownloaded(epFullTitle(ep))) {
+                      <span class="text-[8px] font-black px-1 py-0.5 rounded shrink-0 bg-lime/[12%] text-lime border border-lime/25">✓</span>
+                    } @else if (state.activeTitles().has(epFullTitle(ep).toLowerCase())) {
+                      <span class="text-[8px] font-black px-1 py-0.5 rounded shrink-0 bg-[#3a4022]/60 text-[#8a9a55] border border-[#3a4022]">↓ EN COURS</span>
+                    } @else if (lastDownloadedEp() >= 0 && ep.number > lastDownloadedEp()) {
+                      <span class="text-[8px] font-black px-1 py-0.5 rounded shrink-0 bg-[#1a3a1a] text-[#6ddf6d] border border-[#2a5a2a]">NOUVEAU</span>
+                    }
+                  </p>
+                  <div class="flex gap-1 mt-0.5 flex-wrap">
+                    @for (link of ep.links; track link.provider) {
+                      <span class="text-[8px] px-1 py-0.5 rounded font-mono bg-dark/30 text-[#6b7a4a] border border-[#1a1f10]">
+                        {{ link.provider }}
+                      </span>
+                    }
+                  </div>
+                </div>
+                @if (state.isEpisodeDownloaded(epFullTitle(ep))) {
+                  <div class="shrink-0 w-7 h-7 rounded flex items-center justify-center bg-lime/[12%] border border-lime/25 text-lime">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                  </div>
+                } @else if (state.activeTitles().has(epFullTitle(ep).toLowerCase())) {
+                  <div class="shrink-0 w-7 h-7 rounded flex items-center justify-center bg-[#3a4022]/60 border border-[#3a4022] text-[#8a9a55]">
+                    <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                    </svg>
+                  </div>
+                } @else {
+                  <button (click)="downloadEpisode(ep)" [disabled]="launching()"
+                          class="shrink-0 w-7 h-7 rounded flex items-center justify-center transition
+                                 bg-lime/10 hover:bg-lime/20 border border-lime/20 text-lime">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Footer -->
+      @if (episodes().length > 0) {
+        <div class="px-5 py-3 shrink-0 border-t border-[#1a1f10]">
+          <button (click)="downloadAll()" [disabled]="launchingAll() || launching()"
+                  class="w-full py-2 rounded text-xs font-black transition bg-lime text-black">
+            {{ launchingAll() ? '…' : 'TOUT TÉLÉCHARGER (' + episodes().length + ' épisodes) →' }}
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+}
+
 <style>
   .fav-card { transition: transform .18s, border-color .18s; }
   .fav-card:hover { transform: translateY(-4px); border-color: #e8395a !important; }
   .fav-card:hover .card-cta { opacity: 1; }
   .card-cta { opacity: 0; transition: opacity .18s; }
+  .ep-row { transition: background .15s; }
+  .ep-row:hover { background: rgba(167,209,41,.03); }
 </style>
