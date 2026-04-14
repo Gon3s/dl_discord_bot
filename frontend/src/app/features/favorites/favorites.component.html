@@ -77,11 +77,13 @@
               <span class="absolute top-1.5 right-1.5 text-[9px] font-black px-1.5 py-0.5 rounded bg-black border border-[#2d3520]"
                     [style.color]="qualityColor(fav.quality)">{{ fav.quality }}</span>
             }
-            <span class="absolute bottom-1.5 right-1.5 w-6 h-6 flex items-center justify-center rounded bg-black/70">
+            <button (click)="favoriteService.toggle(fav); $event.stopPropagation()"
+                    class="absolute bottom-1.5 right-1.5 w-6 h-6 flex items-center justify-center rounded bg-black/70 hover:bg-[#e8395a]/20 transition-colors"
+                    title="Retirer des favoris">
               <svg class="w-3.5 h-3.5 text-[#e8395a]" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
               </svg>
-            </span>
+            </button>
           </div>
           <div class="p-2">
             <p class="text-[11px] font-bold leading-tight line-clamp-2 text-[#c8d890]">{{ fav.title }}</p>
@@ -179,11 +181,15 @@
                   </div>
                 </div>
                 @if (state.isEpisodeDownloaded(epFullTitle(ep))) {
-                  <div class="shrink-0 w-7 h-7 rounded flex items-center justify-center bg-lime/[12%] border border-lime/25 text-lime">
+                  <button (click)="downloadEpisode(ep)" [disabled]="launching()"
+                          title="Retélécharger"
+                          class="shrink-0 w-7 h-7 rounded flex items-center justify-center transition
+                                 bg-lime/[12%] hover:bg-[#e8395a]/20 border border-lime/25 hover:border-[#e8395a]/40 text-lime hover:text-[#e8395a]">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
                     </svg>
-                  </div>
+                  </button>
                 } @else if (state.activeTitles().has(epFullTitle(ep).toLowerCase())) {
                   <div class="shrink-0 w-7 h-7 rounded flex items-center justify-center bg-[#3a4022]/60 border border-[#3a4022] text-[#8a9a55]">
                     <svg class="w-3.5 h-3.5 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
