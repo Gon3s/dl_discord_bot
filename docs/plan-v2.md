@@ -36,7 +36,8 @@ dl_discord_bot/
 │   │   ├── scrapers/
 │   │   │   ├── base.py          # Abstract BaseScraper
 │   │   │   ├── wawacity.py      # Migration de parser.py
-│   │   │   └── darkiworld.py    # Implémentation avec session authentifiée
+│   │   │   ├── darkiworld.py    # Implémentation avec session authentifiée
+│   │   │   └── x1337.py         # Recherche 1337x + extraction magnet
 │   │   ├── services/
 │   │   │   ├── download_service.py
 │   │   │   └── alldebrid.py     # Migration async de alldebrid.py
@@ -78,6 +79,7 @@ dl_discord_bot/
 
 ```
 GET  /api/v1/search?q=...&source=wawacity&category=films&year=2024&limit=10
+GET  /api/v1/search?q=...&source=1337x&category=films&limit=10
 POST /api/v1/downloads        body: { source_url, media_type, destination: "server"|"client" }
 GET  /api/v1/downloads        → liste avec statut/progression
 GET  /api/v1/downloads/{id}
@@ -134,7 +136,16 @@ class BaseScraper(ABC):
 
 - `wawacity.py` — migration de `parser.py` (Selenium + BS4)
 - `darkiworld.py` — implémenté (login Selenium + API JSON)
+- `x1337.py` — implémenté (aiohttp + BS4, magnets filtrés sur seeders > 0)
 - `scrapers/base.py` expose le registre automatique selon `source`
+
+### Flux magnet AllDebrid
+- Un scraper peut retourner `ProviderLinks(provider="magnet", urls=[...])`.
+- `DownloadService` envoie le magnet à AllDebrid (`magnet/upload`), poll
+  `magnet/status`, puis récupère les fichiers via `magnet/files`.
+- Les fichiers sont triés par taille décroissante côté client AllDebrid ; le
+  premier lien est utilisé comme fichier principal.
+- Le flux DDL existant reste inchangé pour Wawacity/DarkiWorld.
 
 ### Suppression du code inutile (refacto)
 - Supprimer `pandas` (remplacé par SQLite)

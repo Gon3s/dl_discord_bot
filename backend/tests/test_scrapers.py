@@ -4,6 +4,7 @@ import app.scrapers  # noqa: F401 — triggers @register decorators
 from app.scrapers.base import Episode, SearchResult, get_scraper
 from app.scrapers.darkiworld import DarkiworldScraper
 from app.scrapers.wawacity import WawacityScraper
+from app.scrapers.x1337 import Scraper1337x
 
 # ---------------------------------------------------------------------------
 # Minimal HTML fixture that matches the wawacity page structure
@@ -40,6 +41,37 @@ _WAWACITY_HTML = """
 </body></html>
 """.encode("utf-8")
 
+_1337X_HTML = b"""
+<html><body>
+<table class="table-list"><tbody>
+<tr>
+  <td class="coll-1 name">
+    <a href="/sub/movies/UHD/1/" class="icon">icon</a>
+    <a href="/torrent/6593767/Avengers-Infinity-War-2018-2160p-WEBRip/">
+      Avengers Infinity War 2018 2160p WEBRip
+    </a>
+  </td>
+  <td class="coll-2 seeds">27</td>
+  <td class="coll-3 leeches">5</td>
+  <td class="coll-date">Jan. 3rd '25</td>
+</tr>
+<tr>
+  <td class="coll-1 name">
+    <a href="/sub/movies/HD/1/" class="icon">icon</a>
+    <a href="/torrent/1/Dead-Torrent-2020-1080p/">Dead Torrent 2020 1080p</a>
+  </td>
+  <td class="coll-2 seeds">0</td>
+</tr>
+</tbody></table>
+</body></html>
+"""
+
+_1337X_DETAIL_HTML = """
+<html><body>
+  <a href="magnet:?xt=urn:btih:ABC123&dn=Avengers">Magnet Download</a>
+</body></html>
+"""
+
 
 # ---------------------------------------------------------------------------
 # Registry
@@ -54,6 +86,11 @@ def test_get_scraper_wawacity():
 def test_get_scraper_darkiworld():
     scraper = get_scraper("darkiworld")
     assert isinstance(scraper, DarkiworldScraper)
+
+
+def test_get_scraper_1337x():
+    scraper = get_scraper("1337x")
+    assert isinstance(scraper, Scraper1337x)
 
 
 def test_get_scraper_unknown_raises():
@@ -193,6 +230,111 @@ async def test_search_returns_empty_on_http_error(monkeypatch):
     results = await scraper.search("inception", "films")
 
     assert results == []
+
+
+# ---------------------------------------------------------------------------
+# Scraper1337x
+# ---------------------------------------------------------------------------
+
+
+def test_1337x_parse_results_extracts_metadata():
+    scraper = Scraper1337x()
+    results = scraper._parse_results(_1337X_HTML, limit=10)
+
+    assert len(results) == 1
+    assert results[0].title == "Avengers Infinity War 2018 2160p WEBRip"
+    assert results[0].source == "1337x"
+    assert results[0].year == 2018
+    assert results[0].quality == "2160p"
+    assert results[0].language is None
+
+
+def test_1337x_parse_results_filters_zero_seeders():
+    scraper = Scraper1337x()
+    results = scraper._parse_results(_1337X_HTML, limit=10)
+
+    assert all("Dead Torrent" not in result.title for result in results)
+
+
+def test_1337x_parse_magnet():
+    scraper = Scraper1337x()
+
+    assert scraper._parse_magnet(_1337X_DETAIL_HTML) == (
+        "magnet:?xt=urn:btih:ABC123&dn=Avengers"
+    )
+
+
+@pytest.mark.asyncio
+async def test_1337x_search_returns_results(monkeypatch):
+    import aiohttp
+
+    class FakeResponse:
+        status = 200
+
+        async def read(self):
+            return _1337X_HTML
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+    class FakeSession:
+        def get(self, *args, **kwargs):
+            return FakeResponse()
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+    monkeypatch.setattr(aiohttp, "ClientSession", lambda **kwargs: FakeSession())
+
+    scraper = Scraper1337x()
+    results = await scraper.search("avengers", "film", limit=10)
+
+    assert len(results) == 1
+    assert results[0].url.endswith(
+        "/torrent/6593767/Avengers-Infinity-War-2018-2160p-WEBRip/"
+    )
+
+
+@pytest.mark.asyncio
+async def test_1337x_get_provider_links_returns_magnet(monkeypatch):
+    import aiohttp
+
+    class FakeResponse:
+        status = 200
+
+        async def read(self):
+            return _1337X_DETAIL_HTML.encode()
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+    class FakeSession:
+        def get(self, *args, **kwargs):
+            return FakeResponse()
+
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, *args):
+            pass
+
+    monkeypatch.setattr(aiohttp, "ClientSession", lambda **kwargs: FakeSession())
+
+    scraper = Scraper1337x()
+    links = await scraper.get_provider_links("https://www.1337xx.to/torrent/1/a/", [])
+
+    assert len(links) == 1
+    assert links[0].provider == "magnet"
+    assert links[0].urls == ["magnet:?xt=urn:btih:ABC123&dn=Avengers"]
 
 
 # ---------------------------------------------------------------------------

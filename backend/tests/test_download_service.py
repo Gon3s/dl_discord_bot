@@ -5,6 +5,7 @@ import pytest
 from app.core.exceptions import DownloadError, DownloadNotFoundError
 from app.models.schemas import DownloadCreate
 from app.scrapers.wawacity import WawacityScraper
+from app.scrapers.x1337 import Scraper1337x
 from app.services.download_service import DownloadService
 
 
@@ -106,6 +107,12 @@ class TestScraperForUrl:
         scraper = service._scraper_for_url("https://www.wawacity.pizza?p=film&id=1")
         assert isinstance(scraper, WawacityScraper)
 
+    def test_returns_1337x_scraper_for_1337x_url(
+        self, service: DownloadService
+    ) -> None:
+        scraper = service._scraper_for_url("https://www.1337xx.to/torrent/1/test/")
+        assert isinstance(scraper, Scraper1337x)
+
     def test_returns_none_for_dl_protect_url(self, service: DownloadService) -> None:
         assert service._scraper_for_url("https://dl-protect.link/abc123") is None
 
@@ -124,6 +131,20 @@ def _mock_scraper(provider_url: str = "https://turbobit.net/abc123"):
         ]
     )
     scraper.resolve_link = AsyncMock(return_value=provider_url)
+    return scraper
+
+
+def _mock_magnet_scraper():
+    """Return a mock scraper that yields one magnet provider link."""
+    from app.scrapers.base import ProviderLinks
+
+    scraper = MagicMock()
+    scraper.get_provider_links = AsyncMock(
+        return_value=[
+            ProviderLinks(provider="magnet", urls=["magnet:?xt=urn:btih:ABC123"])
+        ]
+    )
+    scraper.resolve_link = AsyncMock()
     return scraper
 
 
@@ -198,6 +219,48 @@ class TestRunClientDestination:
         ):
             await service.run(download.id)
             mock_open.assert_not_called()
+
+    async def test_client_destination_supports_magnet_provider(
+        self, service: DownloadService
+    ) -> None:
+        data = DownloadCreate(
+            source_url="https://www.1337xx.to/torrent/1/test/",
+            title="Film",
+            media_type="films",
+            destination="client",
+        )
+        download = await service.create(data)
+        debrid_mock = AsyncMock()
+
+        with (
+            patch.object(
+                service, "_scraper_for_url", return_value=_mock_magnet_scraper()
+            ),
+            patch.object(
+                service._alldebrid,
+                "upload_magnet",
+                new=AsyncMock(return_value=123),
+            ),
+            patch.object(
+                service._alldebrid,
+                "get_magnet_status",
+                new=AsyncMock(return_value={"magnets": [{"status": "Ready"}]}),
+            ),
+            patch.object(
+                service._alldebrid,
+                "get_magnet_files",
+                new=AsyncMock(return_value=["https://cdn.example.com/movie.mkv"]),
+            ),
+            patch.object(service._alldebrid, "debrid_link", new=debrid_mock),
+            patch("app.services.download_service.events.emit", new=AsyncMock()),
+        ):
+            await service.run(download.id)
+
+        refreshed = await service.get(download.id)
+        assert refreshed is not None
+        assert refreshed.status == "completed"
+        assert refreshed.filename == "movie.mkv"
+        debrid_mock.assert_not_awaited()
 
 
 class TestRunDirectUrl:

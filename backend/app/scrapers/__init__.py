@@ -1,1 +1,1 @@
-from app.scrapers import darkiworld, wawacity  # noqa: F401
+from app.scrapers import darkiworld, wawacity, x1337  # noqa: F401

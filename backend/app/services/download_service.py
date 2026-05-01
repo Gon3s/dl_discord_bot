@@ -20,6 +20,7 @@ from app.services.alldebrid import AllDebridClient
 
 _SCRAPER_DOMAINS: dict[str, str] = {
     "wawacity": "wawacity",
+    "1337": "1337x",
 }
 
 logger = logging.getLogger(__name__)
@@ -29,6 +30,8 @@ _DB_UPDATE_INTERVAL = 2.0  # seconds between DB writes during streaming
 _WS_EMIT_INTERVAL = 0.5  # seconds between WebSocket events during streaming
 # No total timeout (large files), but abort if no data for 60s (stalled connection)
 _HTTP_TIMEOUT = aiohttp.ClientTimeout(total=None, sock_connect=30, sock_read=60)
+_MAGNET_READY_STATUSES = {"ready", "downloaded", "completed", "complete"}
+_MAGNET_ERROR_STATUSES = {"error", "dead", "failed"}
 
 
 async def _emit(download_id: str, event: dict) -> None:
@@ -166,8 +169,11 @@ class DownloadService:
                     raise DownloadError("No usable provider link found on the page")
             else:
                 # source_url is already a direct provider/dl-protect link.
-                scraper = get_scraper("wawacity")
-                candidates = [("direct", download.source_url)]
+                scraper = None
+                provider = (
+                    "magnet" if download.source_url.startswith("magnet:") else "direct"
+                )
+                candidates = [(provider, download.source_url)]
                 logger.info(
                     "Download %s — direct provider URL: %s",
                     download_id,
@@ -193,8 +199,6 @@ class DownloadService:
                         provider_name,
                         dl_protect_url,
                     )
-                    provider_url = await scraper.resolve_link(dl_protect_url)
-                    logger.info("Download %s — resolved: %s", download_id, provider_url)
 
                     await self._set_status(download, "debriding")
                     await _emit(
@@ -205,14 +209,24 @@ class DownloadService:
                             progress_pct=0.0,
                         ).model_dump(),
                     )
-                    debrid_data = await self._alldebrid.debrid_link(provider_url)
+                    is_magnet = provider_name == "magnet" or dl_protect_url.startswith(
+                        "magnet:"
+                    )
+                    if is_magnet:
+                        debrid_data = await self._debrid_magnet(dl_protect_url)
+                    else:
+                        link_scraper = scraper or get_scraper("wawacity")
+                        provider_url = await link_scraper.resolve_link(dl_protect_url)
+                        logger.info(
+                            "Download %s — resolved: %s", download_id, provider_url
+                        )
+                        debrid_data = await self._alldebrid.debrid_link(provider_url)
                     break
                 except AllDebridAPIError as exc:
-                    # provider_url is defined after resolve_link succeeds.
                     logger.warning(
                         "Download %s — AllDebrid rejected %s (%s): %s",
                         download_id,
-                        provider_url,
+                        dl_protect_url,
                         provider_name,
                         exc,
                     )
@@ -277,6 +291,35 @@ class DownloadService:
             )
             logger.exception("Download %s failed", download_id)
             raise
+
+    async def _debrid_magnet(self, magnet_url: str) -> dict:
+        magnet_id = await self._alldebrid.upload_magnet(magnet_url)
+        deadline = time.monotonic() + settings.magnet_poll_timeout_s
+
+        while True:
+            status_payload = await self._alldebrid.get_magnet_status(magnet_id)
+            status = self._magnet_status(status_payload)
+            if status in _MAGNET_READY_STATUSES:
+                break
+            if status in _MAGNET_ERROR_STATUSES:
+                raise DownloadError(f"AllDebrid magnet failed with status: {status}")
+            if time.monotonic() >= deadline:
+                raise DownloadError("AllDebrid magnet timed out")
+            await asyncio.sleep(settings.magnet_poll_interval_s)
+
+        links = await self._alldebrid.get_magnet_files(magnet_id)
+        if not links:
+            raise DownloadError("AllDebrid returned no magnet files")
+        return {"link": links[0], "links": links}
+
+    def _magnet_status(self, payload: dict) -> str:
+        item = payload
+        magnets = payload.get("magnets") or payload.get("magnet")
+        if isinstance(magnets, list) and magnets:
+            item = magnets[0]
+        elif isinstance(magnets, dict):
+            item = magnets
+        return str(item.get("status", "")).lower()
 
     def _resolve_dest(self, media_type: str, filename: str) -> Path:
         """Return the full destination path based on media type and filename."""

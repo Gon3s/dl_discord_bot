@@ -16,16 +16,17 @@ graph TB
         WS[WebSocket<br/>/ws/*]
         SVC[Services Layer<br/>search · download · alldebrid]
         QUEUE[Download Queue<br/>asyncio workers]
-        SCRAPERS[Scrapers<br/>wawacity · darkiworld]
+        SCRAPERS[Scrapers<br/>wawacity · darkiworld · 1337x]
         DB[(SQLite<br/>downloads · history · settings)]
     end
 
     subgraph External["🌍 Services externes"]
         WAW[Wawacity<br/>Selenium + BS4]
         DWX[DarkiWorld<br/>Selenium login + API JSON]
+        X1337[1337x<br/>HTML + magnets]
         DLP[dl-protect.link<br/>Turnstile bypass]
-        AD[AllDebrid API<br/>link debridding]
-        CDN[Fichiers source<br/>1fichier · Turbobit · Rapidgator]
+        AD[AllDebrid API<br/>link + magnet debridding]
+        CDN[Fichiers source<br/>1fichier · Turbobit · Rapidgator · torrents]
     end
 
     subgraph Storage["💾 Stockage"]
@@ -47,6 +48,7 @@ graph TB
 
     SCRAPERS -->|Selenium + BS4| WAW
     SCRAPERS -->|aiohttp + session cookies| DWX
+    SCRAPERS -->|aiohttp + BS4| X1337
     SCRAPERS -->|Selenium UC| DLP
     SVC -->|aiohttp| AD
     QUEUE -->|aiohttp streaming| CDN
@@ -88,6 +90,8 @@ sequenceDiagram
 
     SVC->>AD: debrid_link(protected_url)
     AD-->>SVC: direct_url + filename
+
+    Note over SVC,AD: Pour 1337x, le provider est "magnet" : upload_magnet → status → files.
 
     loop Téléchargement par chunks
         SVC->>FS: écriture chunk
@@ -160,6 +164,7 @@ graph LR
         BS[base.py<br/>BaseScraper ABC<br/>@register decorator]
         WW[wawacity.py<br/>WawacityScraper]
         DW[darkiworld.py<br/>DarkiworldScraper]
+        X3[x1337.py<br/>Scraper1337x]
     end
 
     subgraph models["models/"]
@@ -182,9 +187,11 @@ graph LR
 
     BS --> WW
     BS --> DW
+    BS --> X3
 
     WW -->|Selenium + BS4| WAW[(Wawacity)]
     DW -->|Selenium login + aiohttp| DWAPI[(DarkiWorld)]
+    X3 -->|aiohttp + BS4| X1337API[(1337x)]
     AL -->|aiohttp| AD[(AllDebrid API)]
 
     style BS fill:#2d6a4f,color:#fff
@@ -204,7 +211,7 @@ erDiagram
         DATETIME updated_at
         TEXT title
         TEXT source_url
-        TEXT source "wawacity | darkiworld"
+        TEXT source "wawacity | darkiworld | 1337x"
         TEXT media_type "movie | serie"
         TEXT destination "server | client"
         TEXT status "queued | scraping | debriding | downloading | completed | error | cancelled | ready_for_client"
@@ -282,6 +289,13 @@ classDiagram
         +get_episodes() list~Episode~
     }
 
+    class Scraper1337x {
+        +str source_name = "1337x"
+        +search() list~SearchResult~
+        +get_provider_links() list~ProviderLinks~
+        +get_episodes() list~Episode~
+    }
+
     class ScraperRegistry {
         +dict _registry
         +register(cls) decorator
@@ -290,6 +304,7 @@ classDiagram
 
     BaseScraper <|-- WawacityScraper
     BaseScraper <|-- DarkiworldScraper
+    BaseScraper <|-- Scraper1337x
     BaseScraper ..> SearchResult
     BaseScraper ..> ProviderLinks
     ScraperRegistry --> BaseScraper

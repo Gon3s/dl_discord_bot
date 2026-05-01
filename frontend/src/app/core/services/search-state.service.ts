@@ -5,6 +5,13 @@ import { ApiService } from './api.service';
 import type { SearchResult } from '../models/search.type';
 
 const ACTIVE_STATUSES = new Set(['queued', 'scraping', 'resolving', 'debriding', 'downloading']);
+const DEFAULT_SOURCE = 'wawacity';
+const ENABLED_SOURCES = new Set([DEFAULT_SOURCE]);
+
+function initialSource(): string {
+  const stored = localStorage.getItem('dl_source');
+  return stored && ENABLED_SOURCES.has(stored) ? stored : DEFAULT_SOURCE;
+}
 
 export type SearchParams = {
   q: string;
@@ -21,7 +28,7 @@ export class SearchStateService {
   readonly query = signal('');
   readonly category = signal('films');
   readonly year = signal('');
-  readonly source = signal<string>(localStorage.getItem('dl_source') ?? 'wawacity');
+  readonly source = signal<string>(initialSource());
   readonly sort = linkedSignal<string>(() => { this.category(); this.source(); return ''; });
   readonly searchParams = signal<SearchParams | undefined>(undefined);
 
@@ -99,7 +106,8 @@ export class SearchStateService {
   }
 
   setSource(value: string): void {
-    this.source.set(value);
-    localStorage.setItem('dl_source', value);
+    const source = ENABLED_SOURCES.has(value) ? value : DEFAULT_SOURCE;
+    this.source.set(source);
+    localStorage.setItem('dl_source', source);
   }
 }

@@ -3,7 +3,7 @@
 ## Présentation du projet
 
 Application trois tiers pour rechercher et télécharger des films/séries/mangas
-depuis Wawacity et DarkiWorld via AllDebrid.
+depuis Wawacity, DarkiWorld et 1337x via AllDebrid.
 
 - **`backend/`** — FastAPI (Python 3.12) : toute la logique scraping, debrid, téléchargement, BDD
 - **`frontend/`** — Angular 21 + Tailwind CSS v3 : interface web principale
@@ -100,6 +100,7 @@ Copier `.env.example` → `.env` à la racine. Variables clés :
 | `ALLDEBRID_API_KEY` | Clé API AllDebrid |
 | `DOWNLOAD_PATH` | Chemin de stockage des fichiers (ex: `/data/media`) |
 | `WAWACITY_URL` | URL de base Wawacity (ex: `https://www.wawacity.city/`) |
+| `1337X_URL` | URL de base 1337x (ex: `https://1337x.to`) |
 | `DARKIWORLD_URL` | URL de base DarkiWorld (ex: `https://dd.darkiworld16.com`) |
 | `DARKIWORLD_EMAIL` | Email du compte DarkiWorld |
 | `DARKIWORLD_PASSWORD` | Mot de passe du compte DarkiWorld |
@@ -154,6 +155,7 @@ Aucune autre modification n'est nécessaire. Le registre est automatique.
 **Sources actuelles :**
 - `wawacity` — implémenté (`backend/app/scrapers/wawacity.py`)
 - `darkiworld` — implémenté (`backend/app/scrapers/darkiworld.py`) ; nécessite un compte DarkiWorld
+- `1337x` — implémenté (`backend/app/scrapers/x1337.py`) ; magnets HTTP purs
 
 ---
 

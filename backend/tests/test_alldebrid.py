@@ -18,6 +18,7 @@ def _mock_response(status: int, json_data: dict) -> MagicMock:
 def _mock_session(response: MagicMock) -> MagicMock:
     session = MagicMock()
     session.get = MagicMock(return_value=response)
+    session.post = MagicMock(return_value=response)
     session.__aenter__ = AsyncMock(return_value=session)
     session.__aexit__ = AsyncMock(return_value=False)
     return session
@@ -114,3 +115,59 @@ class TestDebridLink:
                 await client.debrid_link("https://1fichier.com/?abc123")
 
         assert exc_info.value.code == "LINK_LOCKED"
+
+
+class TestMagnets:
+    async def test_upload_magnet_returns_id(self, client: AllDebridClient) -> None:
+        payload = {
+            "status": "success",
+            "data": {"magnets": [{"id": 123, "hash": "ABC"}]},
+        }
+        session = _mock_session(_mock_response(200, payload))
+
+        with patch(
+            "app.services.alldebrid.aiohttp.ClientSession", return_value=session
+        ):
+            result = await client.upload_magnet("magnet:?xt=urn:btih:ABC")
+
+        assert result == 123
+
+    async def test_get_magnet_status_returns_payload(
+        self, client: AllDebridClient
+    ) -> None:
+        payload = {
+            "status": "success",
+            "data": {"magnets": [{"id": 123, "status": "Ready"}]},
+        }
+        session = _mock_session(_mock_response(200, payload))
+
+        with patch(
+            "app.services.alldebrid.aiohttp.ClientSession", return_value=session
+        ):
+            result = await client.get_magnet_status(123)
+
+        assert result["magnets"][0]["status"] == "Ready"
+
+    async def test_get_magnet_files_returns_largest_first(
+        self, client: AllDebridClient
+    ) -> None:
+        payload = {
+            "status": "success",
+            "data": {
+                "files": [
+                    {"link": "https://cdn.example.com/sample.mkv", "size": 10},
+                    {"link": "https://cdn.example.com/movie.mkv", "size": 1000},
+                ]
+            },
+        }
+        session = _mock_session(_mock_response(200, payload))
+
+        with patch(
+            "app.services.alldebrid.aiohttp.ClientSession", return_value=session
+        ):
+            result = await client.get_magnet_files(123)
+
+        assert result == [
+            "https://cdn.example.com/movie.mkv",
+            "https://cdn.example.com/sample.mkv",
+        ]

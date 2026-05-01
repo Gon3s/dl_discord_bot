@@ -62,7 +62,6 @@ export class SearchComponent {
   protected readonly categories = CATEGORIES;
   protected readonly sources = [
     { value: 'wawacity', label: 'WAWACITY' },
-    { value: 'darkiworld', label: 'DARKIWORLD' },
   ];
 
   protected readonly sortOptions: Record<string, { label: string; value: string }[]> = {

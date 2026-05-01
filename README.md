@@ -3,11 +3,11 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi)
 ![Angular](https://img.shields.io/badge/Angular-21-DD0031?logo=angular)
-![Tests](https://img.shields.io/badge/tests-119%20passed-brightgreen?logo=pytest)
+![Tests](https://img.shields.io/badge/tests-130%20passed-brightgreen?logo=pytest)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 Application trois tiers pour rechercher et télécharger des films, séries et mangas
-depuis **Wawacity** et **DarkiWorld** via **AllDebrid**.
+depuis **Wawacity**, **DarkiWorld** et **1337x** via **AllDebrid**.
 
 ![Demo](demo/demo.gif)
 
@@ -44,6 +44,7 @@ dl_discord_bot/
 ```bash
 cp .env.example .env
 # Remplir DISCORD_TOKEN, ALLDEBRID_API_KEY, DOWNLOAD_PATH, WAWACITY_URL
+# Ajuster 1337X_URL si le miroir configuré ne répond plus
 ```
 
 ### 2. Développement local
@@ -97,6 +98,7 @@ bash deploy/install.sh
 | `ALLDEBRID_API_KEY` | Clé API AllDebrid | `abc123` |
 | `DOWNLOAD_PATH` | Répertoire de stockage | `/data/media` |
 | `WAWACITY_URL` | URL de base Wawacity | `https://www.wawacity.city/` |
+| `1337X_URL` | URL de base 1337x | `https://1337x.to` |
 | `DARKIWORLD_URL` | URL de base DarkiWorld | `https://dd.darkiworld16.com` |
 | `DARKIWORLD_EMAIL` | Email du compte DarkiWorld | `user@example.com` |
 | `DARKIWORLD_PASSWORD` | Mot de passe du compte DarkiWorld | `***` |
@@ -171,7 +173,7 @@ class MonScraper(BaseScraper):
 
 Aucune autre modification nécessaire — le registre est automatique.
 
-Sources actuelles : `wawacity` et `darkiworld`.
+Sources actuelles : `wawacity`, `darkiworld` et `1337x`.
 
 ---
 
