@@ -13,6 +13,40 @@ Docs complètes : `docs/plan-v2.md` et `docs/architecture-v2.md`
 
 ---
 
+## Principes de travail LLM
+
+Ces règles complètent les consignes projet. Elles privilégient la prudence et
+la simplicité ; pour les tâches triviales, utiliser son jugement.
+
+### Réfléchir avant de coder
+- Ne pas supposer silencieusement : expliciter les hypothèses importantes.
+- Si plusieurs interprétations existent, les présenter avant d'implémenter.
+- Signaler les compromis et proposer l'approche la plus simple quand elle suffit.
+- Si un point bloque ou reste ambigu, le nommer clairement et demander une précision.
+
+### Simplicité d'abord
+- Écrire le minimum de code qui résout la demande.
+- Ne pas ajouter de fonctionnalité, d'abstraction ou de configurabilité spéculative.
+- Éviter la gestion d'erreurs pour des scénarios impossibles dans le contexte.
+- Si une solution devient volumineuse alors qu'elle peut rester courte, simplifier.
+
+### Changements chirurgicaux
+- Modifier uniquement les fichiers et lignes nécessaires à la demande.
+- Ne pas refactorer, reformater ou nettoyer du code adjacent sans raison directe.
+- Respecter le style existant, même si une autre approche serait préférée ailleurs.
+- Supprimer seulement les imports, variables ou fonctions rendus inutiles par ses
+  propres changements.
+- Mentionner le code mort ou les problèmes hors périmètre au lieu de les corriger
+  sans demande explicite.
+
+### Exécution orientée objectif
+- Transformer chaque tâche en critères de succès vérifiables.
+- Pour un bug, reproduire ou cibler le comportement attendu avant de corriger.
+- Pour une refactorisation, vérifier que les tests passent avant et après si possible.
+- Pour une tâche multi-étapes, garder un plan court avec la vérification associée.
+
+---
+
 ## Lancer le projet
 
 ### Développement (local)
