@@ -1,7 +1,7 @@
 import pytest
 
 import app.scrapers  # noqa: F401 — triggers @register decorators
-from app.scrapers.base import Episode, ProviderLinks, SearchResult, get_scraper
+from app.scrapers.base import Episode, SearchResult, get_scraper
 from app.scrapers.darkiworld import DarkiworldScraper
 from app.scrapers.wawacity import WawacityScraper
 
@@ -116,7 +116,7 @@ def test_parse_results_respects_limit():
 
 def test_parse_results_empty_html():
     scraper = WawacityScraper()
-    results = scraper._parse_results("<html><body></body></html>".encode(), limit=10)
+    results = scraper._parse_results(b"<html><body></body></html>", limit=10)
 
     assert results == []
 
@@ -525,7 +525,9 @@ _DDLLINKS_HTML = """
     <td class="text-center">Anonyme</td><td class="text-center">1 Go</td><td></td>
   </tr>
   <tr class="title episode-title active">
-    <td colspan="6"><p>Breaking Bad - Saison 1<i> - VOSTFR HD</i> - Épisode 1en téléchargement sur wawa city</p></td>
+    <td colspan="6">
+      <p>Breaking Bad - Saison 1<i> - VOSTFR HD</i> - Épisode 1</p>
+    </td>
   </tr>
   <tr class="link-row">
     <td><a href="https://dl-protect.link/ep1-rapid">Lien 1:Télécharger</a></td>
@@ -536,7 +538,9 @@ _DDLLINKS_HTML = """
     <td class="text-center">Nitroflare</td><td class="text-center">250 Mo</td><td></td>
   </tr>
   <tr class="title episode-title active">
-    <td colspan="6"><p>Breaking Bad - Saison 1<i> - VOSTFR HD</i> - Épisode 2en téléchargement sur wawa city</p></td>
+    <td colspan="6">
+      <p>Breaking Bad - Saison 1<i> - VOSTFR HD</i> - Épisode 2</p>
+    </td>
   </tr>
   <tr class="link-row">
     <td><a href="https://dl-protect.link/ep2-rapid">Lien 1:Télécharger</a></td>
@@ -590,7 +594,7 @@ def test_parse_episodes_filters_providers():
 
 
 def test_parse_episodes_skips_pre_episode_link_row():
-    """The first link-row (before any episode-title) is the season pack — must be skipped."""
+    """The first link-row is a season pack and must be skipped."""
     scraper = WawacityScraper()
     episodes = scraper._parse_episodes(_DDLLINKS_HTML, [])
     all_urls = [pl.urls[0] for ep in episodes for pl in ep.provider_links]

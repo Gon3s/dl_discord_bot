@@ -1,10 +1,8 @@
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
-from app.models.orm import Download, History, Setting
-from app.scrapers.base import Episode, ProviderLinks, SearchResult as ScraperSearchResult
-
+from app.models.orm import Download, History
+from app.scrapers.base import Episode, ProviderLinks
+from app.scrapers.base import SearchResult as ScraperSearchResult
 
 # ---------------------------------------------------------------------------
 # Helpers
@@ -89,7 +87,11 @@ class TestEpisodes:
         fake_ep = Episode(
             title="Épisode 1",
             number=1,
-            provider_links=[ProviderLinks(provider="Rapidgator", urls=["https://dl-protect.link/ep1"])],
+            provider_links=[
+                ProviderLinks(
+                    provider="Rapidgator", urls=["https://dl-protect.link/ep1"]
+                )
+            ],
         )
 
         with patch("app.api.v1.episodes.get_scraper") as mock_get:
@@ -97,7 +99,9 @@ class TestEpisodes:
             mock_scraper.get_episodes = AsyncMock(return_value=[fake_ep])
             mock_get.return_value = mock_scraper
 
-            resp = await client.get("/api/v1/episodes?url=https://wawacity.pizza?p=serie%26id=1")
+            resp = await client.get(
+                "/api/v1/episodes?url=https://wawacity.pizza?p=serie%26id=1"
+            )
 
         assert resp.status_code == 200
         body = resp.json()
@@ -108,7 +112,9 @@ class TestEpisodes:
         assert body[0]["links"][0]["url"] == "https://dl-protect.link/ep1"
 
     async def test_unknown_source_returns_400(self, client) -> None:
-        resp = await client.get("/api/v1/episodes?url=https://example.com&source=unknown")
+        resp = await client.get(
+            "/api/v1/episodes?url=https://example.com&source=unknown"
+        )
         assert resp.status_code == 400
 
     async def test_not_implemented_returns_501(self, client) -> None:
@@ -117,7 +123,9 @@ class TestEpisodes:
             mock_scraper.get_episodes = AsyncMock(side_effect=NotImplementedError)
             mock_get.return_value = mock_scraper
 
-            resp = await client.get("/api/v1/episodes?url=https://darkiworld.com/serie&source=darkiworld")
+            resp = await client.get(
+                "/api/v1/episodes?url=https://darkiworld.com/serie&source=darkiworld"
+            )
 
         assert resp.status_code == 501
 
@@ -131,7 +139,9 @@ class TestEpisodes:
             mock_scraper.get_episodes = AsyncMock(return_value=[])
             mock_get.return_value = mock_scraper
 
-            await client.get("/api/v1/episodes?url=https://wawacity.pizza?p=serie%26id=1&providers=Rapidgator")
+            await client.get(
+                "/api/v1/episodes?url=https://wawacity.pizza?p=serie%26id=1&providers=Rapidgator"
+            )
 
         mock_scraper.get_episodes.assert_awaited_once_with(
             "https://wawacity.pizza?p=serie&id=1", ["Rapidgator"]
@@ -260,7 +270,9 @@ class TestSettings:
 
     async def test_put_settings_updates_existing(self, client) -> None:
         await client.put("/api/v1/settings", json={"settings": {"theme": "dark"}})
-        resp = await client.put("/api/v1/settings", json={"settings": {"theme": "light"}})
+        resp = await client.put(
+            "/api/v1/settings", json={"settings": {"theme": "light"}}
+        )
         assert resp.status_code == 200
         settings = {s["key"]: s["value"] for s in resp.json()}
         assert settings["theme"] == "light"

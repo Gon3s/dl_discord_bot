@@ -59,6 +59,8 @@ async def retry_download(
     service = DownloadService(session)
     download = await service.retry(download_id)
     if download is None:
-        raise HTTPException(status_code=404, detail="Download not found or not in error state")
+        raise HTTPException(
+            status_code=404, detail="Download not found or not in error state"
+        )
     await download_queue.enqueue(download.id)
     return DownloadCreated(download_id=download.id, status=download.status)

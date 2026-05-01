@@ -38,9 +38,7 @@ class AllDebridClient:
         params = {**self._base_params()}
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(
-                    f"{_BASE_URL}/user", params=params
-                ) as response:
+                async with session.get(f"{_BASE_URL}/user", params=params) as response:
                     if response.status != 200:
                         return False
                     data = await response.json()

@@ -7,10 +7,16 @@ from bs4 import BeautifulSoup
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.expected_conditions import presence_of_element_located
 from selenium.webdriver.support.wait import WebDriverWait
-from seleniumbase import Driver, SB
+from seleniumbase import SB, Driver
 
 from app.config import settings
-from app.scrapers.base import BaseScraper, Episode, ProviderLinks, SearchResult, register
+from app.scrapers.base import (
+    BaseScraper,
+    Episode,
+    ProviderLinks,
+    SearchResult,
+    register,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -190,7 +196,9 @@ class WawacityScraper(BaseScraper):
             logger.error("Wawacity episodes request failed: %s", exc)
             return []
 
-        return self._parse_episodes(data.decode("utf-8", errors="replace"), providers or [])
+        return self._parse_episodes(
+            data.decode("utf-8", errors="replace"), providers or []
+        )
 
     def _parse_episodes(self, html: str, providers: list[str]) -> list[Episode]:
         soup = BeautifulSoup(html, "html.parser")
@@ -210,14 +218,16 @@ class WawacityScraper(BaseScraper):
             if "episode-title" in classes:
                 # Save the previous episode group
                 if current_title is not None:
-                    episodes.append(Episode(
-                        title=current_title,
-                        number=current_number,
-                        provider_links=[
-                            ProviderLinks(provider=p, urls=urls)
-                            for p, urls in current_links.items()
-                        ],
-                    ))
+                    episodes.append(
+                        Episode(
+                            title=current_title,
+                            number=current_number,
+                            provider_links=[
+                                ProviderLinks(provider=p, urls=urls)
+                                for p, urls in current_links.items()
+                            ],
+                        )
+                    )
                 # Parse the new episode title
                 td = tr.find("td")
                 text = td.get_text(strip=True) if td else ""
@@ -243,14 +253,16 @@ class WawacityScraper(BaseScraper):
 
         # Save the last episode group
         if current_title is not None:
-            episodes.append(Episode(
-                title=current_title,
-                number=current_number,
-                provider_links=[
-                    ProviderLinks(provider=p, urls=urls)
-                    for p, urls in current_links.items()
-                ],
-            ))
+            episodes.append(
+                Episode(
+                    title=current_title,
+                    number=current_number,
+                    provider_links=[
+                        ProviderLinks(provider=p, urls=urls)
+                        for p, urls in current_links.items()
+                    ],
+                )
+            )
 
         return episodes
 
@@ -327,6 +339,4 @@ class WawacityScraper(BaseScraper):
                 logger.debug("Resolved dl-protect → %s", href)
                 return href
             except Exception as exc:
-                raise RuntimeError(
-                    f"dl_protect resolution failed for {url}"
-                ) from exc
+                raise RuntimeError(f"dl_protect resolution failed for {url}") from exc

@@ -65,9 +65,23 @@ class DownloadService:
 
     async def list_active(self) -> list[Download]:
         result = await self._session.execute(
-            select(Download).where(
-                Download.status.in_(["queued", "scraping", "resolving", "debriding", "downloading", "error", "completed", "ready_for_client"])
-            ).order_by(Download.created_at.desc()).limit(50)
+            select(Download)
+            .where(
+                Download.status.in_(
+                    [
+                        "queued",
+                        "scraping",
+                        "resolving",
+                        "debriding",
+                        "downloading",
+                        "error",
+                        "completed",
+                        "ready_for_client",
+                    ]
+                )
+            )
+            .order_by(Download.created_at.desc())
+            .limit(50)
         )
         return list(result.scalars().all())
 
@@ -98,7 +112,7 @@ class DownloadService:
     # ------------------------------------------------------------------
 
     def _scraper_for_url(self, url: str) -> BaseScraper | None:
-        """Return the scraper for the given URL, or None if it's a direct provider link."""
+        """Return a source scraper, or None for a direct provider link."""
         netloc = urlparse(url).netloc
         for keyword, source_name in _SCRAPER_DOMAINS.items():
             if keyword in netloc:
@@ -124,12 +138,14 @@ class DownloadService:
                     ).model_dump(),
                 )
 
-                provider_links = await scraper.get_provider_links(download.source_url, [])
+                provider_links = await scraper.get_provider_links(
+                    download.source_url, []
+                )
 
                 if not provider_links:
                     raise DownloadError("No provider links found on the page")
 
-                # Build ordered candidate list — preferred providers first, then the rest
+                # Preferred providers are tried first, followed by the rest.
                 _PREFERRED = ["Turbobit", "Rapidgator", "1fichier"]
                 preferred = [
                     (pl.provider, url)
@@ -149,10 +165,14 @@ class DownloadService:
                 if not candidates:
                     raise DownloadError("No usable provider link found on the page")
             else:
-                # source_url is already a direct provider/dl-protect link (e.g. episode download)
+                # source_url is already a direct provider/dl-protect link.
                 scraper = get_scraper("wawacity")
                 candidates = [("direct", download.source_url)]
-                logger.info("Download %s — direct provider URL: %s", download_id, download.source_url)
+                logger.info(
+                    "Download %s — direct provider URL: %s",
+                    download_id,
+                    download.source_url,
+                )
 
             # Steps 2+3 — resolve dl-protect → debrid, with fallback on other providers
             await self._set_status(download, "resolving")
@@ -169,7 +189,9 @@ class DownloadService:
                 try:
                     logger.info(
                         "Download %s — trying provider: %s url: %s",
-                        download_id, provider_name, dl_protect_url,
+                        download_id,
+                        provider_name,
+                        dl_protect_url,
                     )
                     provider_url = await scraper.resolve_link(dl_protect_url)
                     logger.info("Download %s — resolved: %s", download_id, provider_url)
@@ -178,25 +200,30 @@ class DownloadService:
                     await _emit(
                         download_id,
                         WsProgressEvent(
-                            download_id=download_id, status="debriding", progress_pct=0.0
+                            download_id=download_id,
+                            status="debriding",
+                            progress_pct=0.0,
                         ).model_dump(),
                     )
                     debrid_data = await self._alldebrid.debrid_link(provider_url)
                     break
                 except AllDebridAPIError as exc:
-                    # provider_url is always defined here — error is raised after resolve_link
+                    # provider_url is defined after resolve_link succeeds.
                     logger.warning(
                         "Download %s — AllDebrid rejected %s (%s): %s",
-                        download_id, provider_url, provider_name, exc,
+                        download_id,
+                        provider_url,
+                        provider_name,
+                        exc,
                     )
                     last_error = exc
 
             if debrid_data is None:
                 raise last_error
 
-            direct_url: str | None = debrid_data.get("link") or (
-                debrid_data.get("links") or [None]
-            )[0]
+            direct_url: str | None = (
+                debrid_data.get("link") or (debrid_data.get("links") or [None])[0]
+            )
             if not direct_url:
                 raise DownloadError("AllDebrid returned no direct URL")
 
@@ -235,7 +262,9 @@ class DownloadService:
 
         except Exception as exc:
             error_msg = str(exc) or type(exc).__name__
-            await self._write_history(download, download.filename, status="error", error=error_msg)
+            await self._write_history(
+                download, download.filename, status="error", error=error_msg
+            )
             await self._set_status(download, "error", error=error_msg)
             await _emit(
                 download_id,

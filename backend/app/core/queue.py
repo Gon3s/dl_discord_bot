@@ -25,7 +25,9 @@ class DownloadQueue:
     async def enqueue(self, download_id: str) -> None:
         """Add a download job to the queue."""
         await self._queue.put(download_id)
-        logger.debug("Enqueued download %s (queue size: %d)", download_id, self._queue.qsize())
+        logger.debug(
+            "Enqueued download %s (queue size: %d)", download_id, self._queue.qsize()
+        )
 
     async def _worker(self) -> None:
         while True:
@@ -35,7 +37,9 @@ class DownloadQueue:
                 if self._handler is not None:
                     await self._handler(download_id)
             except Exception:
-                logger.exception("Unhandled error while processing download %s", download_id)
+                logger.exception(
+                    "Unhandled error while processing download %s", download_id
+                )
             finally:
                 self._active_count -= 1
                 self._queue.task_done()
