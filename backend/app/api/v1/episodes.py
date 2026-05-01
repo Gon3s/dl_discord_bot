@@ -22,7 +22,9 @@ async def get_episodes(
     try:
         raw = await scraper.get_episodes(url, provider_list or None)
     except NotImplementedError:
-        raise HTTPException(status_code=501, detail=f"Episodes not implemented for source: {source!r}")
+        raise HTTPException(
+            status_code=501, detail=f"Episodes not implemented for source: {source!r}"
+        )
     except Exception as exc:
         raise HTTPException(status_code=503, detail=f"Scraper error: {exc}") from exc
 

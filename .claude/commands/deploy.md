@@ -15,7 +15,7 @@ Lance ou redémarre la stack complète via systemd. Argument optionnel : `$ARGUM
 
 2. **Lancer les tests avant de déployer** :
    ```bash
-   cd backend && uv run pytest --tb=short -q
+   cd backend && uv run ruff check && uv run pytest --tb=short -q
    ```
    Arrêter si des tests échouent — ne pas déployer du code cassé.
 
@@ -28,6 +28,10 @@ Lance ou redémarre la stack complète via systemd. Argument optionnel : `$ARGUM
 4. **Build du frontend Angular** (si des fichiers `frontend/` ont changé) :
    ```bash
    cd frontend && npm ci --silent && npx ng build --configuration production
+   ```
+   Sous WSL, si `npm` pointe vers Windows, utiliser un Node Linux :
+   ```bash
+   export PATH="$PWD/.codex/runtime/node-v22.12.0-linux-x64/bin:$PATH"
    ```
    Le build produit dans `frontend/dist/frontend/browser/` est servi directement par FastAPI sur `:8000`.
 

@@ -1,11 +1,8 @@
-from datetime import UTC, datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.core import events
 from app.core.exceptions import DownloadError, DownloadNotFoundError
-from app.models.orm import Download
 from app.models.schemas import DownloadCreate
 from app.scrapers.wawacity import WawacityScraper
 from app.services.download_service import DownloadService
@@ -103,7 +100,9 @@ class TestListActive:
 
 
 class TestScraperForUrl:
-    def test_returns_wawacity_scraper_for_wawacity_url(self, service: DownloadService) -> None:
+    def test_returns_wawacity_scraper_for_wawacity_url(
+        self, service: DownloadService
+    ) -> None:
         scraper = service._scraper_for_url("https://www.wawacity.pizza?p=film&id=1")
         assert isinstance(scraper, WawacityScraper)
 
@@ -120,7 +119,9 @@ def _mock_scraper(provider_url: str = "https://turbobit.net/abc123"):
 
     scraper = MagicMock()
     scraper.get_provider_links = AsyncMock(
-        return_value=[ProviderLinks(provider="Turbobit", urls=[f"https://dl-protect.link/abc"])]
+        return_value=[
+            ProviderLinks(provider="Turbobit", urls=["https://dl-protect.link/abc"])
+        ]
     )
     scraper.resolve_link = AsyncMock(return_value=provider_url)
     return scraper
@@ -138,7 +139,10 @@ class TestRunClientDestination:
         )
         download = await service.create(data)
 
-        debrid_data = {"link": "https://cdn.example.com/film.mkv", "filename": "film.mkv"}
+        debrid_data = {
+            "link": "https://cdn.example.com/film.mkv",
+            "filename": "film.mkv",
+        }
         emitted: list[dict] = []
 
         async def capture_emit(download_id: str, event: dict) -> None:
@@ -146,8 +150,14 @@ class TestRunClientDestination:
 
         with (
             patch.object(service, "_scraper_for_url", return_value=_mock_scraper()),
-            patch.object(service._alldebrid, "debrid_link", new=AsyncMock(return_value=debrid_data)),
-            patch("app.services.download_service.events.emit", side_effect=capture_emit),
+            patch.object(
+                service._alldebrid,
+                "debrid_link",
+                new=AsyncMock(return_value=debrid_data),
+            ),
+            patch(
+                "app.services.download_service.events.emit", side_effect=capture_emit
+            ),
         ):
             await service.run(download.id)
 
@@ -171,11 +181,18 @@ class TestRunClientDestination:
         )
         download = await service.create(data)
 
-        debrid_data = {"link": "https://cdn.example.com/film.mkv", "filename": "film.mkv"}
+        debrid_data = {
+            "link": "https://cdn.example.com/film.mkv",
+            "filename": "film.mkv",
+        }
 
         with (
             patch.object(service, "_scraper_for_url", return_value=_mock_scraper()),
-            patch.object(service._alldebrid, "debrid_link", new=AsyncMock(return_value=debrid_data)),
+            patch.object(
+                service._alldebrid,
+                "debrid_link",
+                new=AsyncMock(return_value=debrid_data),
+            ),
             patch("app.services.download_service.events.emit", new=AsyncMock()),
             patch("builtins.open") as mock_open,
         ):
@@ -199,11 +216,19 @@ class TestRunDirectUrl:
 
         debrid_data = {"link": "https://cdn.example.com/bb.mkv", "filename": "bb.mkv"}
         mock_scraper = MagicMock()
-        mock_scraper.resolve_link = AsyncMock(return_value="https://rapidgator.net/file/abc")
+        mock_scraper.resolve_link = AsyncMock(
+            return_value="https://rapidgator.net/file/abc"
+        )
 
         with (
-            patch("app.services.download_service.get_scraper", return_value=mock_scraper),
-            patch.object(service._alldebrid, "debrid_link", new=AsyncMock(return_value=debrid_data)),
+            patch(
+                "app.services.download_service.get_scraper", return_value=mock_scraper
+            ),
+            patch.object(
+                service._alldebrid,
+                "debrid_link",
+                new=AsyncMock(return_value=debrid_data),
+            ),
             patch("app.services.download_service.events.emit", new=AsyncMock()),
         ):
             await service.run(download.id)
@@ -211,7 +236,9 @@ class TestRunDirectUrl:
         refreshed = await service.get(download.id)
         assert refreshed is not None
         assert refreshed.status == "completed"
-        mock_scraper.resolve_link.assert_awaited_once_with("https://dl-protect.link/ep1abc")
+        mock_scraper.resolve_link.assert_awaited_once_with(
+            "https://dl-protect.link/ep1abc"
+        )
 
     async def test_direct_url_never_calls_get_provider_links(
         self, service: DownloadService
@@ -225,11 +252,24 @@ class TestRunDirectUrl:
         download = await service.create(data)
 
         mock_scraper = MagicMock()
-        mock_scraper.resolve_link = AsyncMock(return_value="https://rapidgator.net/file/abc")
+        mock_scraper.resolve_link = AsyncMock(
+            return_value="https://rapidgator.net/file/abc"
+        )
 
         with (
-            patch("app.services.download_service.get_scraper", return_value=mock_scraper),
-            patch.object(service._alldebrid, "debrid_link", new=AsyncMock(return_value={"link": "https://cdn.example.com/ep.mkv", "filename": "ep.mkv"})),
+            patch(
+                "app.services.download_service.get_scraper", return_value=mock_scraper
+            ),
+            patch.object(
+                service._alldebrid,
+                "debrid_link",
+                new=AsyncMock(
+                    return_value={
+                        "link": "https://cdn.example.com/ep.mkv",
+                        "filename": "ep.mkv",
+                    }
+                ),
+            ),
             patch("app.services.download_service.events.emit", new=AsyncMock()),
         ):
             await service.run(download.id)

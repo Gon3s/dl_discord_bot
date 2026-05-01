@@ -1,6 +1,5 @@
 from datetime import datetime
 
-import pytest
 from sqlalchemy import select
 
 from app.models.orm import Download, History, Setting
@@ -8,7 +7,9 @@ from app.models.orm import Download, History, Setting
 
 class TestDownloadModel:
     async def test_create_with_defaults(self, db_session):
-        dl = Download(title="Inception", source_url="https://example.com", media_type="film")
+        dl = Download(
+            title="Inception", source_url="https://example.com", media_type="film"
+        )
         db_session.add(dl)
         await db_session.commit()
         await db_session.refresh(dl)
@@ -26,7 +27,11 @@ class TestDownloadModel:
     async def test_create_multiple(self, db_session):
         for i in range(3):
             db_session.add(
-                Download(title=f"Film {i}", source_url="https://example.com", media_type="film")
+                Download(
+                    title=f"Film {i}",
+                    source_url="https://example.com",
+                    media_type="film",
+                )
             )
         await db_session.commit()
 
@@ -35,7 +40,9 @@ class TestDownloadModel:
         assert len(downloads) == 3
 
     async def test_update_status(self, db_session):
-        dl = Download(title="Test", source_url="https://example.com", media_type="serie")
+        dl = Download(
+            title="Test", source_url="https://example.com", media_type="serie"
+        )
         db_session.add(dl)
         await db_session.commit()
 
@@ -76,11 +83,27 @@ class TestHistoryModel:
         assert isinstance(hist.downloaded_at, datetime)
 
     async def test_query_by_source(self, db_session):
-        db_session.add(History(title="A", source_url="https://a.com", media_type="film", source="wawacity"))
-        db_session.add(History(title="B", source_url="https://b.com", media_type="serie", source="darkiworld"))
+        db_session.add(
+            History(
+                title="A",
+                source_url="https://a.com",
+                media_type="film",
+                source="wawacity",
+            )
+        )
+        db_session.add(
+            History(
+                title="B",
+                source_url="https://b.com",
+                media_type="serie",
+                source="darkiworld",
+            )
+        )
         await db_session.commit()
 
-        result = await db_session.execute(select(History).where(History.source == "wawacity"))
+        result = await db_session.execute(
+            select(History).where(History.source == "wawacity")
+        )
         items = result.scalars().all()
         assert len(items) == 1
         assert items[0].title == "A"
@@ -91,7 +114,9 @@ class TestSettingModel:
         db_session.add(Setting(key="download_path", value="/data/media"))
         await db_session.commit()
 
-        result = await db_session.execute(select(Setting).where(Setting.key == "download_path"))
+        result = await db_session.execute(
+            select(Setting).where(Setting.key == "download_path")
+        )
         setting = result.scalar_one()
         assert setting.value == "/data/media"
 
@@ -99,7 +124,9 @@ class TestSettingModel:
         db_session.add(Setting(key="max_concurrent", value="2"))
         await db_session.commit()
 
-        result = await db_session.execute(select(Setting).where(Setting.key == "max_concurrent"))
+        result = await db_session.execute(
+            select(Setting).where(Setting.key == "max_concurrent")
+        )
         setting = result.scalar_one()
         setting.value = "4"
         await db_session.commit()

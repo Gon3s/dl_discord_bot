@@ -10,7 +10,9 @@ from app.database import Base
 class Download(Base):
     __tablename__ = "downloads"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
     title: Mapped[str] = mapped_column(String(500))
     source_url: Mapped[str] = mapped_column(Text)
     media_type: Mapped[str] = mapped_column(String(50))
@@ -19,7 +21,9 @@ class Download(Base):
     progress_pct: Mapped[float] = mapped_column(Float, default=0.0)
     speed_mbps: Mapped[float | None] = mapped_column(Float, nullable=True)
     filename: Mapped[str | None] = mapped_column(String(500), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(UTC)
+    )
     completed_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
@@ -27,7 +31,9 @@ class Download(Base):
 class History(Base):
     __tablename__ = "history"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
     title: Mapped[str] = mapped_column(String(500))
     source_url: Mapped[str] = mapped_column(Text)
     filename: Mapped[str | None] = mapped_column(String(500), nullable=True)
@@ -35,7 +41,9 @@ class History(Base):
     source: Mapped[str] = mapped_column(String(100))
     status: Mapped[str] = mapped_column(String(50), default="completed")
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
-    downloaded_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    downloaded_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(UTC)
+    )
 
 
 class Setting(Base):
@@ -48,7 +56,9 @@ class Setting(Base):
 class Favorite(Base):
     __tablename__ = "favorites"
 
-    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
     title: Mapped[str] = mapped_column(String(500))
     url: Mapped[str] = mapped_column(Text, unique=True)
     category: Mapped[str | None] = mapped_column(String(50), nullable=True)
@@ -57,4 +67,6 @@ class Favorite(Base):
     language: Mapped[str | None] = mapped_column(String(50), nullable=True)
     source: Mapped[str] = mapped_column(String(100))
     poster_url: Mapped[str | None] = mapped_column(Text, nullable=True)
-    added_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    added_at: Mapped[datetime] = mapped_column(
+        DateTime, default=lambda: datetime.now(UTC)
+    )

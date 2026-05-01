@@ -5,7 +5,7 @@ Finalise le travail sur une issue : met à jour la documentation, ferme l'issue 
 ### 1. Tests
 
 ```bash
-cd backend && uv run pytest --tb=short -q
+cd backend && uv run ruff check && uv run pytest --tb=short -q
 ```
 
 Arrêter si des tests échouent — corriger avant de continuer.
@@ -23,7 +23,7 @@ Ne documenter que ce qui est **non évident depuis le code**. Commit les docs si
 ### 3. Build frontend (si des fichiers `frontend/` ont changé)
 
 ```bash
-cd frontend && ng build --configuration production
+cd frontend && npm ci && npm run build
 ```
 
 Vérifier qu'il n'y a pas d'erreurs de compilation TypeScript.
@@ -42,6 +42,7 @@ git push
 
 ```bash
 gh pr create \
+  --base main \
   --title "<titre court>" \
   --body "$(cat <<'EOF'
 ## Résumé

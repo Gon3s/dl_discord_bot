@@ -2,10 +2,11 @@
 
 ## Présentation du projet
 
-Application trois tiers pour rechercher et télécharger des films/séries/mangas depuis Wawacity via AllDebrid.
+Application trois tiers pour rechercher et télécharger des films/séries/mangas
+depuis Wawacity et DarkiWorld via AllDebrid.
 
 - **`backend/`** — FastAPI (Python 3.12) : toute la logique scraping, debrid, téléchargement, BDD
-- **`frontend/`** — Angular 21 + Tailwind CSS v4 : interface web principale
+- **`frontend/`** — Angular 21 + Tailwind CSS v3 : interface web principale
 - **`bot/`** — Discord Bot thin client : appelle le backend via HTTP
 
 Docs complètes : `docs/plan-v2.md` et `docs/architecture-v2.md`
@@ -23,7 +24,8 @@ uv run uvicorn app.main:app --reload --port 8000
 
 # Frontend hot-reload (dev uniquement)
 cd frontend
-ng serve --port 4200
+npm ci
+npm run start -- --port 4200
 
 # Bot Discord
 cd bot
@@ -45,6 +47,18 @@ sudo systemctl restart dl_backend.service
 ```
 
 > L'interface web est accessible sur **`http://<serveur>:8000`** — servie directement par FastAPI.
+
+### WSL / Node
+
+Ne pas utiliser le `npm` Windows depuis WSL. Installer Node dans WSL ou utiliser
+le runtime local si présent :
+
+```bash
+export PATH="$PWD/.codex/runtime/node-v22.12.0-linux-x64/bin:$PATH"
+cd frontend
+npm ci
+npm run build
+```
 
 ---
 
@@ -96,10 +110,15 @@ from app.scrapers.base import BaseScraper, SearchResult, ProviderLinks, register
 class MonScraper(BaseScraper):
     source_name = "mon_source"  # valeur du param ?source= dans l'API
 
-    async def search(self, query, category, year, limit) -> list[SearchResult]:
+    async def search(
+        self, query, category, year=None, limit=10, sort=None, page=1
+    ) -> list[SearchResult]:
         ...
 
     async def get_provider_links(self, url, providers) -> list[ProviderLinks]:
+        ...
+
+    async def get_episodes(self, url, providers=None):
         ...
 ```
 
@@ -116,6 +135,7 @@ Aucune autre modification n'est nécessaire. Le registre est automatique.
 ### Python (backend + bot)
 - **Formatter** : `ruff format` (remplace black)
 - **Linter** : `ruff check`
+- `ruff` est une dépendance dev du backend : utiliser `cd backend && uv run ruff check`
 - **Type hints** obligatoires sur toutes les fonctions publiques
 - Async partout dans le backend — pas de `requests` ni d'appels bloquants dans les coroutines
 - Les appels Selenium (bloquants) doivent être wrappés dans `asyncio.get_event_loop().run_in_executor(None, ...)`
@@ -123,14 +143,11 @@ Aucune autre modification n'est nécessaire. Le registre est automatique.
 - Exceptions custom dans `app/core/exceptions.py` — pas de `assert False` ni de `print()`
 
 ### TypeScript (frontend)
-- **Angular 21 standalone components** uniquement — pas de NgModule, pas de `standalone: true` (défaut Angular 20+)
-- **`ChangeDetectionStrategy.OnPush`** obligatoire sur tous les composants
-- **`signal()` / `computed()`** pour l'état local — pas de propriétés mutables ordinaires
-- **`linkedSignal()`** pour l'état dérivé mais modifiable (ex: champ form initialisé depuis une resource, sort qui reset sur changement de catégorie)
-- **`rxResource({ params, stream })`** pour tous les chargements HTTP asynchrones — remplace `ngOnInit + subscribe`
-  - `params: () => ...` déclare la dépendance réactive qui déclenche le chargement
-  - `stream: ({ params }) => Observable<T>` retourne l'Observable
-  - `.reload()` pour forcer un rechargement manuel
+- **Angular 21 standalone components** uniquement — pas de NgModule.
+- **Tailwind CSS v3.4** actuellement. La migration v4 est suivie par l'issue #71.
+- **`signal()` / `computed()`** pour l'état local quand c'est adapté.
+- **`linkedSignal()`** pour l'état dérivé mais modifiable.
+- **`resource`/RxJS** selon le pattern déjà présent dans la feature concernée.
 - **`takeUntilDestroyed()`** pour les subscriptions dans le constructeur — remplace `OnDestroy + Subscription`
 - `ApiService` pour tous les appels HTTP — pas de `HttpClient` en direct dans les composants
 - `WsService` pour toutes les connexions WebSocket
@@ -170,7 +187,7 @@ Schémas Pydantic dans `backend/app/models/schemas.py`.
 | `backend/app/core/events.py` | Bus événements WebSocket (dict UUID→Queue) |
 | `backend/app/scrapers/base.py` | BaseScraper ABC + registre de scrapers |
 | `backend/app/services/download_service.py` | Logique debrid + téléchargement + progression |
-| `frontend/src/app/core/models/api.models.ts` | Interfaces TypeScript (SearchResult, Download, etc.) |
+| `frontend/src/app/core/models/` | Interfaces TypeScript (SearchResult, Download, etc.) |
 | `frontend/src/app/core/services/api.service.ts` | Wrapper HttpClient → backend :8000 |
 | `frontend/src/app/core/services/ws.service.ts` | RxJS WebSocketSubject → WS :8000 |
 | `frontend/src/app/features/search/` | Feature search (component + routes) |

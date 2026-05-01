@@ -21,7 +21,7 @@ async def ws_download_progress(websocket: WebSocket, download_id: str) -> None:
                 await websocket.send_json(event)
                 if event.get("status") in ("completed", "error"):
                     break
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 await websocket.send_json({"type": "ping"})
     except WebSocketDisconnect:
         pass
@@ -39,7 +39,7 @@ async def ws_queue(websocket: WebSocket) -> None:
             try:
                 event = await asyncio.wait_for(q.get(), timeout=_PING_INTERVAL)
                 await websocket.send_json(event)
-            except asyncio.TimeoutError:
+            except TimeoutError:
                 await websocket.send_json({"type": "ping"})
     except WebSocketDisconnect:
         pass

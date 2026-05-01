@@ -2,9 +2,10 @@ Lance la suite de tests du backend. Argument optionnel : `$ARGUMENTS` (ex: `test
 
 ## Étapes à suivre
 
-1. **Lancer pytest** depuis `backend/` :
+1. **Lancer Ruff puis pytest** depuis `backend/` :
    ```bash
    cd backend
+   uv run ruff check
    uv run pytest $ARGUMENTS --tb=short -q
    ```
 
@@ -19,6 +20,7 @@ Lance la suite de tests du backend. Argument optionnel : `$ARGUMENTS` (ex: `test
 
 ## Conventions
 
+- Le lint doit rester vert : `uv run ruff check`
 - Les tests utilisent une BDD SQLite in-memory — pas de dépendance à `.env` ni au serveur
 - `conftest.py` fournit les fixtures `db_session` et `client` (AsyncClient FastAPI)
 - Ajouter un test pour chaque nouveau comportement ajouté (ORM, schéma, endpoint)

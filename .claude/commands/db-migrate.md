@@ -30,9 +30,9 @@ Crée et applique une migration Alembic pour le backend. Description de la migra
    uv run alembic current
    ```
 
-6. **Ouvrir une Pull Request** vers `v2` si la migration fait partie d'une issue :
+6. **Ouvrir une Pull Request** vers `main` si la migration fait partie d'une issue :
    ```bash
-   gh pr create --base v2 --title "feat: <description>" \
+   gh pr create --base main --title "feat: <description>" \
      --body "$(cat <<'EOF'
    ## Summary
    - Adds Alembic migration: `$ARGUMENTS`

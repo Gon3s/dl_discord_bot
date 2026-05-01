@@ -4,9 +4,8 @@ from contextlib import asynccontextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import HTTPException
 from fastapi.responses import FileResponse
 from sqlalchemy import func, select
 
@@ -121,7 +120,11 @@ def _mount_frontend(app: FastAPI) -> None:
     soient prioritaires sur le catch-all SPA.
     """
     frontend_dist = (
-        Path(__file__).resolve().parents[2] / "frontend" / "dist" / "frontend" / "browser"
+        Path(__file__).resolve().parents[2]
+        / "frontend"
+        / "dist"
+        / "frontend"
+        / "browser"
     ).resolve()
 
     if not frontend_dist.exists():

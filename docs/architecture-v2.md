@@ -6,7 +6,7 @@
 graph TB
     subgraph Clients
         DC[🤖 Discord Bot<br/>thin client HTTP]
-        WB[🌐 Navigateur<br/>Angular 21 + Tailwind 4]
+        WB[🌐 Navigateur<br/>Angular 21 + Tailwind 3]
     end
 
     subgraph Backend["⚙️ Backend FastAPI :8000"]
@@ -16,12 +16,13 @@ graph TB
         WS[WebSocket<br/>/ws/*]
         SVC[Services Layer<br/>search · download · alldebrid]
         QUEUE[Download Queue<br/>asyncio workers]
-        SCRAPERS[Scrapers<br/>wawacity · darkiworld†]
+        SCRAPERS[Scrapers<br/>wawacity · darkiworld]
         DB[(SQLite<br/>downloads · history · settings)]
     end
 
     subgraph External["🌍 Services externes"]
         WAW[Wawacity<br/>Selenium + BS4]
+        DWX[DarkiWorld<br/>Selenium login + API JSON]
         DLP[dl-protect.link<br/>Turnstile bypass]
         AD[AllDebrid API<br/>link debridding]
         CDN[Fichiers source<br/>1fichier · Turbobit · Rapidgator]
@@ -45,6 +46,7 @@ graph TB
     QUEUE -->|événements progression| WS
 
     SCRAPERS -->|Selenium + BS4| WAW
+    SCRAPERS -->|aiohttp + session cookies| DWX
     SCRAPERS -->|Selenium UC| DLP
     SVC -->|aiohttp| AD
     QUEUE -->|aiohttp streaming| CDN
@@ -150,7 +152,6 @@ graph LR
     end
 
     subgraph services["services/"]
-        SS[search_service.py]
         DS[download_service.py]
         AL[alldebrid.py<br/>AllDebridClient async]
     end
@@ -158,7 +159,7 @@ graph LR
     subgraph scrapers["scrapers/"]
         BS[base.py<br/>BaseScraper ABC<br/>@register decorator]
         WW[wawacity.py<br/>WawacityScraper]
-        DW[darkiworld.py<br/>DarkiworldScraper †]
+        DW[darkiworld.py<br/>DarkiworldScraper]
     end
 
     subgraph models["models/"]
@@ -166,7 +167,7 @@ graph LR
         SCH[schemas.py<br/>Pydantic schemas]
     end
 
-    S --> SS
+    S --> BS
     D --> Q
     D --> DS
     H --> ORM
@@ -174,7 +175,6 @@ graph LR
     STA --> Q
     W --> E
 
-    SS --> BS
     DS --> AL
     DS --> E
     Q --> DS
@@ -184,6 +184,7 @@ graph LR
     BS --> DW
 
     WW -->|Selenium + BS4| WAW[(Wawacity)]
+    DW -->|Selenium login + aiohttp| DWAPI[(DarkiWorld)]
     AL -->|aiohttp| AD[(AllDebrid API)]
 
     style BS fill:#2d6a4f,color:#fff
@@ -245,8 +246,9 @@ classDiagram
     class BaseScraper {
         <<abstract>>
         +str source_name
-        +search(query, category, year, limit) list~SearchResult~
+        +search(query, category, year, limit, sort, page) list~SearchResult~
         +get_provider_links(url, providers) list~ProviderLinks~
+        +get_episodes(url, providers) list~Episode~
     }
 
     class SearchResult {
@@ -254,29 +256,30 @@ classDiagram
         +str year
         +str quality
         +str language
-        +str image_url
-        +str source_url
+        +str poster_url
+        +str url
         +str source
     }
 
     class ProviderLinks {
-        +str title
-        +list~str~ links
         +str provider
+        +list~str~ urls
     }
 
     class WawacityScraper {
         +str source_name = "wawacity"
         +search() list~SearchResult~
         +get_provider_links() list~ProviderLinks~
+        +get_episodes() list~Episode~
         -_resolve_dl_protect() str
         -_match_language() str
     }
 
     class DarkiworldScraper {
         +str source_name = "darkiworld"
-        +search() NotImplementedError
-        +get_provider_links() NotImplementedError
+        +search() list~SearchResult~
+        +get_provider_links() list~ProviderLinks~
+        +get_episodes() list~Episode~
     }
 
     class ScraperRegistry {
@@ -306,20 +309,22 @@ dl_discord_bot/                     ← monorepo racine
 │   │   ├── database.py             ← SQLAlchemy async + aiosqlite
 │   │   ├── api/v1/
 │   │   │   ├── search.py           ← GET /api/v1/search
+│   │   │   ├── episodes.py         ← GET /api/v1/episodes
+│   │   │   ├── favorites.py        ← GET/POST/DELETE /api/v1/favorites
 │   │   │   ├── downloads.py        ← POST/GET/DELETE /api/v1/downloads
 │   │   │   ├── history.py          ← GET/DELETE /api/v1/history
 │   │   │   ├── settings.py         ← GET/PUT /api/v1/settings
 │   │   │   ├── status.py           ← GET /api/v1/status
+│   │   ├── api/
 │   │   │   └── ws.py               ← WS /ws/downloads/{id} + /ws/queue
 │   │   ├── core/
 │   │   │   ├── queue.py            ← DownloadQueue (asyncio.Queue + Semaphore)
 │   │   │   └── events.py           ← Event bus (dict UUID → asyncio.Queue)
 │   │   ├── scrapers/
 │   │   │   ├── base.py             ← BaseScraper ABC + @register + get_scraper()
-│   │   │   ├── wawacity.py         ← ← migration parser.py
-│   │   │   └── darkiworld.py       ← stub NotImplementedError
+│   │   │   ├── wawacity.py
+│   │   │   └── darkiworld.py       ← session Selenium + API JSON
 │   │   ├── services/
-│   │   │   ├── search_service.py   ← orchestre scraper
 │   │   │   ├── download_service.py ← debrid + download + progression
 │   │   │   └── alldebrid.py        ← ← migration alldebrid.py (async)
 │   │   └── models/
@@ -342,13 +347,15 @@ dl_discord_bot/                     ← monorepo racine
 │   ├── src/app/
 │   │   ├── core/
 │   │   │   ├── models/
-│   │   │   │   └── api.models.ts   ← interfaces TypeScript partagées
+│   │   │   │   ├── search.type.ts  ← interfaces TypeScript partagées
+│   │   │   │   ├── download.type.ts
+│   │   │   │   └── index.ts
 │   │   │   └── services/
 │   │   │       ├── api.service.ts  ← HttpClient → /api/v1 (même origin)
 │   │   │       └── ws.service.ts   ← RxJS WebSocketSubject → /ws
 │   │   ├── features/               ← lazy-loaded via loadChildren
-│   │   │   ├── search/             ← rxResource search + modal téléchargement
-│   │   │   ├── downloads/          ← linkedSignal + WS patch en temps réel
+│   │   │   ├── search/             ← recherche + modal téléchargement
+│   │   │   ├── downloads/          ← liste active + WS temps réel
 │   │   │   ├── history/            ← params signal + pagination
 │   │   │   └── settings/           ← linkedSignal par champ initialisé depuis API
 │   │   └── shared/
@@ -359,34 +366,34 @@ dl_discord_bot/                     ← monorepo racine
 │
 ├── docs/
 │   └── architecture-v2.md          ← ce fichier
-├── docker-compose.yml
+├── deploy/                         ← services systemd + install.sh
 └── .env.example
 ```
 
 ---
 
-## 8. Déploiement Docker
+## 8. Déploiement actuel : systemd
 
 ```mermaid
 graph TB
-    subgraph docker["docker-compose.yml"]
-        subgraph net["réseau interne dl_network"]
-            BE["backend<br/>:8000<br/>image: python:3.12-slim<br/>ng build + uvicorn app.main:app<br/>(API + frontend statique)"]
-            BOT["bot<br/>image: python:3.12-slim<br/>depends_on: backend"]
-        end
-
-        V1[("volume<br/>download_path<br/>/data/media")]
-        V2[("volume<br/>sqlite_db<br/>/data/db")]
+    subgraph host["serveur Linux"]
+        INSTALL["deploy/install.sh<br/>build Angular + migrations"]
+        BE["dl_backend.service<br/>uvicorn app.main:app :8000<br/>API + frontend statique"]
+        BOT["discord_bot.service<br/>python bot/main.py"]
+        DB[("SQLite<br/>dl_bot.db")]
+        MEDIA[("DOWNLOAD_PATH")]
     end
 
     USER["👤 Utilisateur<br/>réseau local / VPN"] -->|":8000 (UI + API)"| BE
     USER -->|Discord| BOT
-    BOT -->|:8000| BE
-    BE --- V1
-    BE --- V2
+    BOT -->|BACKEND_URL| BE
+    INSTALL --> BE
+    INSTALL --> BOT
+    BE --- DB
+    BE --- MEDIA
 
     style BE fill:#009688,color:#fff
     style BOT fill:#5865F2,color:#fff
 ```
 
-> † Darkiworld : stub prévu en Phase 4, implémentation future
+Docker Compose est encore à faire et suivi par l'issue #44.

@@ -3,10 +3,11 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi)
 ![Angular](https://img.shields.io/badge/Angular-21-DD0031?logo=angular)
-![Tests](https://img.shields.io/badge/tests-109%20passed-brightgreen?logo=pytest)
+![Tests](https://img.shields.io/badge/tests-119%20passed-brightgreen?logo=pytest)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
-Application trois tiers pour rechercher et télécharger des films, séries et mangas depuis **Wawacity** via **AllDebrid**.
+Application trois tiers pour rechercher et télécharger des films, séries et mangas
+depuis **Wawacity** et **DarkiWorld** via **AllDebrid**.
 
 ![Demo](demo/demo.gif)
 
@@ -30,7 +31,7 @@ Application trois tiers pour rechercher et télécharger des films, séries et m
 ```
 dl_discord_bot/
 ├── backend/    FastAPI · SQLite · Alembic · aiohttp · Selenium
-├── frontend/   Angular 21 · Tailwind CSS v4
+├── frontend/   Angular 21 · Tailwind CSS v3
 └── bot/        Discord thin client → backend HTTP
 ```
 
@@ -52,7 +53,7 @@ cp .env.example .env
 cd backend && uv run uvicorn app.main:app --reload --port 8000
 
 # Frontend (hot-reload dev uniquement)
-cd frontend && ng serve --port 4200
+cd frontend && npm ci && npm run start -- --port 4200
 
 # Bot Discord
 cd bot && uv run python main.py
@@ -60,6 +61,19 @@ cd bot && uv run python main.py
 
 > En dev, utilise `ng serve :4200` pour le hot-reload.  
 > Le build Angular (`ng build`) est servi directement par FastAPI sur `:8000`.
+
+### Note WSL / Windows
+
+Si `npm` pointe vers l'installation Windows et échoue avec `node: not found`,
+installe Node dans WSL ou utilise le runtime local de la workspace s'il est
+présent :
+
+```bash
+export PATH="$PWD/.codex/runtime/node-v22.12.0-linux-x64/bin:$PATH"
+cd frontend
+npm ci
+npm run build
+```
 
 ### 3. Production (systemd)
 
@@ -83,6 +97,9 @@ bash deploy/install.sh
 | `ALLDEBRID_API_KEY` | Clé API AllDebrid | `abc123` |
 | `DOWNLOAD_PATH` | Répertoire de stockage | `/data/media` |
 | `WAWACITY_URL` | URL de base Wawacity | `https://www.wawacity.city/` |
+| `DARKIWORLD_URL` | URL de base DarkiWorld | `https://dd.darkiworld16.com` |
+| `DARKIWORLD_EMAIL` | Email du compte DarkiWorld | `user@example.com` |
+| `DARKIWORLD_PASSWORD` | Mot de passe du compte DarkiWorld | `***` |
 | `DATABASE_URL` | SQLite async | `sqlite+aiosqlite:///./dl_bot.db` |
 | `MAX_CONCURRENT_DOWNLOADS` | Téléchargements simultanés | `2` |
 | `BACKEND_URL` | URL backend pour le bot | `http://localhost:8000` |
@@ -98,7 +115,10 @@ bash deploy/install.sh
 | `GET` | `/api/v1/downloads` | Lister les téléchargements |
 | `GET` | `/api/v1/downloads/{id}` | Détail d'un téléchargement |
 | `DELETE` | `/api/v1/downloads/{id}` | Supprimer |
+| `POST` | `/api/v1/downloads/{id}/retry` | Relancer un téléchargement en erreur |
+| `GET` | `/api/v1/episodes` | Lister les épisodes d'une série |
 | `GET` | `/api/v1/history` | Historique |
+| `GET` | `/api/v1/favorites` | Favoris |
 | `GET` | `/api/v1/status` | Santé du backend |
 | `WS` | `/ws/downloads/{id}` | Progression temps réel |
 | `WS` | `/ws/queue` | File d'attente temps réel |
@@ -109,6 +129,7 @@ bash deploy/install.sh
 
 ```bash
 cd backend && uv run pytest
+cd backend && uv run ruff check
 ```
 
 ---
@@ -149,6 +170,8 @@ class MonScraper(BaseScraper):
 ```
 
 Aucune autre modification nécessaire — le registre est automatique.
+
+Sources actuelles : `wawacity` et `darkiworld`.
 
 ---
 

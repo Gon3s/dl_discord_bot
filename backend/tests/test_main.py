@@ -1,6 +1,3 @@
-import pytest
-
-
 class TestAppStartup:
     async def test_docs_available(self, client):
         response = await client.get("/docs")

@@ -5,13 +5,14 @@ Scaffolde un nouveau scraper pour la source de données `$ARGUMENTS`.
 1. **Lire les fichiers de référence** avant de créer quoi que ce soit :
    - `backend/app/scrapers/base.py` — interface `BaseScraper`, dataclasses `SearchResult` et `ProviderLinks`, décorateur `@register`
    - `backend/app/scrapers/wawacity.py` — implémentation de référence complète
-   - `backend/app/scrapers/darkiworld.py` — exemple de stub
+   - `backend/app/scrapers/darkiworld.py` — exemple d'implémentation avec session authentifiée
 
 2. **Créer** `backend/app/scrapers/<source_name>.py` avec :
    - Classe héritant de `BaseScraper` avec `@register`
    - `source_name = "<source_name>"` (slug minuscule, utilisé comme valeur du param `?source=`)
-   - Méthode `search(query, category, year, limit) -> list[SearchResult]`
+   - Méthode `search(query, category, year, limit, sort, page) -> list[SearchResult]`
    - Méthode `get_provider_links(url, providers) -> list[ProviderLinks]`
+   - Méthode `get_episodes(url, providers) -> list[Episode]`
    - Si la source n'est pas encore implémentée : `raise NotImplementedError("source_name: not implemented yet")`
 
 3. **Vérifier** que le scraper est auto-enregistré :
@@ -34,9 +35,9 @@ Scaffolde un nouveau scraper pour la source de données `$ARGUMENTS`.
 
 7. **Mettre à jour** `CLAUDE.md` section "Sources actuelles" avec le nouvel entry.
 
-8. **Ouvrir une Pull Request** vers `v2` :
+8. **Ouvrir une Pull Request** vers `main` :
    ```bash
-   gh pr create --base v2 --title "feat: add <source_name> scraper" \
+   gh pr create --base main --title "feat: add <source_name> scraper" \
      --body "$(cat <<'EOF'
    ## Summary
    - Scaffolds `<source_name>` scraper implementing `BaseScraper`

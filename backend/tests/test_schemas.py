@@ -6,9 +6,7 @@ from pydantic import ValidationError
 from app.models.schemas import (
     DownloadCreate,
     DownloadRead,
-    HistoryRead,
     SearchResult,
-    SettingRead,
     SettingsUpdate,
     WsProgressEvent,
 )
@@ -34,7 +32,9 @@ class TestDownloadCreate:
         assert data.destination == "client"
 
     def test_default_destination_is_server(self):
-        data = DownloadCreate(source_url="https://example.com", title="Test", media_type="film")
+        data = DownloadCreate(
+            source_url="https://example.com", title="Test", media_type="film"
+        )
         assert data.destination == "server"
 
     def test_invalid_destination_rejected(self):
@@ -70,7 +70,9 @@ class TestDownloadRead:
 
 class TestSearchResult:
     def test_minimal(self):
-        r = SearchResult(title="Inception", url="https://example.com", source="wawacity")
+        r = SearchResult(
+            title="Inception", url="https://example.com", source="wawacity"
+        )
         assert r.year is None
         assert r.poster_url is None
 

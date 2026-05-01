@@ -1,6 +1,7 @@
 # IDE
 .idea/
 .vscode/
+.codex/runtime/
 
 # Environments
 .env
@@ -25,6 +26,10 @@ venv/
 __pycache__/
 *.pyc
 *.pyo
+
+# Node / Angular
+frontend/node_modules/
+frontend/dist/
 
 # Data
 /downloaded_files/

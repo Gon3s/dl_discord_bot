@@ -30,10 +30,15 @@ def client():
 
 class TestRedirectLink:
     async def test_returns_direct_url(self, client: AllDebridClient) -> None:
-        payload = {"status": "success", "data": {"links": ["https://direct.example.com/file.mkv"]}}
+        payload = {
+            "status": "success",
+            "data": {"links": ["https://direct.example.com/file.mkv"]},
+        }
         session = _mock_session(_mock_response(200, payload))
 
-        with patch("app.services.alldebrid.aiohttp.ClientSession", return_value=session):
+        with patch(
+            "app.services.alldebrid.aiohttp.ClientSession", return_value=session
+        ):
             result = await client.redirect_link("https://dl-protect.link/abc")
 
         assert result == "https://direct.example.com/file.mkv"
@@ -41,17 +46,24 @@ class TestRedirectLink:
     async def test_raises_on_http_error(self, client: AllDebridClient) -> None:
         session = _mock_session(_mock_response(503, {}))
 
-        with patch("app.services.alldebrid.aiohttp.ClientSession", return_value=session):
+        with patch(
+            "app.services.alldebrid.aiohttp.ClientSession", return_value=session
+        ):
             with pytest.raises(AllDebridHTTPError) as exc_info:
                 await client.redirect_link("https://dl-protect.link/abc")
 
         assert exc_info.value.status == 503
 
     async def test_raises_on_api_error(self, client: AllDebridClient) -> None:
-        payload = {"status": "error", "error": {"message": "Invalid link", "code": "LINK_ERROR"}}
+        payload = {
+            "status": "error",
+            "error": {"message": "Invalid link", "code": "LINK_ERROR"},
+        }
         session = _mock_session(_mock_response(200, payload))
 
-        with patch("app.services.alldebrid.aiohttp.ClientSession", return_value=session):
+        with patch(
+            "app.services.alldebrid.aiohttp.ClientSession", return_value=session
+        ):
             with pytest.raises(AllDebridAPIError) as exc_info:
                 await client.redirect_link("https://dl-protect.link/abc")
 
@@ -61,10 +73,18 @@ class TestRedirectLink:
 
 class TestDebridLink:
     async def test_unlocks_direct_link(self, client: AllDebridClient) -> None:
-        payload = {"status": "success", "data": {"link": "https://cdn.example.com/file.mkv", "filename": "file.mkv"}}
+        payload = {
+            "status": "success",
+            "data": {
+                "link": "https://cdn.example.com/file.mkv",
+                "filename": "file.mkv",
+            },
+        }
         session = _mock_session(_mock_response(200, payload))
 
-        with patch("app.services.alldebrid.aiohttp.ClientSession", return_value=session):
+        with patch(
+            "app.services.alldebrid.aiohttp.ClientSession", return_value=session
+        ):
             result = await client.debrid_link("https://1fichier.com/?abc123")
 
         assert result["filename"] == "file.mkv"
@@ -72,17 +92,24 @@ class TestDebridLink:
     async def test_raises_on_http_error(self, client: AllDebridClient) -> None:
         session = _mock_session(_mock_response(401, {}))
 
-        with patch("app.services.alldebrid.aiohttp.ClientSession", return_value=session):
+        with patch(
+            "app.services.alldebrid.aiohttp.ClientSession", return_value=session
+        ):
             with pytest.raises(AllDebridHTTPError) as exc_info:
                 await client.debrid_link("https://1fichier.com/?abc123")
 
         assert exc_info.value.status == 401
 
     async def test_raises_on_api_error(self, client: AllDebridClient) -> None:
-        payload = {"status": "error", "error": {"message": "Locked link", "code": "LINK_LOCKED"}}
+        payload = {
+            "status": "error",
+            "error": {"message": "Locked link", "code": "LINK_LOCKED"},
+        }
         session = _mock_session(_mock_response(200, payload))
 
-        with patch("app.services.alldebrid.aiohttp.ClientSession", return_value=session):
+        with patch(
+            "app.services.alldebrid.aiohttp.ClientSession", return_value=session
+        ):
             with pytest.raises(AllDebridAPIError) as exc_info:
                 await client.debrid_link("https://1fichier.com/?abc123")
 
