@@ -24,6 +24,7 @@ class Settings(BaseSettings):
     max_concurrent_downloads: int = 2
     magnet_poll_timeout_s: int = 120
     magnet_poll_interval_s: float = 5.0
+    selenium_binary_location: str = ""
     backend_url: str = "http://localhost:8000"
 
 

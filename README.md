@@ -106,6 +106,7 @@ bash deploy/install.sh
 | `DARKIWORLD_PASSWORD` | Mot de passe du compte DarkiWorld | `***` |
 | `DATABASE_URL` | SQLite async | `sqlite+aiosqlite:///./dl_bot.db` |
 | `MAX_CONCURRENT_DOWNLOADS` | Téléchargements simultanés | `2` |
+| `SELENIUM_BINARY_LOCATION` | Binaire Chrome/Chromium pour SeleniumBase (`cft` pour Chrome for Testing) | `cft` |
 | `BACKEND_URL` | URL backend pour le bot | `http://localhost:8000` |
 
 Au démarrage, `.env` initialise les valeurs manquantes dans la table `settings`.

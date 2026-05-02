@@ -9,7 +9,7 @@ from app.models.schemas import SettingRead, SettingsUpdate
 
 router = APIRouter()
 
-_RUNTIME_SETTINGS = {
+RUNTIME_SETTINGS = {
     "alldebrid_api_key",
     "debrid_provider",
     "download_path",
@@ -47,7 +47,7 @@ async def update_settings(
             session.add(existing)
         else:
             existing.value = value
-        if key in _RUNTIME_SETTINGS and hasattr(settings, key):
+        if key in RUNTIME_SETTINGS and hasattr(settings, key):
             setattr(settings, key, _runtime_value(key, value))
     await session.commit()
 
