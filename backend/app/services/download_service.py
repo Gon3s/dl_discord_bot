@@ -31,7 +31,7 @@ _WS_EMIT_INTERVAL = 0.5  # seconds between WebSocket events during streaming
 # No total timeout (large files), but abort if no data for 60s (stalled connection)
 _HTTP_TIMEOUT = aiohttp.ClientTimeout(total=None, sock_connect=30, sock_read=60)
 _MAGNET_READY_STATUSES = {"ready", "downloaded", "completed", "complete"}
-_MAGNET_ERROR_STATUSES = {"error", "dead", "failed"}
+_MAGNET_ERROR_STATUSES = {"error", "dead", "failed", "magnet_error", "virus"}
 
 
 async def _emit(download_id: str, event: dict) -> None:

@@ -2,6 +2,9 @@ from typing import Protocol
 
 from app.config import settings
 from app.services.alldebrid import AllDebridClient
+from app.services.realdebrid import RealDebridClient
+
+MagnetId = int | str
 
 
 class DebridClient(Protocol):
@@ -12,15 +15,16 @@ class DebridClient(Protocol):
 
     async def debrid_link(self, url: str) -> dict: ...
 
-    async def upload_magnet(self, magnet: str) -> int: ...
+    async def upload_magnet(self, magnet: str) -> MagnetId: ...
 
-    async def get_magnet_status(self, magnet_id: int) -> dict: ...
+    async def get_magnet_status(self, magnet_id: MagnetId) -> dict: ...
 
-    async def get_magnet_files(self, magnet_id: int) -> list[str]: ...
+    async def get_magnet_files(self, magnet_id: MagnetId) -> list[str]: ...
 
 
 _PROVIDERS = {
     "alldebrid": AllDebridClient,
+    "realdebrid": RealDebridClient,
 }
 
 

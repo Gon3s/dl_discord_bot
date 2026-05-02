@@ -69,6 +69,7 @@ async def _seed_settings() -> None:
         "wawacity_url": app_settings.wawacity_url,
         "debrid_provider": app_settings.debrid_provider,
         "alldebrid_api_key": app_settings.alldebrid_api_key,
+        "realdebrid_api_token": app_settings.realdebrid_api_token,
     }
     async with AsyncSessionLocal() as session:
         for key, value in defaults.items():
