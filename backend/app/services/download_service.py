@@ -57,7 +57,9 @@ class DownloadService:
             media_type=data.media_type,
             destination=data.destination,
             status="queued",
-            alternative_urls=json.dumps(data.alternative_urls) if data.alternative_urls else None,
+            alternative_urls=(
+                json.dumps(data.alternative_urls) if data.alternative_urls else None
+            ),
         )
         self._session.add(download)
         await self._session.commit()
@@ -170,13 +172,19 @@ class DownloadService:
                 if not candidates:
                     raise DownloadError("No usable provider link found on the page")
             else:
-                # source_url is already a direct provider/dl-protect link (e.g. episode download)
+                # source_url is already a direct provider/dl-protect link
                 scraper = None
                 provider = (
                     "magnet" if download.source_url.startswith("magnet:") else "direct"
                 )
-                alt_urls = json.loads(download.alternative_urls) if download.alternative_urls else []
-                candidates = [(provider, download.source_url)] + [("direct", u) for u in alt_urls]
+                alt_urls = (
+                    json.loads(download.alternative_urls)
+                    if download.alternative_urls
+                    else []
+                )
+                candidates = [(provider, download.source_url)] + [
+                    ("direct", u) for u in alt_urls
+                ]
                 logger.info(
                     "Download %s — direct provider URL: %s (%d alternatives)",
                     download_id,

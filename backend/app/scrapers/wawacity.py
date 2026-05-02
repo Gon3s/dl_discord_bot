@@ -328,7 +328,9 @@ class WawacityScraper(BaseScraper):
             # Attendre que le Turnstile auto-résolve et active #subButton (jusqu'à 20s)
             for _ in range(40):
                 try:
-                    if sb.is_element_present("#subButton") and sb.is_element_enabled("#subButton"):
+                    present = sb.is_element_present("#subButton")
+                    btn_ready = present and sb.is_element_enabled("#subButton")
+                    if btn_ready:
                         logger.debug("Turnstile auto-solved, button enabled")
                         break
                 except Exception:
@@ -344,18 +346,23 @@ class WawacityScraper(BaseScraper):
                     logger.debug("GUI captcha click failed: %s", e)
 
             # Cliquer le bouton si activé, sinon soumettre via JS
-            if sb.is_element_present("#subButton") and sb.is_element_enabled("#subButton"):
+            sub_present = sb.is_element_present("#subButton")
+            btn_ok = sub_present and sb.is_element_enabled("#subButton")
+            if btn_ok:
                 sb.highlight_click("#subButton")
                 logger.debug("Clicked #subButton (enabled)")
             else:
-                logger.warning("Button still disabled after Turnstile attempts, submitting via JS")
+                logger.warning("Button still disabled after Turnstile, using JS")
                 sb.js_click("#subButton")
 
             # Chercher le lien résultant avec plusieurs stratégies
             try:
                 sb.wait_for_element_present("#protected-container", timeout=15)
             except Exception:
-                logger.debug("No #protected-container found after submit (page: %s)", sb.driver.current_url)
+                logger.debug(
+                    "No #protected-container found after submit (page: %s)",
+                    sb.driver.current_url,
+                )
 
             # XPATH principal
             try:
@@ -367,13 +374,20 @@ class WawacityScraper(BaseScraper):
                 pass
 
             # Fallback : n'importe quel lien vers un provider connu
-            _PROVIDER_DOMAINS = ["1fichier", "uptobox", "filefox", "ddownload", "rapidgator", "nitroflare"]
+            _PROVIDER_DOMAINS = [
+                "1fichier", "uptobox", "filefox",
+                "ddownload", "rapidgator", "nitroflare",
+            ]
             for domain in _PROVIDER_DOMAINS:
                 try:
-                    link = sb.find_element(By.XPATH, f"//a[contains(@href, '{domain}')]")
+                    link = sb.find_element(
+                        By.XPATH, f"//a[contains(@href, '{domain}')]"
+                    )
                     href = link.get_attribute("href")
                     if href:
-                        logger.debug("Resolved dl-protect via fallback (%s) → %s", domain, href)
+                        logger.debug(
+                            "Resolved dl-protect via fallback (%s) → %s", domain, href
+                        )
                         return href
                 except Exception:
                     continue
