@@ -115,24 +115,37 @@
     </div>
   </div>
 
-  <!-- ALLDEBRID API -->
+  <!-- DEBRID API -->
   <div class="rounded-lg p-4" style="background:#0c0c0c;border:1px solid #1a1f10">
     <div class="flex items-center justify-between mb-3">
-      <p class="text-[9px] tracking-widest font-black" style="color:#4a5a2a">// ALLDEBRID API</p>
-      @if (alldebridOk() !== undefined) {
+      <p class="text-[9px] tracking-widest font-black" style="color:#4a5a2a">// DEBRID API</p>
+      @if (debridOk() !== undefined) {
         <span class="text-[9px] font-black px-2 py-0.5 rounded"
-              [style.background]="alldebridOk() ? 'rgba(167,209,41,.12)' : 'rgba(80,10,10,.3)'"
-              [style.color]="alldebridOk() ? 'var(--lime)' : '#c04040'"
-              [style.border]="alldebridOk() ? '1px solid rgba(167,209,41,.2)' : '1px solid rgba(120,20,20,.3)'">
-          {{ alldebridOk() ? 'CONNECTED' : 'ERROR' }}
+              [style.background]="debridOk() ? 'rgba(167,209,41,.12)' : 'rgba(80,10,10,.3)'"
+              [style.color]="debridOk() ? 'var(--lime)' : '#c04040'"
+              [style.border]="debridOk() ? '1px solid rgba(167,209,41,.2)' : '1px solid rgba(120,20,20,.3)'">
+          {{ debridOk() ? 'CONNECTED' : 'ERROR' }}
         </span>
       }
     </div>
-    <div>
-      <label class="text-[9px] tracking-widest block mb-1" style="color:#3a4022">API KEY</label>
+    <div class="space-y-3">
+      <div>
+        <label class="text-[9px] tracking-widest block mb-1" style="color:#3a4022">ACTIVE PROVIDER</label>
+        <div class="flex rounded overflow-hidden" style="border:1px solid #1a1f10">
+          @for (provider of debridProviders; track provider.value) {
+            <button class="flex-1 py-2 text-[10px] font-black transition"
+                    [style.background]="debridProvider() === provider.value ? 'var(--lime)' : 'transparent'"
+                    [style.color]="debridProvider() === provider.value ? '#000' : '#6b7a4a'"
+                    (click)="debridProvider.set(provider.value)">
+              {{ provider.label.toUpperCase() }}
+            </button>
+          }
+        </div>
+      </div>
+      <label class="text-[9px] tracking-widest block mb-1" style="color:#3a4022">{{ activeDebridSecretLabel() }}</label>
       <div class="flex gap-2">
         <input [type]="showApiKey() ? 'text' : 'password'"
-               [ngModel]="alldebridApiKey()" (ngModelChange)="alldebridApiKey.set($event)"
+               [ngModel]="activeDebridSecret()" (ngModelChange)="setActiveDebridSecret($event)"
                class="flex-1 rounded px-3 py-2 text-xs"
                style="background:#111;border:1px solid #1a1f10;color:#c8d890;font-family:inherit;outline:none" />
         <button (click)="showApiKey.set(!showApiKey())"

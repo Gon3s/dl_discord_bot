@@ -319,7 +319,8 @@ class WawacityScraper(BaseScraper):
             return await loop.run_in_executor(None, self._dl_protect_sync, url)
 
     def _dl_protect_sync(self, url: str) -> str:
-        with SB(uc=True, test=False) as sb:
+        binary_location = settings.selenium_binary_location or None
+        with SB(uc=True, test=False, binary_location=binary_location) as sb:
             logger.debug("Opening dl-protect: %s", url)
             sb.driver.uc_open_with_reconnect(url, reconnect_time=20)
 

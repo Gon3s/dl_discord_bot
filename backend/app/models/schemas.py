@@ -119,6 +119,8 @@ class StatusRead(BaseModel):
     queue_size: int
     active: int
     disk_free_gb: float
+    debrid_ok: bool
+    debrid_provider: str
     alldebrid_ok: bool
 
 

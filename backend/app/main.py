@@ -10,6 +10,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy import func, select
 
 from app.api.v1.router import router as api_v1_router
+from app.api.v1.settings import RUNTIME_SETTINGS, _runtime_value
 from app.api.ws import router as ws_router
 from app.config import settings as app_settings
 from app.core.queue import download_queue
@@ -79,12 +80,28 @@ async def _seed_settings() -> None:
         await session.commit()
 
 
+async def _load_runtime_settings() -> None:
+    """Apply persisted runtime settings after seeding defaults from .env."""
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(Setting).where(Setting.key.in_(RUNTIME_SETTINGS))
+        )
+        for setting in result.scalars().all():
+            if hasattr(app_settings, setting.key):
+                setattr(
+                    app_settings,
+                    setting.key,
+                    _runtime_value(setting.key, setting.value),
+                )
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     await _migrate_csv_if_needed()
     await _seed_settings()
+    await _load_runtime_settings()
     download_queue.set_handler(_run_download)
     download_queue.start()
     yield

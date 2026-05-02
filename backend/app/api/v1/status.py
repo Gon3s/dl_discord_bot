@@ -24,5 +24,7 @@ async def get_status() -> StatusRead:
         queue_size=download_queue.size,
         active=download_queue.active,
         disk_free_gb=disk_free_gb,
+        debrid_ok=debrid_ok,
+        debrid_provider=settings.debrid_provider,
         alldebrid_ok=debrid_ok,
     )
