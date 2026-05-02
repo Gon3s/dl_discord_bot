@@ -1,6 +1,7 @@
 import asyncio
 import logging
 import re
+import time
 
 import aiohttp
 from bs4 import BeautifulSoup
@@ -324,20 +325,57 @@ class WawacityScraper(BaseScraper):
             logger.debug("Opening dl-protect: %s", url)
             sb.driver.uc_open_with_reconnect(url, reconnect_time=20)
 
+            # Attendre que le Turnstile auto-résolve et active #subButton (jusqu'à 20s)
+            for _ in range(40):
+                try:
+                    if sb.is_element_present("#subButton") and sb.is_element_enabled("#subButton"):
+                        logger.debug("Turnstile auto-solved, button enabled")
+                        break
+                except Exception:
+                    pass
+                time.sleep(0.5)
+            else:
+                # Turnstile pas résolu auto → tenter GUI click (nécessite Xvfb)
+                logger.debug("Turnstile not auto-solved after 20s, trying GUI click")
+                try:
+                    sb.uc_gui_click_captcha()
+                    time.sleep(3)
+                except Exception as e:
+                    logger.debug("GUI captcha click failed: %s", e)
+
+            # Cliquer le bouton si activé, sinon soumettre via JS
+            if sb.is_element_present("#subButton") and sb.is_element_enabled("#subButton"):
+                sb.highlight_click("#subButton")
+                logger.debug("Clicked #subButton (enabled)")
+            else:
+                logger.warning("Button still disabled after Turnstile attempts, submitting via JS")
+                sb.js_click("#subButton")
+
+            # Chercher le lien résultant avec plusieurs stratégies
             try:
-                sb.driver.switch_to_frame("iframe")
-                sb.driver.uc_click("span")
-                sb.switch_to_default_content()
+                sb.wait_for_element_present("#protected-container", timeout=15)
             except Exception:
-                logger.debug("No Turnstile iframe, proceeding directly")
-                sb.switch_to_default_content()
+                logger.debug("No #protected-container found after submit (page: %s)", sb.driver.current_url)
 
-            sb.highlight_click('button:contains("Continuer")')
-
+            # XPATH principal
             try:
                 link = sb.find_element(By.XPATH, _XPATH_LINK)
                 href = link.get_attribute("href")
                 logger.debug("Resolved dl-protect → %s", href)
                 return href
-            except Exception as exc:
-                raise RuntimeError(f"dl_protect resolution failed for {url}") from exc
+            except Exception:
+                pass
+
+            # Fallback : n'importe quel lien vers un provider connu
+            _PROVIDER_DOMAINS = ["1fichier", "uptobox", "filefox", "ddownload", "rapidgator", "nitroflare"]
+            for domain in _PROVIDER_DOMAINS:
+                try:
+                    link = sb.find_element(By.XPATH, f"//a[contains(@href, '{domain}')]")
+                    href = link.get_attribute("href")
+                    if href:
+                        logger.debug("Resolved dl-protect via fallback (%s) → %s", domain, href)
+                        return href
+                except Exception:
+                    continue
+
+            raise RuntimeError(f"dl_protect resolution failed for {url}")

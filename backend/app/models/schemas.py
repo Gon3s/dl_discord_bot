@@ -46,6 +46,7 @@ class DownloadCreate(BaseModel):
     title: str
     media_type: str
     destination: Literal["server", "client"] = "server"
+    alternative_urls: list[str] = []
 
 
 class DownloadRead(BaseModel):
@@ -58,6 +59,7 @@ class DownloadRead(BaseModel):
     progress_pct: float
     speed_mbps: float | None
     filename: str | None
+    debrid_url: str | None = None
     created_at: datetime
     completed_at: datetime | None
     error: str | None
@@ -84,6 +86,7 @@ class HistoryRead(BaseModel):
     filename: str | None
     media_type: str
     source: str
+    destination: str | None = None
     status: str
     error: str | None
     downloaded_at: datetime

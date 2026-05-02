@@ -21,6 +21,8 @@ class Download(Base):
     progress_pct: Mapped[float] = mapped_column(Float, default=0.0)
     speed_mbps: Mapped[float | None] = mapped_column(Float, nullable=True)
     filename: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    debrid_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    alternative_urls: Mapped[str | None] = mapped_column(Text, nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC)
     )
@@ -39,6 +41,7 @@ class History(Base):
     filename: Mapped[str | None] = mapped_column(String(500), nullable=True)
     media_type: Mapped[str] = mapped_column(String(50))
     source: Mapped[str] = mapped_column(String(100))
+    destination: Mapped[str | None] = mapped_column(String(20), nullable=True)
     status: Mapped[str] = mapped_column(String(50), default="completed")
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     downloaded_at: Mapped[datetime] = mapped_column(

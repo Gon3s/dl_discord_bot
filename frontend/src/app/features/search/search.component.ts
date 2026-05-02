@@ -205,6 +205,7 @@ export class SearchComponent {
       title: this.epFullTitle(ep),
       media_type: 'series',
       destination: this.selectedDestination(),
+      alternative_urls: ep.links.map(l => l.url).filter(u => u !== url),
     };
     this.launching.set(true);
     this.api.startDownload(payload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -232,6 +233,7 @@ export class SearchComponent {
           title: `${r.title} — ${ep.title}`,
           media_type: 'series',
           destination: this.selectedDestination(),
+          alternative_urls: ep.links.map(l => l.url).filter(u => u !== url),
         })
       );
 

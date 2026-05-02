@@ -74,15 +74,18 @@ export class SearchStateService {
     this.refreshTrigger$.next();
   }
 
-  // Set des source_url téléchargées — lookup O(1)
+  // Set des source_url téléchargées — lookup O(1) — uniquement les completed
   readonly downloadedUrls = computed(() =>
-    new Set((this.historyResource.value()?.items ?? []).map(h => h.source_url))
+    new Set((this.historyResource.value()?.items ?? [])
+      .filter(h => h.status === 'completed')
+      .map(h => h.source_url))
   );
 
-  // Set des titres en minuscules — pour matcher les séries par préfixe
-  // (les épisodes sont stockés "Titre — Épisode 01")
+  // Set des titres en minuscules — pour matcher les séries par préfixe — uniquement les completed
   private readonly downloadedTitles = computed(() =>
-    (this.historyResource.value()?.items ?? []).map(h => h.title.toLowerCase())
+    (this.historyResource.value()?.items ?? [])
+      .filter(h => h.status === 'completed')
+      .map(h => h.title.toLowerCase())
   );
 
   /** Film/manga : match par URL. Série : match si au moins un épisode a été téléchargé. */

@@ -9,10 +9,10 @@ export type Download = {
   speed_mbps: number | null;
   eta_s: number | null;
   filename: string | null;
+  debrid_url: string | null;
   created_at: string;
   completed_at: string | null;
   error: string | null;
-  debrid_url: string | null;
 };
 
 export type DownloadCreated = {
@@ -25,4 +25,5 @@ export type StartDownloadPayload = {
   title: string;
   media_type: string;
   destination: 'server' | 'client';
+  alternative_urls?: string[];
 };

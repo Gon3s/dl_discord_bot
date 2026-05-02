@@ -97,7 +97,12 @@
               <p class="font-bold truncate max-w-xs" style="color:#c8d890">
                 {{ item.filename ?? item.title }}
               </p>
-              <p class="text-[9px] mt-0.5" style="color:#4a5a2a">{{ item.source }} · {{ item.media_type }}</p>
+              <p class="text-[9px] mt-0.5" style="color:#4a5a2a">
+                {{ item.source }} · {{ item.media_type }}
+                @if (item.destination === 'client') {
+                  · <span style="color:#8a9a55">DIRECT</span>
+                }
+              </p>
             </td>
             <td class="px-4 py-3 font-mono text-[9px]" style="color:#4a5a2a;white-space:nowrap">
               {{ item.downloaded_at | slice:0:16 }}

@@ -104,6 +104,7 @@ export class FavoritesComponent {
       title: this.epFullTitle(ep),
       media_type: 'series',
       destination: this.selectedDestination(),
+      alternative_urls: ep.links.map(l => l.url).filter(u => u !== url),
     };
     this.launching.set(true);
     this.api.startDownload(payload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
@@ -127,6 +128,7 @@ export class FavoritesComponent {
         title: this.epFullTitle(ep),
         media_type: 'series',
         destination: this.selectedDestination(),
+        alternative_urls: ep.links.map(l => l.url).filter(u => u !== url),
       }));
     if (!requests.length) return;
     this.launchingAll.set(true);

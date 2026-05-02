@@ -1,6 +1,8 @@
-import { Component, computed, linkedSignal, effect, inject, ChangeDetectionStrategy, DestroyRef, DOCUMENT } from '@angular/core';
+import { Component, computed, linkedSignal, effect, inject, ChangeDetectionStrategy, DestroyRef } from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { DecimalPipe } from '@angular/common';
+import { interval } from 'rxjs';
+import { filter } from 'rxjs/operators';
 import { ApiService } from '#core/services/api.service';
 import { WsService } from '#core/services/ws.service';
 import { ACTIVE_STATUSES, COMPLETED_STATUSES, STATUS_LABEL } from '#core/constants/download-status';
@@ -16,7 +18,6 @@ export class DownloadsComponent {
   private readonly api = inject(ApiService);
   private readonly ws = inject(WsService);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly document = inject(DOCUMENT);
 
   private readonly resource = rxResource({
     stream: () => this.api.getDownloads(),
@@ -57,9 +58,6 @@ export class DownloadsComponent {
               : d
           )
         );
-        if (event.debrid_url) {
-          this.triggerBrowserDownload(event.debrid_url, event.filename ?? undefined);
-        }
         if (['completed', 'error', 'cancelled', 'queued'].includes(event.status)) {
           this.resource.reload();
         }
@@ -73,6 +71,12 @@ export class DownloadsComponent {
         this.subscribeToDownload(d.id);
       }
     });
+
+    // Polling fallback: reload every 5s while there are active downloads (handles missed WS events)
+    interval(5000).pipe(
+      takeUntilDestroyed(),
+      filter(() => this.active().length > 0),
+    ).subscribe(() => this.resource.reload());
   }
 
   private subscribeToDownload(id: string): void {
@@ -97,17 +101,6 @@ export class DownloadsComponent {
       error: () => this.subscribedIds.delete(id),
       complete: () => this.subscribedIds.delete(id),
     });
-  }
-
-  triggerBrowserDownload(url: string, filename?: string): void {
-    const a = this.document.createElement('a');
-    a.href = url;
-    if (filename) a.download = filename;
-    a.target = '_blank';
-    a.rel = 'noopener';
-    this.document.body.appendChild(a);
-    a.click();
-    this.document.body.removeChild(a);
   }
 
   formatEta(seconds: number): string {

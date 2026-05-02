@@ -1,4 +1,5 @@
 import asyncio
+import json
 import logging
 import re
 import time
@@ -56,6 +57,7 @@ class DownloadService:
             media_type=data.media_type,
             destination=data.destination,
             status="queued",
+            alternative_urls=json.dumps(data.alternative_urls) if data.alternative_urls else None,
         )
         self._session.add(download)
         await self._session.commit()
@@ -168,16 +170,18 @@ class DownloadService:
                 if not candidates:
                     raise DownloadError("No usable provider link found on the page")
             else:
-                # source_url is already a direct provider/dl-protect link.
+                # source_url is already a direct provider/dl-protect link (e.g. episode download)
                 scraper = None
                 provider = (
                     "magnet" if download.source_url.startswith("magnet:") else "direct"
                 )
-                candidates = [(provider, download.source_url)]
+                alt_urls = json.loads(download.alternative_urls) if download.alternative_urls else []
+                candidates = [(provider, download.source_url)] + [("direct", u) for u in alt_urls]
                 logger.info(
-                    "Download %s — direct provider URL: %s",
+                    "Download %s — direct provider URL: %s (%d alternatives)",
                     download_id,
                     download.source_url,
+                    len(alt_urls),
                 )
 
             # Steps 2+3 — resolve dl-protect → debrid, with fallback on other providers
@@ -253,8 +257,10 @@ class DownloadService:
                     "completed",
                     progress_pct=100.0,
                     filename=filename,
+                    debrid_url=direct_url,
                     completed_at=datetime.now(UTC),
                 )
+                await self._write_history(download, filename)
                 await _emit(
                     download_id,
                     WsProgressEvent(
@@ -439,6 +445,7 @@ class DownloadService:
             filename=filename,
             media_type=download.media_type,
             source=self._debrid.name,
+            destination=download.destination,
             status=status,
             error=error,
         )
