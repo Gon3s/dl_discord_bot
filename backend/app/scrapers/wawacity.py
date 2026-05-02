@@ -169,9 +169,10 @@ class WawacityScraper(BaseScraper):
         providers: list[str],
     ) -> list[ProviderLinks]:
         loop = asyncio.get_running_loop()
-        return await loop.run_in_executor(
-            None, self._fetch_provider_links, url, providers
-        )
+        async with _dl_protect_sem:
+            return await loop.run_in_executor(
+                None, self._fetch_provider_links, url, providers
+            )
 
     async def get_episodes(
         self,
