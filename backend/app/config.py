@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     discord_guild: str = ""
     debrid_provider: str = "alldebrid"
     alldebrid_api_key: str = ""
+    realdebrid_api_token: str = ""
     download_path: str = "/data/media"
     wawacity_url: str = "https://www.wawacity.city/"
     darkiworld_url: str = "https://darkiworld16.com"
