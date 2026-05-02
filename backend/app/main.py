@@ -67,6 +67,7 @@ async def _seed_settings() -> None:
         "download_path": app_settings.download_path,
         "max_concurrent_downloads": str(app_settings.max_concurrent_downloads),
         "wawacity_url": app_settings.wawacity_url,
+        "debrid_provider": app_settings.debrid_provider,
         "alldebrid_api_key": app_settings.alldebrid_api_key,
     }
     async with AsyncSessionLocal() as session:

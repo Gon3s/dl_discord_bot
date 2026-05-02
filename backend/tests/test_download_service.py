@@ -172,7 +172,7 @@ class TestRunClientDestination:
         with (
             patch.object(service, "_scraper_for_url", return_value=_mock_scraper()),
             patch.object(
-                service._alldebrid,
+                service._debrid,
                 "debrid_link",
                 new=AsyncMock(return_value=debrid_data),
             ),
@@ -210,7 +210,7 @@ class TestRunClientDestination:
         with (
             patch.object(service, "_scraper_for_url", return_value=_mock_scraper()),
             patch.object(
-                service._alldebrid,
+                service._debrid,
                 "debrid_link",
                 new=AsyncMock(return_value=debrid_data),
             ),
@@ -237,21 +237,21 @@ class TestRunClientDestination:
                 service, "_scraper_for_url", return_value=_mock_magnet_scraper()
             ),
             patch.object(
-                service._alldebrid,
+                service._debrid,
                 "upload_magnet",
                 new=AsyncMock(return_value=123),
             ),
             patch.object(
-                service._alldebrid,
+                service._debrid,
                 "get_magnet_status",
                 new=AsyncMock(return_value={"magnets": [{"status": "Ready"}]}),
             ),
             patch.object(
-                service._alldebrid,
+                service._debrid,
                 "get_magnet_files",
                 new=AsyncMock(return_value=["https://cdn.example.com/movie.mkv"]),
             ),
-            patch.object(service._alldebrid, "debrid_link", new=debrid_mock),
+            patch.object(service._debrid, "debrid_link", new=debrid_mock),
             patch("app.services.download_service.events.emit", new=AsyncMock()),
         ):
             await service.run(download.id)
@@ -288,7 +288,7 @@ class TestRunDirectUrl:
                 "app.services.download_service.get_scraper", return_value=mock_scraper
             ),
             patch.object(
-                service._alldebrid,
+                service._debrid,
                 "debrid_link",
                 new=AsyncMock(return_value=debrid_data),
             ),
@@ -324,7 +324,7 @@ class TestRunDirectUrl:
                 "app.services.download_service.get_scraper", return_value=mock_scraper
             ),
             patch.object(
-                service._alldebrid,
+                service._debrid,
                 "debrid_link",
                 new=AsyncMock(
                     return_value={
@@ -355,7 +355,7 @@ class TestRunErrors:
         with (
             patch.object(service, "_scraper_for_url", return_value=_mock_scraper()),
             patch.object(
-                service._alldebrid,
+                service._debrid,
                 "debrid_link",
                 new=AsyncMock(side_effect=DownloadError("AllDebrid failed")),
             ),
@@ -377,7 +377,7 @@ class TestRunErrors:
         with (
             patch.object(service, "_scraper_for_url", return_value=_mock_scraper()),
             patch.object(
-                service._alldebrid,
+                service._debrid,
                 "debrid_link",
                 new=AsyncMock(return_value={"link": None, "links": []}),
             ),

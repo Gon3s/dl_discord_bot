@@ -1,21 +1,33 @@
-class AllDebridError(Exception):
-    """Base exception for AllDebrid API errors."""
+class DebridError(Exception):
+    """Base exception for debrid provider API errors."""
 
 
-class AllDebridAPIError(AllDebridError):
-    """Raised when the AllDebrid API returns an error status."""
+class DebridAPIError(DebridError):
+    """Raised when a debrid provider API returns an error status."""
 
     def __init__(self, message: str, code: str | None = None) -> None:
         super().__init__(message)
         self.code = code
 
 
-class AllDebridHTTPError(AllDebridError):
-    """Raised when the HTTP request to AllDebrid fails."""
+class DebridHTTPError(DebridError):
+    """Raised when the HTTP request to a debrid provider fails."""
 
     def __init__(self, status: int) -> None:
         super().__init__(f"HTTP error {status}")
         self.status = status
+
+
+class AllDebridError(DebridError):
+    """Base exception for AllDebrid API errors."""
+
+
+class AllDebridAPIError(DebridAPIError, AllDebridError):
+    """Raised when the AllDebrid API returns an error status."""
+
+
+class AllDebridHTTPError(DebridHTTPError, AllDebridError):
+    """Raised when the HTTP request to AllDebrid fails."""
 
 
 class DownloadError(Exception):

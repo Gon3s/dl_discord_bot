@@ -12,11 +12,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.core import events
-from app.core.exceptions import AllDebridAPIError, DownloadError, DownloadNotFoundError
+from app.core.exceptions import DebridAPIError, DownloadError, DownloadNotFoundError
 from app.models.orm import Download, History
 from app.models.schemas import DownloadCreate, WsProgressEvent
 from app.scrapers.base import BaseScraper, get_scraper
-from app.services.alldebrid import AllDebridClient
+from app.services.debrid import DebridClient, get_debrid_client
 
 _SCRAPER_DOMAINS: dict[str, str] = {
     "wawacity": "wawacity",
@@ -43,7 +43,7 @@ async def _emit(download_id: str, event: dict) -> None:
 class DownloadService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
-        self._alldebrid = AllDebridClient()
+        self._debrid: DebridClient = get_debrid_client()
 
     # ------------------------------------------------------------------
     # CRUD helpers
@@ -220,12 +220,13 @@ class DownloadService:
                         logger.info(
                             "Download %s — resolved: %s", download_id, provider_url
                         )
-                        debrid_data = await self._alldebrid.debrid_link(provider_url)
+                        debrid_data = await self._debrid.debrid_link(provider_url)
                     break
-                except AllDebridAPIError as exc:
+                except DebridAPIError as exc:
                     logger.warning(
-                        "Download %s — AllDebrid rejected %s (%s): %s",
+                        "Download %s — %s rejected %s (%s): %s",
                         download_id,
+                        self._debrid.display_name,
                         dl_protect_url,
                         provider_name,
                         exc,
@@ -239,7 +240,9 @@ class DownloadService:
                 debrid_data.get("link") or (debrid_data.get("links") or [None])[0]
             )
             if not direct_url:
-                raise DownloadError("AllDebrid returned no direct URL")
+                raise DownloadError(
+                    f"{self._debrid.display_name} returned no direct URL"
+                )
 
             filename: str | None = debrid_data.get("filename") or Path(direct_url).name
 
@@ -293,23 +296,25 @@ class DownloadService:
             raise
 
     async def _debrid_magnet(self, magnet_url: str) -> dict:
-        magnet_id = await self._alldebrid.upload_magnet(magnet_url)
+        magnet_id = await self._debrid.upload_magnet(magnet_url)
         deadline = time.monotonic() + settings.magnet_poll_timeout_s
 
         while True:
-            status_payload = await self._alldebrid.get_magnet_status(magnet_id)
+            status_payload = await self._debrid.get_magnet_status(magnet_id)
             status = self._magnet_status(status_payload)
             if status in _MAGNET_READY_STATUSES:
                 break
             if status in _MAGNET_ERROR_STATUSES:
-                raise DownloadError(f"AllDebrid magnet failed with status: {status}")
+                raise DownloadError(
+                    f"{self._debrid.display_name} magnet failed with status: {status}"
+                )
             if time.monotonic() >= deadline:
-                raise DownloadError("AllDebrid magnet timed out")
+                raise DownloadError(f"{self._debrid.display_name} magnet timed out")
             await asyncio.sleep(settings.magnet_poll_interval_s)
 
-        links = await self._alldebrid.get_magnet_files(magnet_id)
+        links = await self._debrid.get_magnet_files(magnet_id)
         if not links:
-            raise DownloadError("AllDebrid returned no magnet files")
+            raise DownloadError(f"{self._debrid.display_name} returned no magnet files")
         return {"link": links[0], "links": links}
 
     def _magnet_status(self, payload: dict) -> str:
@@ -433,7 +438,7 @@ class DownloadService:
             source_url=download.source_url,
             filename=filename,
             media_type=download.media_type,
-            source="alldebrid",
+            source=self._debrid.name,
             status=status,
             error=error,
         )
