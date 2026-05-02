@@ -398,7 +398,8 @@ dl_discord_bot/                     ← monorepo racine
 graph TB
     subgraph host["serveur Linux"]
         INSTALL["deploy/install.sh<br/>build Angular + migrations"]
-        BE["dl_backend.service<br/>uvicorn app.main:app :8000<br/>API + frontend statique"]
+        XVFB["xvfb.service<br/>Xvfb :99 — display virtuel<br/>pour Selenium / Turnstile"]
+        BE["dl_backend.service<br/>uvicorn app.main:app :8000<br/>API + frontend statique<br/>DISPLAY=:99"]
         BOT["discord_bot.service<br/>python bot/main.py"]
         DB[("SQLite<br/>dl_bot.db")]
         MEDIA[("DOWNLOAD_PATH")]
@@ -409,11 +410,13 @@ graph TB
     BOT -->|BACKEND_URL| BE
     INSTALL --> BE
     INSTALL --> BOT
+    XVFB --> BE
     BE --- DB
     BE --- MEDIA
 
     style BE fill:#009688,color:#fff
     style BOT fill:#5865F2,color:#fff
+    style XVFB fill:#607d8b,color:#fff
 ```
 
 Docker Compose est encore à faire et suivi par l'issue #44.

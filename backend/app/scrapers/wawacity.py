@@ -360,7 +360,7 @@ class WawacityScraper(BaseScraper):
             try:
                 sb.wait_for_element_present("#protected-container", timeout=15)
             except Exception:
-                logger.debug(
+                logger.warning(
                     "No #protected-container found after submit (page: %s)",
                     sb.driver.current_url,
                 )
@@ -374,23 +374,17 @@ class WawacityScraper(BaseScraper):
             except Exception:
                 pass
 
-            # Fallback : n'importe quel lien vers un provider connu
-            _PROVIDER_DOMAINS = [
-                "1fichier", "uptobox", "filefox",
-                "ddownload", "rapidgator", "nitroflare",
-            ]
-            for domain in _PROVIDER_DOMAINS:
-                try:
-                    link = sb.find_element(
-                        By.XPATH, f"//a[contains(@href, '{domain}')]"
-                    )
-                    href = link.get_attribute("href")
-                    if href:
-                        logger.debug(
-                            "Resolved dl-protect via fallback (%s) → %s", domain, href
-                        )
+            # Fallback : n'importe quel lien externe sur la page (hors dl-protect lui-même)
+            # dl-protect peut rediriger vers un intermédiaire (ex: trbt.cc) au lieu d'un
+            # provider direct — AllDebrid sait résoudre ces intermédiaires.
+            try:
+                all_links = sb.find_elements(By.XPATH, "//a[@href]")
+                for a in all_links:
+                    href = a.get_attribute("href") or ""
+                    if href.startswith("http") and "dl-protect" not in href:
+                        logger.info("Resolved dl-protect via broad fallback → %s", href)
                         return href
-                except Exception:
-                    continue
+            except Exception:
+                pass
 
             raise RuntimeError(f"dl_protect resolution failed for {url}")
