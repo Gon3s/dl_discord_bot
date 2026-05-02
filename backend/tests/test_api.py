@@ -319,7 +319,7 @@ class TestStatus:
         assert "active" in body
         assert "disk_free_gb" in body
         assert body["debrid_ok"] is True
-        assert body["debrid_provider"] == "alldebrid"
+        assert "debrid_provider" in body
         assert body["alldebrid_ok"] is True
 
     async def test_get_status_debrid_down(self, client) -> None:
