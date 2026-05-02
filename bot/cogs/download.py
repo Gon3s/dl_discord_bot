@@ -74,10 +74,12 @@ class DownloadCog(commands.Cog):
             await ctx.send(f"Erreur backend ({exc.status}): impossible de récupérer le statut.")
             return
 
-        alldebrid_icon = "✅" if status_data.get("alldebrid_ok") else "❌"
+        debrid_ok = status_data.get("debrid_ok", status_data.get("alldebrid_ok"))
+        debrid_icon = "✅" if debrid_ok else "❌"
+        debrid_provider = status_data.get("debrid_provider", "alldebrid")
 
         embed = discord.Embed(title="Statut du serveur", color=discord.Color.blurple())
-        embed.add_field(name="AllDebrid", value=alldebrid_icon, inline=True)
+        embed.add_field(name=f"Debrid ({debrid_provider})", value=debrid_icon, inline=True)
         embed.add_field(name="File", value=str(status_data.get("queue_size", 0)), inline=True)
         embed.add_field(name="Actifs", value=str(status_data.get("active", 0)), inline=True)
         embed.add_field(name="Disque libre", value=f"{status_data.get('disk_free_gb', 0):.1f} Go", inline=True)

@@ -14,7 +14,7 @@ graph TB
         SPA[Fichiers statiques<br/>Angular dist/ — catch-all /*]
         API[REST API<br/>/api/v1/*]
         WS[WebSocket<br/>/ws/*]
-        SVC[Services Layer<br/>search · download · alldebrid]
+        SVC[Services Layer<br/>search · download · debrid]
         QUEUE[Download Queue<br/>asyncio workers]
         SCRAPERS[Scrapers<br/>wawacity · darkiworld · 1337x]
         DB[(SQLite<br/>downloads · history · settings)]
@@ -25,7 +25,7 @@ graph TB
         DWX[DarkiWorld<br/>Selenium login + API JSON]
         X1337[1337x<br/>HTML + magnets]
         DLP[dl-protect.link<br/>Turnstile bypass]
-        AD[AllDebrid API<br/>link + magnet debridding]
+        AD[Debrid API<br/>AllDebrid · Real-Debrid]
         CDN[Fichiers source<br/>1fichier · Turbobit · Rapidgator · torrents]
     end
 
@@ -73,7 +73,7 @@ sequenceDiagram
     participant SVC as DownloadService
     participant SCR as WawacityScraper
     participant DLP as dl-protect.link
-    participant AD as AllDebrid
+    participant AD as Debrid provider
     participant FS as Fichiers
 
     U->>C: "Télécharger Inception (serveur)"
@@ -114,13 +114,13 @@ sequenceDiagram
     participant API as FastAPI
     participant SVC as DownloadService
     participant SCR as WawacityScraper
-    participant AD as AllDebrid
+    participant AD as Debrid provider
 
     U->>WB: "Télécharger Inception (lien direct)"
     WB->>API: POST /api/v1/downloads<br/>{ source_url, destination: "client" }
     API-->>WB: { download_id: uuid, status: "queued" }
 
-    Note over API,AD: Même pipeline jusqu'à AllDebrid, pas d'écriture disque
+    Note over API,AD: Même pipeline jusqu'au fournisseur de débridage, pas d'écriture disque
 
     API->>SVC: enqueue(task)
     SVC->>SCR: get_provider_links(source_url)
@@ -157,7 +157,9 @@ graph LR
 
     subgraph services["services/"]
         DS[download_service.py]
-        AL[alldebrid.py<br/>AllDebridClient async]
+        AL[debrid.py<br/>DebridClient factory]
+        ADP[alldebrid.py<br/>AllDebridClient]
+        RDP[realdebrid.py<br/>RealDebridClient]
     end
 
     subgraph scrapers["scrapers/"]
@@ -181,6 +183,8 @@ graph LR
     W --> E
 
     DS --> AL
+    AL --> ADP
+    AL --> RDP
     DS --> E
     Q --> DS
     Q --> E
@@ -192,7 +196,8 @@ graph LR
     WW -->|Selenium + BS4| WAW[(Wawacity)]
     DW -->|Selenium login + aiohttp| DWAPI[(DarkiWorld)]
     X3 -->|aiohttp + BS4| X1337API[(1337x)]
-    AL -->|aiohttp| AD[(AllDebrid API)]
+    ADP -->|aiohttp| AD[(AllDebrid API)]
+    RDP -->|aiohttp| RD[(Real-Debrid API)]
 
     style BS fill:#2d6a4f,color:#fff
     style Q fill:#1b4332,color:#fff
@@ -218,7 +223,7 @@ erDiagram
         TEXT provider "1fichier | Turbobit | Rapidgator"
         TEXT filename
         TEXT file_path "NULL si client"
-        TEXT direct_url "URL AllDebrid débriddée"
+        TEXT direct_url "URL fournisseur débriddée"
         INTEGER file_size "bytes"
         INTEGER bytes_downloaded
         TEXT error_message

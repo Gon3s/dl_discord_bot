@@ -3,11 +3,11 @@
 ![Python](https://img.shields.io/badge/python-3.12-blue?logo=python)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi)
 ![Angular](https://img.shields.io/badge/Angular-21-DD0031?logo=angular)
-![Tests](https://img.shields.io/badge/tests-130%20passed-brightgreen?logo=pytest)
+![Tests](https://img.shields.io/badge/tests-140%20passed-brightgreen?logo=pytest)
 ![License](https://img.shields.io/badge/license-MIT-lightgrey)
 
 Application trois tiers pour rechercher et télécharger des films, séries et mangas
-depuis **Wawacity**, **DarkiWorld** et **1337x** via **AllDebrid**.
+depuis **Wawacity**, **DarkiWorld** et **1337x** via **AllDebrid** ou **Real-Debrid**.
 
 ![Demo](demo/demo.gif)
 
@@ -43,7 +43,7 @@ dl_discord_bot/
 
 ```bash
 cp .env.example .env
-# Remplir DISCORD_TOKEN, ALLDEBRID_API_KEY, DOWNLOAD_PATH, WAWACITY_URL
+# Remplir DISCORD_TOKEN, DEBRID_PROVIDER, la clé/token du fournisseur, DOWNLOAD_PATH, WAWACITY_URL
 # Ajuster 1337X_URL si le miroir configuré ne répond plus
 ```
 
@@ -95,7 +95,9 @@ bash deploy/install.sh
 |---|---|---|
 | `DISCORD_TOKEN` | Token du bot Discord | `MTI...` |
 | `DISCORD_GUILD` | ID du serveur Discord | `123456789` |
+| `DEBRID_PROVIDER` | Fournisseur actif (`alldebrid` ou `realdebrid`) | `alldebrid` |
 | `ALLDEBRID_API_KEY` | Clé API AllDebrid | `abc123` |
+| `REALDEBRID_API_TOKEN` | Token API Real-Debrid | `abc123` |
 | `DOWNLOAD_PATH` | Répertoire de stockage | `/data/media` |
 | `WAWACITY_URL` | URL de base Wawacity | `https://www.wawacity.city/` |
 | `1337X_URL` | URL de base 1337x | `https://1337x.to` |
@@ -105,6 +107,11 @@ bash deploy/install.sh
 | `DATABASE_URL` | SQLite async | `sqlite+aiosqlite:///./dl_bot.db` |
 | `MAX_CONCURRENT_DOWNLOADS` | Téléchargements simultanés | `2` |
 | `BACKEND_URL` | URL backend pour le bot | `http://localhost:8000` |
+
+Au démarrage, `.env` initialise les valeurs manquantes dans la table `settings`.
+Les changements faits depuis l'interface web mettent aussi à jour la configuration
+runtime du backend pour les clés opérationnelles comme `debrid_provider`,
+`alldebrid_api_key`, `realdebrid_api_token`, `download_path` et `wawacity_url`.
 
 ---
 
@@ -142,7 +149,7 @@ cd backend && uv run ruff check
 |---|---|
 | `!search <query> [films\|series\|mangas]` | Rechercher un titre |
 | `!url <url>` | Télécharger depuis une URL directe |
-| `!status` | Statut du backend + AllDebrid |
+| `!status` | Statut du backend + fournisseur de débridage |
 
 ---
 

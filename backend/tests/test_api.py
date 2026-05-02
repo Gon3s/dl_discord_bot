@@ -283,6 +283,23 @@ class TestSettings:
         settings = {s["key"]: s["value"] for s in resp.json()}
         assert settings["foo"] == "bar"
 
+    async def test_put_settings_updates_runtime_settings(self, client) -> None:
+        with patch("app.api.v1.settings.settings") as mock_settings:
+            mock_settings.debrid_provider = "alldebrid"
+            resp = await client.put(
+                "/api/v1/settings",
+                json={
+                    "settings": {
+                        "debrid_provider": "RealDebrid",
+                        "max_concurrent_downloads": "3",
+                    }
+                },
+            )
+
+        assert resp.status_code == 200
+        assert mock_settings.debrid_provider == "realdebrid"
+        assert mock_settings.max_concurrent_downloads == 3
+
 
 # ---------------------------------------------------------------------------
 # Status
@@ -301,13 +318,16 @@ class TestStatus:
         assert "queue_size" in body
         assert "active" in body
         assert "disk_free_gb" in body
+        assert body["debrid_ok"] is True
+        assert body["debrid_provider"] == "alldebrid"
         assert body["alldebrid_ok"] is True
 
-    async def test_get_status_alldebrid_down(self, client) -> None:
+    async def test_get_status_debrid_down(self, client) -> None:
         mock_client = MagicMock()
         mock_client.ping = AsyncMock(return_value=False)
         with patch("app.api.v1.status.get_debrid_client", return_value=mock_client):
             resp = await client.get("/api/v1/status")
 
         assert resp.status_code == 200
+        assert resp.json()["debrid_ok"] is False
         assert resp.json()["alldebrid_ok"] is False

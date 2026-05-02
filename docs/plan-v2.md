@@ -94,7 +94,7 @@ DELETE /api/v1/history/{id}
 GET  /api/v1/settings
 PUT  /api/v1/settings
 
-GET  /api/v1/status           → { queue_size, active, disk_free_gb, alldebrid_ok }
+GET  /api/v1/status           → { queue_size, active, disk_free_gb, debrid_ok, debrid_provider, alldebrid_ok }
 
 WS   /ws/downloads/{id}       → { status, progress_pct, speed_mbps, eta_s, filename }
 WS   /ws/queue                → événements globaux de la file
@@ -102,7 +102,7 @@ WS   /ws/queue                → événements globaux de la file
 
 ### Destination "client" (téléchargement navigateur)
 - `destination: "client"` → le backend **ne télécharge pas** le fichier
-- Il appelle AllDebrid pour obtenir l'URL directe débriddée
+- Il appelle le fournisseur de débridage actif pour obtenir l'URL directe
 - Retourne `{ debrid_url: "https://..." }` dans la réponse
 - Le frontend déclenche un `window.open(debrid_url)` ou un lien `<a href>` direct
 - Pas de streaming côté serveur, pas de stockage inutile
@@ -139,11 +139,11 @@ class BaseScraper(ABC):
 - `x1337.py` — implémenté (aiohttp + BS4, magnets filtrés sur seeders > 0)
 - `scrapers/base.py` expose le registre automatique selon `source`
 
-### Flux magnet AllDebrid
+### Flux magnet fournisseur de débridage
 - Un scraper peut retourner `ProviderLinks(provider="magnet", urls=[...])`.
-- `DownloadService` envoie le magnet à AllDebrid (`magnet/upload`), poll
-  `magnet/status`, puis récupère les fichiers via `magnet/files`.
-- Les fichiers sont triés par taille décroissante côté client AllDebrid ; le
+- `DownloadService` envoie le magnet au client générique configuré
+  (`alldebrid` ou `realdebrid`), poll le statut, puis récupère les liens directs.
+- Les fichiers sont triés par taille décroissante côté client fournisseur ; le
   premier lien est utilisé comme fichier principal.
 - Le flux DDL existant reste inchangé pour Wawacity/DarkiWorld.
 
@@ -233,4 +233,4 @@ class BaseScraper(ABC):
 5. `/downloads` montre la progression temps-réel via WebSocket
 6. `/history` liste les téléchargements passés
 7. Bot Discord : `!search "inception" films` → mêmes résultats via API
-8. `GET /api/v1/status` → `200 OK` avec infos disque et AllDebrid
+8. `GET /api/v1/status` → `200 OK` avec infos disque et fournisseur de débridage
