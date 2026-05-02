@@ -8,6 +8,9 @@ _AGENT = "AlldebridBot"
 
 
 class AllDebridClient:
+    name = "alldebrid"
+    display_name = "AllDebrid"
+
     def __init__(self) -> None:
         self._api_key = settings.alldebrid_api_key
 

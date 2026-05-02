@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from app.config import settings
 from app.core.queue import download_queue
 from app.models.schemas import StatusRead
-from app.services.alldebrid import AllDebridClient
+from app.services.debrid import get_debrid_client
 
 router = APIRouter()
 
@@ -18,11 +18,11 @@ async def get_status() -> StatusRead:
     except OSError:
         disk_free_gb = 0.0
 
-    alldebrid_ok = await AllDebridClient().ping()
+    debrid_ok = await get_debrid_client().ping()
 
     return StatusRead(
         queue_size=download_queue.size,
         active=download_queue.active,
         disk_free_gb=disk_free_gb,
-        alldebrid_ok=alldebrid_ok,
+        alldebrid_ok=debrid_ok,
     )

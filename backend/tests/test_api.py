@@ -291,8 +291,9 @@ class TestSettings:
 
 class TestStatus:
     async def test_get_status_returns_200(self, client) -> None:
-        with patch("app.api.v1.status.AllDebridClient") as MockClient:
-            MockClient.return_value.ping = AsyncMock(return_value=True)
+        mock_client = MagicMock()
+        mock_client.ping = AsyncMock(return_value=True)
+        with patch("app.api.v1.status.get_debrid_client", return_value=mock_client):
             resp = await client.get("/api/v1/status")
 
         assert resp.status_code == 200
@@ -303,8 +304,9 @@ class TestStatus:
         assert body["alldebrid_ok"] is True
 
     async def test_get_status_alldebrid_down(self, client) -> None:
-        with patch("app.api.v1.status.AllDebridClient") as MockClient:
-            MockClient.return_value.ping = AsyncMock(return_value=False)
+        mock_client = MagicMock()
+        mock_client.ping = AsyncMock(return_value=False)
+        with patch("app.api.v1.status.get_debrid_client", return_value=mock_client):
             resp = await client.get("/api/v1/status")
 
         assert resp.status_code == 200

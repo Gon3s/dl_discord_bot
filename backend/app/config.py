@@ -11,6 +11,7 @@ class Settings(BaseSettings):
 
     discord_token: str = ""
     discord_guild: str = ""
+    debrid_provider: str = "alldebrid"
     alldebrid_api_key: str = ""
     download_path: str = "/data/media"
     wawacity_url: str = "https://www.wawacity.city/"
