@@ -330,6 +330,7 @@ class WawacityScraper(BaseScraper):
         with SB(
             uc=True,
             test=False,
+            headless=True,
             binary_location=binary_location,
             chromium_arg="--no-sandbox --disable-dev-shm-usage",
         ) as sb:
