@@ -66,6 +66,17 @@ cd bot
 uv run python main.py
 ```
 
+### Production (Docker Compose)
+
+```bash
+cp .env.example .env  # remplir DISCORD_TOKEN, ALLDEBRID_API_KEY, etc.
+docker compose up -d --build
+```
+
+- `BACKEND_URL` et `SELENIUM_BINARY_LOCATION` sont surchargés automatiquement par `docker-compose.yml`.
+- `DATABASE_URL` pointe vers le volume `backend_db` (`/app/data/dl_bot.db`).
+- Fichiers téléchargés dans le volume `media` (`/data/media`).
+
 ### Production (systemd)
 
 ```bash
