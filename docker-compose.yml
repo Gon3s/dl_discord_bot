@@ -1,13 +1,12 @@
 services:
   backend:
-    build:
-      context: .
-      dockerfile: backend/Dockerfile
+    image: ghcr.io/gon3s/dl-discord-bot-backend:latest
     ports:
       - "8000:8000"
     environment:
-      # Surcharges fixes — les autres vars sont injectées via Portainer ou .env local
+      # Chromium installé dans l'image
       SELENIUM_BINARY_LOCATION: /usr/bin/chromium
+      # Base de données dans un volume dédié (séparé du code applicatif)
       DATABASE_URL: sqlite+aiosqlite:////app/data/dl_bot.db
     volumes:
       - media:/data/media
@@ -15,10 +14,9 @@ services:
     restart: unless-stopped
 
   bot:
-    build:
-      context: .
-      dockerfile: bot/Dockerfile
+    image: ghcr.io/gon3s/dl-discord-bot-bot:latest
     environment:
+      # Résolution interne Docker — remplace http://localhost:8000 du .env
       BACKEND_URL: http://backend:8000
     depends_on:
       - backend
