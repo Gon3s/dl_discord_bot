@@ -1,49 +1,83 @@
 <!-- Header -->
-<header class="sticky top-0 z-10 px-7 py-4 flex items-center gap-4 bg-black border-b border-[#1a1f10]">
+<header
+  class="sticky top-0 z-10 px-7 py-4 flex items-center gap-4 bg-black border-b border-[#1a1f10]"
+>
   <div>
     <p class="text-sm font-black tracking-widest uppercase text-[#e8ecd8]">Notifications</p>
-    <p class="text-[10px] tracking-wider mt-0.5 text-[#3a4022]">SURVEILLANCE DES NOUVEAUX ÉPISODES</p>
+    <p class="text-[10px] tracking-wider mt-0.5 text-[#3a4022]">
+      SURVEILLANCE DES NOUVEAUX ÉPISODES
+    </p>
   </div>
-  <span class="ml-auto text-[10px] px-2 py-0.5 rounded font-black bg-lime/15 text-lime border border-lime/30">
+  <span
+    class="ml-auto text-[10px] px-2 py-0.5 rounded font-black bg-lime/15 text-lime border border-lime/30"
+  >
     {{ notifications().length }}
   </span>
-  <button (click)="testDiscord()" [disabled]="testingDiscord()"
-          class="text-[11px] font-black px-3 py-1.5 rounded transition border border-[#7289da]/30 disabled:opacity-50"
-          [class]="testResult() === 'ok' ? 'bg-[#7289da]/20 text-[#7289da]' : testResult() === 'error' ? 'bg-[#e8395a]/15 text-[#e8395a] border-[#e8395a]/30' : 'bg-[#7289da]/10 text-[#7289da] hover:bg-[#7289da]/20'"
-          title="Envoyer une notification Discord de test">
-    @if (testingDiscord()) { … }
-    @else if (testResult() === 'ok') { ✓ ENVOYÉ }
-    @else if (testResult() === 'error') { ✕ ERREUR }
-    @else { 🔔 TEST DISCORD }
+  <button
+    (click)="testDiscord()"
+    [disabled]="testingDiscord()"
+    class="text-[11px] font-black px-3 py-1.5 rounded transition border border-[#7289da]/30 disabled:opacity-50"
+    [class]="
+      testResult() === 'ok'
+        ? 'bg-[#7289da]/20 text-[#7289da]'
+        : testResult() === 'error'
+          ? 'bg-[#e8395a]/15 text-[#e8395a] border-[#e8395a]/30'
+          : 'bg-[#7289da]/10 text-[#7289da] hover:bg-[#7289da]/20'
+    "
+    title="Envoyer une notification Discord de test"
+  >
+    @if (testingDiscord()) {
+      …
+    } @else if (testResult() === 'ok') {
+      ✓ ENVOYÉ
+    } @else if (testResult() === 'error') {
+      ✕ ERREUR
+    } @else {
+      🔔 TEST DISCORD
+    }
   </button>
-  <button (click)="toggleAddPanel()"
-          class="text-[11px] font-black px-3 py-1.5 rounded transition border"
-          [class]="addPanelOpen() ? 'bg-[#e8395a]/15 text-[#e8395a] border-[#e8395a]/30' : 'bg-lime/10 text-lime border-lime/20 hover:bg-lime/20'">
+  <button
+    (click)="toggleAddPanel()"
+    class="text-[11px] font-black px-3 py-1.5 rounded transition border"
+    [class]="
+      addPanelOpen()
+        ? 'bg-[#e8395a]/15 text-[#e8395a] border-[#e8395a]/30'
+        : 'bg-lime/10 text-lime border-lime/20 hover:bg-lime/20'
+    "
+  >
     {{ addPanelOpen() ? '✕ FERMER' : '+ SURVEILLER' }}
   </button>
 </header>
 
 <main class="flex-1 px-7 py-5">
-
   <!-- Add panel -->
   @if (addPanelOpen()) {
     <div class="mb-6 rounded-lg border border-[#1a1f10] bg-[#080808] overflow-hidden">
       <div class="h-[2px] bg-[linear-gradient(90deg,#3E432E,#616F39,#A7D129)]"></div>
       <div class="px-5 py-4">
-        <p class="text-[10px] tracking-widest text-[#4a5a2a] mb-3">RECHERCHER UNE SÉRIE À SURVEILLER</p>
+        <p class="text-[10px] tracking-widest text-[#4a5a2a] mb-3">
+          RECHERCHER UNE SÉRIE À SURVEILLER
+        </p>
         <div class="flex gap-2 mb-3">
-          <select [(ngModel)]="searchSource" [ngModelOptions]="{standalone: true}"
-                  class="text-[11px] px-2 py-2 rounded border border-[#1a1f10] bg-[#0c0c0c] text-[#6b7a4a]">
+          <select
+            [(ngModel)]="searchSource"
+            [ngModelOptions]="{ standalone: true }"
+            class="text-[11px] px-2 py-2 rounded border border-[#1a1f10] bg-[#0c0c0c] text-[#6b7a4a]"
+          >
             <option value="wawacity">Wawacity</option>
-            <option value="darkiworld">DarkiWorld</option>
-            <option value="1337x">1337x</option>
           </select>
-          <input [(ngModel)]="searchQuery" [ngModelOptions]="{standalone: true}"
-                 (keydown.enter)="runSearch()"
-                 placeholder="Titre de la série..."
-                 class="flex-1 text-[11px] px-3 py-2 rounded border border-[#1a1f10] bg-[#0c0c0c] text-[#c8d890] placeholder:text-[#3a4022] outline-none focus:border-[#616F39]" />
-          <button (click)="runSearch()" [disabled]="searching()"
-                  class="text-[11px] font-black px-4 py-2 rounded bg-lime text-black transition hover:bg-[#c8d890] disabled:opacity-50">
+          <input
+            [(ngModel)]="searchQuery"
+            [ngModelOptions]="{ standalone: true }"
+            (keydown.enter)="runSearch()"
+            placeholder="Titre de la série..."
+            class="flex-1 text-[11px] px-3 py-2 rounded border border-[#1a1f10] bg-[#0c0c0c] text-[#c8d890] placeholder:text-[#3a4022] outline-none focus:border-[#616F39]"
+          />
+          <button
+            (click)="runSearch()"
+            [disabled]="searching()"
+            class="text-[11px] font-black px-4 py-2 rounded bg-lime text-black transition hover:bg-[#c8d890] disabled:opacity-50"
+          >
             {{ searching() ? '…' : 'SEARCH' }}
           </button>
         </div>
@@ -51,16 +85,31 @@
         @if (searchResults().length > 0) {
           <div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-2 mt-3">
             @for (result of searchResults(); track result.url) {
-              <button (click)="addFromSearch(result)" [disabled]="watchService.isWatching(result.url)"
-                      class="text-left rounded overflow-hidden border border-[#1a1f10] bg-[#0c0c0c] hover:border-lime/40 transition group">
+              <button
+                (click)="addFromSearch(result)"
+                [disabled]="watchService.isWatching(result.url)"
+                class="text-left rounded overflow-hidden border border-[#1a1f10] bg-[#0c0c0c] hover:border-lime/40 transition group"
+              >
                 @if (result.poster_url) {
-                  <img [src]="result.poster_url" [alt]="result.title"
-                       class="w-full aspect-[2/3] object-cover" loading="lazy" />
+                  <img
+                    [src]="result.poster_url"
+                    [alt]="result.title"
+                    class="w-full aspect-[2/3] object-cover"
+                    loading="lazy"
+                  />
                 } @else {
-                  <div class="w-full aspect-[2/3] flex items-center justify-center text-[9px] font-black bg-[#111] text-[#3a4022]">NO IMG</div>
+                  <div
+                    class="w-full aspect-[2/3] flex items-center justify-center text-[9px] font-black bg-[#111] text-[#3a4022]"
+                  >
+                    NO IMG
+                  </div>
                 }
                 <div class="p-1.5">
-                  <p class="text-[10px] font-bold leading-tight line-clamp-2 text-[#c8d890] group-hover:text-lime transition">{{ result.title }}</p>
+                  <p
+                    class="text-[10px] font-bold leading-tight line-clamp-2 text-[#c8d890] group-hover:text-lime transition"
+                  >
+                    {{ result.title }}
+                  </p>
                   <p class="text-[8px] mt-0.5 text-[#3a4022]">{{ result.year ?? '' }}</p>
                 </div>
               </button>
@@ -74,9 +123,18 @@
   <!-- Empty state -->
   @if (notifications().length === 0 && !addPanelOpen()) {
     <div class="flex flex-col items-center justify-center py-24 gap-4">
-      <svg class="w-10 h-10 text-[#2d3520]" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round"
-              d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"/>
+      <svg
+        class="w-10 h-10 text-[#2d3520]"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="1.5"
+        viewBox="0 0 24 24"
+      >
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          d="M14.857 17.082a23.848 23.848 0 005.454-1.31A8.967 8.967 0 0118 9.75v-.7V9A6 6 0 006 9v.75a8.967 8.967 0 01-2.312 6.022c1.733.64 3.56 1.085 5.455 1.31m5.714 0a24.255 24.255 0 01-5.714 0m5.714 0a3 3 0 11-5.714 0"
+        />
       </svg>
       <p class="text-[11px] tracking-widest text-[#3a4022]">AUCUNE SÉRIE SURVEILLÉE</p>
       <p class="text-[10px] text-[#2d3520]">Cliquez sur "+ SURVEILLER" pour ajouter une série</p>
@@ -87,14 +145,23 @@
   @if (notifications().length > 0) {
     <div class="space-y-2">
       @for (notif of notifications(); track notif.id) {
-        <div class="notif-row flex items-center gap-4 px-4 py-3 rounded-lg border border-[#1a1f10] bg-[#0a0a0a]">
-
+        <div
+          class="notif-row flex items-center gap-4 px-4 py-3 rounded-lg border border-[#1a1f10] bg-[#0a0a0a]"
+        >
           <!-- Poster -->
           @if (notif.poster_url) {
-            <img [src]="notif.poster_url" [alt]="notif.title"
-                 class="w-10 h-14 object-cover rounded shrink-0 border border-[#1a1f10]" loading="lazy" />
+            <img
+              [src]="notif.poster_url"
+              [alt]="notif.title"
+              class="w-10 h-14 object-cover rounded shrink-0 border border-[#1a1f10]"
+              loading="lazy"
+            />
           } @else {
-            <div class="w-10 h-14 flex items-center justify-center rounded bg-[#111] border border-[#1a1f10] shrink-0 text-[8px] font-black text-[#3a4022]">NO IMG</div>
+            <div
+              class="w-10 h-14 flex items-center justify-center rounded bg-[#111] border border-[#1a1f10] shrink-0 text-[8px] font-black text-[#3a4022]"
+            >
+              NO IMG
+            </div>
           }
 
           <!-- Info -->
@@ -103,7 +170,9 @@
             <div class="flex items-center gap-3 mt-0.5">
               <span class="text-[9px] font-mono text-[#4a5a2a]">{{ notif.source }}</span>
               <span class="text-[9px] text-[#3a4022]">{{ notif.last_episode_count }} épisodes</span>
-              <span class="text-[9px] text-[#3a4022]">vérifié {{ formatDate(notif.last_checked_at) }}</span>
+              <span class="text-[9px] text-[#3a4022]"
+                >vérifié {{ formatDate(notif.last_checked_at) }}</span
+              >
             </div>
           </div>
 
@@ -111,42 +180,58 @@
           <div class="flex items-center gap-3 shrink-0">
             <div class="flex flex-col items-center gap-1">
               <span class="text-[8px] tracking-widest text-[#3a4022]">AUTO-DL</span>
-              <button (click)="toggleField(notif, 'auto_download')"
-                      class="w-9 h-5 rounded-full transition-colors relative"
-                      [style.background]="notif.auto_download ? 'var(--lime)' : '#1a1f10'">
-                <span class="absolute top-0.5 w-4 h-4 rounded-full bg-black transition-all"
-                      [style.left]="notif.auto_download ? '18px' : '2px'"></span>
+              <button
+                (click)="toggleField(notif, 'auto_download')"
+                class="w-9 h-5 rounded-full transition-colors relative"
+                [style.background]="notif.auto_download ? 'var(--lime)' : '#1a1f10'"
+              >
+                <span
+                  class="absolute top-0.5 w-4 h-4 rounded-full bg-black transition-all"
+                  [style.left]="notif.auto_download ? '18px' : '2px'"
+                ></span>
               </button>
             </div>
             <div class="flex flex-col items-center gap-1">
               <span class="text-[8px] tracking-widest text-[#3a4022]">DISCORD</span>
-              <button (click)="toggleField(notif, 'discord_notify')"
-                      class="w-9 h-5 rounded-full transition-colors relative"
-                      [style.background]="notif.discord_notify ? '#7289da' : '#1a1f10'">
-                <span class="absolute top-0.5 w-4 h-4 rounded-full bg-black transition-all"
-                      [style.left]="notif.discord_notify ? '18px' : '2px'"></span>
+              <button
+                (click)="toggleField(notif, 'discord_notify')"
+                class="w-9 h-5 rounded-full transition-colors relative"
+                [style.background]="notif.discord_notify ? '#7289da' : '#1a1f10'"
+              >
+                <span
+                  class="absolute top-0.5 w-4 h-4 rounded-full bg-black transition-all"
+                  [style.left]="notif.discord_notify ? '18px' : '2px'"
+                ></span>
               </button>
             </div>
           </div>
 
           <!-- Delete -->
-          <button (click)="remove(notif)"
-                  class="shrink-0 w-7 h-7 flex items-center justify-center rounded border border-[#1a1f10] text-[#3a4022] hover:border-[#e8395a]/40 hover:text-[#e8395a] transition-colors"
-                  title="Supprimer">
+          <button
+            (click)="remove(notif)"
+            class="shrink-0 w-7 h-7 flex items-center justify-center rounded border border-[#1a1f10] text-[#3a4022] hover:border-[#e8395a]/40 hover:text-[#e8395a] transition-colors"
+            title="Supprimer"
+          >
             <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+              />
             </svg>
           </button>
-
         </div>
       }
     </div>
   }
-
 </main>
 
 <style>
-  .notif-row { transition: border-color .15s; }
-  .notif-row:hover { border-color: #2d3520; }
+  .notif-row {
+    transition: border-color 0.15s;
+  }
+  .notif-row:hover {
+    border-color: #2d3520;
+  }
 </style>

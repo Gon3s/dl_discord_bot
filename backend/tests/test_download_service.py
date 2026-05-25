@@ -5,7 +5,6 @@ import pytest
 from app.core.exceptions import DownloadError, DownloadNotFoundError
 from app.models.schemas import DownloadCreate
 from app.scrapers.wawacity import WawacityScraper
-from app.scrapers.x1337 import Scraper1337x
 from app.services.download_service import DownloadService
 
 
@@ -106,12 +105,6 @@ class TestScraperForUrl:
     ) -> None:
         scraper = service._scraper_for_url("https://www.wawacity.pizza?p=film&id=1")
         assert isinstance(scraper, WawacityScraper)
-
-    def test_returns_1337x_scraper_for_1337x_url(
-        self, service: DownloadService
-    ) -> None:
-        scraper = service._scraper_for_url("https://www.1337xx.to/torrent/1/test/")
-        assert isinstance(scraper, Scraper1337x)
 
     def test_returns_none_for_dl_protect_url(self, service: DownloadService) -> None:
         assert service._scraper_for_url("https://dl-protect.link/abc123") is None
@@ -224,7 +217,7 @@ class TestRunClientDestination:
         self, service: DownloadService
     ) -> None:
         data = DownloadCreate(
-            source_url="https://www.1337xx.to/torrent/1/test/",
+            source_url="https://www.wawacity.pizza?p=film&id=1-test",
             title="Film",
             media_type="films",
             destination="client",

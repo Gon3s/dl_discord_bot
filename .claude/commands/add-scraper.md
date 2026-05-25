@@ -5,7 +5,6 @@ Scaffolde un nouveau scraper pour la source de données `$ARGUMENTS`.
 1. **Lire les fichiers de référence** avant de créer quoi que ce soit :
    - `backend/app/scrapers/base.py` — interface `BaseScraper`, dataclasses `SearchResult` et `ProviderLinks`, décorateur `@register`
    - `backend/app/scrapers/wawacity.py` — implémentation de référence complète
-   - `backend/app/scrapers/darkiworld.py` — exemple d'implémentation avec session authentifiée
 
 2. **Créer** `backend/app/scrapers/<source_name>.py` avec :
    - Classe héritant de `BaseScraper` avec `@register`

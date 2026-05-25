@@ -20,7 +20,7 @@ via AllDebrid / Real-Debrid, pilotable depuis une interface web ou Discord.
 
 ## ✨ Fonctionnalités
 
-- 🔍 **Recherche unifiée** - Films, séries et mangas sur [Wawacity](https://www.wawacity.city/), [DarkiWorld](https://darkiworld16.com) et [1337x](https://1337x.to) depuis une seule interface
+- 🔍 **Recherche** - Films, séries et mangas sur [Wawacity](https://www.wawacity.city/) depuis une interface web ou Discord
 - ⚡ **Débridage automatique** - Compatible [AllDebrid](https://alldebrid.com) et [Real-Debrid](https://real-debrid.com), résolution des liens dl-protect via Selenium
 - 📺 **Gestion des épisodes** - Sélection de saisons et épisodes directement depuis l'UI
 - 📡 **Progression temps réel** - Suivi des téléchargements via WebSocket
@@ -146,10 +146,6 @@ journalctl -u dl_backend -u discord_bot -f
 | `REALDEBRID_API_TOKEN` | Token API Real-Debrid | `abc123` |
 | `DOWNLOAD_PATH` | Répertoire de destination | `/data/media` |
 | `WAWACITY_URL` | URL de base Wawacity | `https://www.wawacity.city/` |
-| `1337X_URL` | URL de base 1337x | `https://1337x.to` |
-| `DARKIWORLD_URL` | URL de base DarkiWorld | `https://darkiworld16.com` |
-| `DARKIWORLD_EMAIL` | Email du compte DarkiWorld | `user@example.com` |
-| `DARKIWORLD_PASSWORD` | Mot de passe du compte DarkiWorld | `***` |
 | `DATABASE_URL` | SQLite async | `sqlite+aiosqlite:///./dl_bot.db` |
 | `MAX_CONCURRENT_DOWNLOADS` | Téléchargements simultanés | `2` |
 | `SELENIUM_BINARY_LOCATION` | Binaire Chrome pour SeleniumBase | `cft` ou `/usr/bin/chromium` |

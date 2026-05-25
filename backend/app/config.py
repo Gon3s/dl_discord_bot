@@ -1,6 +1,5 @@
 from pathlib import Path
 
-from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 _ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
@@ -16,10 +15,6 @@ class Settings(BaseSettings):
     realdebrid_api_token: str = ""
     download_path: str = "/data/media"
     wawacity_url: str = "https://www.wawacity.city/"
-    darkiworld_url: str = "https://darkiworld16.com"
-    url_1337x: str = Field("https://1337x.to", validation_alias="1337X_URL")
-    darkiworld_email: str = ""
-    darkiworld_password: str = ""
     database_url: str = "sqlite+aiosqlite:///./dl_bot.db"
     max_concurrent_downloads: int = 2
     magnet_poll_timeout_s: int = 120

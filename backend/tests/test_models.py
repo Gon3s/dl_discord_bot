@@ -96,7 +96,7 @@ class TestHistoryModel:
                 title="B",
                 source_url="https://b.com",
                 media_type="serie",
-                source="darkiworld",
+                source="other",
             )
         )
         await db_session.commit()

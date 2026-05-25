@@ -21,7 +21,6 @@ from app.services.debrid import DebridClient, get_debrid_client
 
 _SCRAPER_DOMAINS: dict[str, str] = {
     "wawacity": "wawacity",
-    "1337": "1337x",
 }
 
 logger = logging.getLogger(__name__)

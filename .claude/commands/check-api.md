@@ -45,13 +45,7 @@ cd backend && uv run uvicorn app.main:app --reload --port 8000
    curl -s "http://localhost:8000/api/v1/settings" | python3 -m json.tool
    ```
 
-7. **Source Darkiworld** :
-   ```bash
-   curl -s "http://localhost:8000/api/v1/search?q=test&source=darkiworld&category=films" -w "\nHTTP %{http_code}\n"
-   ```
-   Vérifier : `200` avec résultats si les credentials sont configurés, sinon erreur explicite sans crash backend.
-
-8. **Episodes** :
+7. **Episodes** :
    ```bash
    curl -s "http://localhost:8000/api/v1/episodes?source=wawacity&url=https://example.com" -w "\nHTTP %{http_code}\n"
    ```

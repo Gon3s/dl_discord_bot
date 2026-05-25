@@ -124,7 +124,7 @@ class TestEpisodes:
             mock_get.return_value = mock_scraper
 
             resp = await client.get(
-                "/api/v1/episodes?url=https://darkiworld.com/serie&source=darkiworld"
+                "/api/v1/episodes?url=https://www.wawacity.city/?p=serie&id=1&source=wawacity"
             )
 
         assert resp.status_code == 501

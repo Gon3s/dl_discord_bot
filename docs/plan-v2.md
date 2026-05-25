@@ -35,9 +35,7 @@ dl_discord_bot/
 │   │   │   └── events.py        # Bus d'événements WS (dict asyncio.Queue)
 │   │   ├── scrapers/
 │   │   │   ├── base.py          # Abstract BaseScraper
-│   │   │   ├── wawacity.py      # Migration de parser.py
-│   │   │   ├── darkiworld.py    # Implémentation avec session authentifiée
-│   │   │   └── x1337.py         # Recherche 1337x + extraction magnet
+│   │   │   └── wawacity.py      # Migration de parser.py
 │   │   ├── services/
 │   │   │   ├── download_service.py
 │   │   │   └── alldebrid.py     # Migration async de alldebrid.py
@@ -79,7 +77,6 @@ dl_discord_bot/
 
 ```
 GET  /api/v1/search?q=...&source=wawacity&category=films&year=2024&limit=10
-GET  /api/v1/search?q=...&source=1337x&category=films&limit=10
 POST /api/v1/downloads        body: { source_url, media_type, destination: "server"|"client" }
 GET  /api/v1/downloads        → liste avec statut/progression
 GET  /api/v1/downloads/{id}
@@ -135,8 +132,6 @@ class BaseScraper(ABC):
 ```
 
 - `wawacity.py` — migration de `parser.py` (Selenium + BS4)
-- `darkiworld.py` — implémenté (login Selenium + API JSON)
-- `x1337.py` — implémenté (aiohttp + BS4, magnets filtrés sur seeders > 0)
 - `scrapers/base.py` expose le registre automatique selon `source`
 
 ### Flux magnet fournisseur de débridage
@@ -145,7 +140,7 @@ class BaseScraper(ABC):
   (`alldebrid` ou `realdebrid`), poll le statut, puis récupère les liens directs.
 - Les fichiers sont triés par taille décroissante côté client fournisseur ; le
   premier lien est utilisé comme fichier principal.
-- Le flux DDL existant reste inchangé pour Wawacity/DarkiWorld.
+- Le flux DDL existant reste inchangé pour Wawacity.
 
 ### Suppression du code inutile (refacto)
 - Supprimer `pandas` (remplacé par SQLite)
