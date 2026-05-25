@@ -3,12 +3,17 @@ services:
     image: ghcr.io/gon3s/dl-discord-bot-backend:latest
     ports:
       - "8765:8000"
-    env_file: .env
     environment:
-      # Chromium installé dans l'image
       SELENIUM_BINARY_LOCATION: /usr/bin/chromium
-      # Base de données dans un volume dédié (séparé du code applicatif)
       DATABASE_URL: sqlite+aiosqlite:////app/data/dl_bot.db
+      DEBRID_PROVIDER: ${DEBRID_PROVIDER:-alldebrid}
+      ALLDEBRID_API_KEY: ${ALLDEBRID_API_KEY:-}
+      REALDEBRID_API_TOKEN: ${REALDEBRID_API_TOKEN:-}
+      DOWNLOAD_PATH: ${DOWNLOAD_PATH:-/data/media}
+      WAWACITY_URL: ${WAWACITY_URL:-https://www.wawacity.city/}
+      MAX_CONCURRENT_DOWNLOADS: ${MAX_CONCURRENT_DOWNLOADS:-2}
+      BOT_NOTIFY_URL: ${BOT_NOTIFY_URL:-}
+      APP_PUBLIC_URL: ${APP_PUBLIC_URL:-}
     volumes:
       - media:/data/media
       - backend_db:/app/data
@@ -16,10 +21,10 @@ services:
 
   bot:
     image: ghcr.io/gon3s/dl-discord-bot-bot:latest
-    env_file: .env
     environment:
-      # Résolution interne Docker — remplace http://localhost:8000 du .env
       BACKEND_URL: http://backend:8000
+      DISCORD_TOKEN: ${DISCORD_TOKEN}
+      DISCORD_GUILD: ${DISCORD_GUILD:-}
     depends_on:
       - backend
     restart: unless-stopped
