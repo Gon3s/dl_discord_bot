@@ -10,8 +10,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from sqlalchemy import func, select
 
-logger = logging.getLogger(__name__)
-
 from app.api.v1.router import router as api_v1_router
 from app.api.v1.settings import RUNTIME_SETTINGS, _runtime_value
 from app.api.ws import router as ws_router
@@ -21,6 +19,8 @@ from app.database import AsyncSessionLocal, Base, engine
 from app.models.orm import Download, History, Setting
 from app.services.download_service import DownloadService
 from app.services.notification_service import notification_scheduler
+
+logger = logging.getLogger(__name__)
 
 
 async def _run_download(download_id: str) -> None:

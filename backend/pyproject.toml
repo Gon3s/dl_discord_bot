@@ -23,6 +23,7 @@ testpaths = ["tests"]
 [tool.ruff]
 line-length = 88
 target-version = "py312"
+exclude = ["alembic/"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP"]
