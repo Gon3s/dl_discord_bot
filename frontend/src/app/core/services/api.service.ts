@@ -8,6 +8,7 @@ import type { SettingRead } from '../models/setting.type';
 import type { ApiStatus } from '../models/api-status.type';
 import type { Episode } from '../models/episode.type';
 import type { Favorite, FavoriteCreate } from '../models/favorite.type';
+import type { Notification, NotificationCreate, NotificationPatch } from '../models/notification.type';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
@@ -91,5 +92,25 @@ export class ApiService {
     let params = new HttpParams().set('url', url).set('source', source);
     if (providers?.length) params = params.set('providers', providers.join(','));
     return this.http.get<Episode[]>(`${this.base}/episodes`, { params });
+  }
+
+  testDiscordNotification(): Observable<void> {
+    return this.http.post<void>(`${this.base}/notifications/test-discord`, {});
+  }
+
+  getNotifications(): Observable<Notification[]> {
+    return this.http.get<Notification[]>(`${this.base}/notifications`);
+  }
+
+  addNotification(payload: NotificationCreate): Observable<Notification> {
+    return this.http.post<Notification>(`${this.base}/notifications`, payload);
+  }
+
+  removeNotification(id: string): Observable<void> {
+    return this.http.delete<void>(`${this.base}/notifications/${id}`);
+  }
+
+  patchNotification(id: string, patch: NotificationPatch): Observable<Notification> {
+    return this.http.patch<Notification>(`${this.base}/notifications/${id}`, patch);
   }
 }

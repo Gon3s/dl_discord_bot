@@ -2,11 +2,12 @@ import { Component, signal, computed, inject, ChangeDetectionStrategy, DestroyRe
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, ActivatedRoute } from '@angular/router';
 import { EMPTY, forkJoin } from 'rxjs';
 import { ApiService } from '#core/services/api.service';
 import { SearchStateService } from '#core/services/search-state.service';
 import { FavoriteService } from '#core/services/favorite.service';
+import { NotificationWatchService } from '#core/services/notification-watch.service';
 import { CATEGORIES } from '#core/constants/media';
 import type { SearchResult } from '#core/models/search.type';
 import type { StartDownloadPayload } from '#core/models/download.type';
@@ -23,9 +24,11 @@ const PREFERRED_PROVIDERS = ['Turbobit', 'Rapidgator', '1fichier'];
 export class SearchComponent {
   private readonly api = inject(ApiService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly state = inject(SearchStateService);
   protected readonly favorites = inject(FavoriteService);
+  protected readonly watchService = inject(NotificationWatchService);
 
   protected get query() { return this.state.query; }
   protected get category() { return this.state.category; }
@@ -107,6 +110,17 @@ export class SearchComponent {
     if (pending) {
       this.state.pendingResult.set(null);
       this.openResult(pending);
+    }
+
+    const params = this.route.snapshot.queryParamMap;
+    const q = params.get('q');
+    if (q) {
+      this.state.query.set(q);
+      const cat = params.get('category');
+      const src = params.get('source');
+      if (cat) this.state.category.set(cat);
+      if (src) this.state.setSource(src);
+      this.search();
     }
   }
 

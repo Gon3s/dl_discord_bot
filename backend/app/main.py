@@ -1,4 +1,5 @@
 import csv
+import logging
 import uuid
 from contextlib import asynccontextmanager
 from datetime import UTC, datetime
@@ -9,14 +10,17 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from sqlalchemy import func, select
 
+logger = logging.getLogger(__name__)
+
 from app.api.v1.router import router as api_v1_router
 from app.api.v1.settings import RUNTIME_SETTINGS, _runtime_value
 from app.api.ws import router as ws_router
 from app.config import settings as app_settings
 from app.core.queue import download_queue
 from app.database import AsyncSessionLocal, Base, engine
-from app.models.orm import History, Setting
+from app.models.orm import Download, History, Setting
 from app.services.download_service import DownloadService
+from app.services.notification_service import notification_scheduler
 
 
 async def _run_download(download_id: str) -> None:
@@ -71,6 +75,10 @@ async def _seed_settings() -> None:
         "debrid_provider": app_settings.debrid_provider,
         "alldebrid_api_key": app_settings.alldebrid_api_key,
         "realdebrid_api_token": app_settings.realdebrid_api_token,
+        "bot_notify_url": app_settings.bot_notify_url,
+        "app_public_url": app_settings.app_public_url,
+        "notification_enabled": str(app_settings.notification_enabled),
+        "notification_interval_hours": str(app_settings.notification_interval_hours),
     }
     async with AsyncSessionLocal() as session:
         for key, value in defaults.items():
@@ -95,6 +103,18 @@ async def _load_runtime_settings() -> None:
                 )
 
 
+async def _resume_pending_downloads() -> None:
+    """Reload pending downloads from database and enqueue them."""
+    async with AsyncSessionLocal() as session:
+        result = await session.execute(
+            select(Download.id).where(Download.status == "queued")
+        )
+        pending_ids = result.scalars().all()
+        for download_id in pending_ids:
+            await download_queue.enqueue(download_id)
+            logger.info("Resumed pending download: %s", download_id)
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     async with engine.begin() as conn:
@@ -104,7 +124,10 @@ async def lifespan(app: FastAPI):
     await _load_runtime_settings()
     download_queue.set_handler(_run_download)
     download_queue.start()
+    await _resume_pending_downloads()
+    notification_scheduler.start()
     yield
+    await notification_scheduler.stop()
     await download_queue.stop()
     await engine.dispose()
 

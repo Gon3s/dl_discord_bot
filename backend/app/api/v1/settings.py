@@ -11,17 +11,23 @@ router = APIRouter()
 
 RUNTIME_SETTINGS = {
     "alldebrid_api_key",
+    "app_public_url",
+    "bot_notify_url",
     "debrid_provider",
     "download_path",
     "max_concurrent_downloads",
+    "notification_enabled",
+    "notification_interval_hours",
     "realdebrid_api_token",
     "wawacity_url",
 }
 
 
-def _runtime_value(key: str, value: str) -> str | int:
-    if key == "max_concurrent_downloads":
+def _runtime_value(key: str, value: str) -> str | int | bool:
+    if key in ("max_concurrent_downloads", "notification_interval_hours"):
         return int(value)
+    if key == "notification_enabled":
+        return value.lower() in ("true", "1", "yes")
     if key == "debrid_provider":
         return value.lower()
     return value

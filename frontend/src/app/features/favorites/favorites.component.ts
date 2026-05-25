@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { NgClass } from '@angular/common';
 import { EMPTY, forkJoin } from 'rxjs';
 import { FavoriteService } from '#core/services/favorite.service';
+import { NotificationWatchService } from '#core/services/notification-watch.service';
 import { SearchStateService } from '#core/services/search-state.service';
 import { ApiService } from '#core/services/api.service';
 import { CATEGORIES } from '#core/constants/media';
@@ -28,6 +29,7 @@ export class FavoritesComponent {
   private readonly api = inject(ApiService);
   private readonly destroyRef = inject(DestroyRef);
   protected readonly favoriteService = inject(FavoriteService);
+  protected readonly watchService = inject(NotificationWatchService);
   protected readonly state = inject(SearchStateService);
 
   protected readonly categories = ['tous', ...CATEGORIES];

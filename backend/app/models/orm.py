@@ -73,3 +73,19 @@ class Favorite(Base):
     added_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC)
     )
+
+
+class Notification(Base):
+    __tablename__ = "notifications"
+
+    id: Mapped[str] = mapped_column(
+        String(36), primary_key=True, default=lambda: str(uuid.uuid4())
+    )
+    title: Mapped[str] = mapped_column(String(500))
+    url: Mapped[str] = mapped_column(Text, unique=True)
+    source: Mapped[str] = mapped_column(String(100))
+    poster_url: Mapped[str | None] = mapped_column(Text, nullable=True)
+    last_episode_count: Mapped[int] = mapped_column(Integer, default=0)
+    last_checked_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    auto_download: Mapped[bool] = mapped_column(default=False)
+    discord_notify: Mapped[bool] = mapped_column(default=False)

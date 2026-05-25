@@ -352,9 +352,13 @@ class WawacityScraper(BaseScraper):
             if btn_ok:
                 sb.highlight_click("#subButton")
                 logger.debug("Clicked #subButton (enabled)")
-            else:
-                logger.warning("Button still disabled after Turnstile, using JS")
+            elif sub_present:
+                logger.warning("Button present but disabled after Turnstile, using JS")
                 sb.js_click("#subButton")
+            else:
+                logger.warning(
+                    "Button not found on page, skipping click and searching for links directly"
+                )
 
             # Chercher le lien résultant avec plusieurs stratégies
             try:

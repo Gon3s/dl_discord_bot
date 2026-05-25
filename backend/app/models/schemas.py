@@ -156,6 +156,35 @@ class FavoriteRead(BaseModel):
     model_config = {"from_attributes": True}
 
 
+# --- Notifications ---
+
+
+class NotificationCreate(BaseModel):
+    title: str
+    url: str
+    source: str
+    poster_url: str | None = None
+
+
+class NotificationRead(BaseModel):
+    id: str
+    title: str
+    url: str
+    source: str
+    poster_url: str | None
+    last_episode_count: int
+    last_checked_at: datetime | None
+    auto_download: bool
+    discord_notify: bool
+
+    model_config = {"from_attributes": True}
+
+
+class NotificationPatch(BaseModel):
+    auto_download: bool | None = None
+    discord_notify: bool | None = None
+
+
 # --- WebSocket events ---
 
 

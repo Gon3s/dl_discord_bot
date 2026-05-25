@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from client import BackendClient
 from cogs.download import DownloadCog
 from cogs.search import SearchCog
+from notify_server import start_notify_server
 
 load_dotenv(Path(__file__).resolve().parents[1] / ".env")
 
@@ -47,9 +48,11 @@ async def main() -> None:
     async def on_ready() -> None:
         logger.info("Bot connecté en tant que %s", bot.user)
 
+    notify_runner = await start_notify_server(bot)
     try:
         await bot.start(TOKEN)
     finally:
+        await notify_runner.cleanup()
         await backend.close()
 
 

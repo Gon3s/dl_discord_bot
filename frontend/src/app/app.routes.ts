@@ -6,5 +6,6 @@ export const routes: Routes = [
   { path: 'downloads', loadChildren: () => import('./features/downloads/downloads.routes') },
   { path: 'history', loadChildren: () => import('./features/history/history.routes') },
   { path: 'favorites', loadChildren: () => import('./features/favorites/favorites.routes') },
+  { path: 'notifications', loadChildren: () => import('./features/notifications/notifications.routes') },
   { path: 'settings', loadChildren: () => import('./features/settings/settings.routes') },
 ];
