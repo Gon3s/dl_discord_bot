@@ -277,7 +277,12 @@ class WawacityScraper(BaseScraper):
     def _fetch_provider_links(
         self, url: str, providers: list[str]
     ) -> list[ProviderLinks]:
-        driver = Driver(uc=True, headless=True)
+        driver = Driver(
+            uc=True,
+            headless=True,
+            binary_location=settings.selenium_binary_location or None,
+            chromium_arg="--no-sandbox --disable-dev-shm-usage",
+        )
         try:
             driver.get(url)
             logger.debug("Loading provider page: %s", url)
@@ -322,7 +327,12 @@ class WawacityScraper(BaseScraper):
 
     def _dl_protect_sync(self, url: str) -> str:
         binary_location = settings.selenium_binary_location or None
-        with SB(uc=True, test=False, binary_location=binary_location) as sb:
+        with SB(
+            uc=True,
+            test=False,
+            binary_location=binary_location,
+            chromium_arg="--no-sandbox --disable-dev-shm-usage",
+        ) as sb:
             logger.debug("Opening dl-protect: %s", url)
             sb.driver.uc_open_with_reconnect(url, reconnect_time=20)
 

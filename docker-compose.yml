@@ -17,6 +17,7 @@ services:
     volumes:
       - media:/data/media
       - backend_db:/app/data
+    shm_size: '2gb'
     restart: unless-stopped
 
   bot:
