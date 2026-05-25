@@ -68,14 +68,56 @@ uv run python main.py
 
 ### Production (Docker Compose)
 
-```bash
-cp .env.example .env  # remplir DISCORD_TOKEN, ALLDEBRID_API_KEY, etc.
-docker compose up -d --build
+Les images sont buildées automatiquement par GitHub Actions et poussées sur `ghcr.io` à chaque push sur `main`. Le `docker-compose.yml` référence ces images — pas de `build:` local.
+
+#### Déploiement via Portainer (méthode utilisée en prod)
+
+Portainer → Stacks → Add stack → Repository → `docker-compose.yml`
+
+Variables à configurer dans l'UI Portainer (section "Environment variables") :
+
+```
+DISCORD_TOKEN=...
+DISCORD_GUILD=...
+DEBRID_PROVIDER=alldebrid
+ALLDEBRID_API_KEY=...
+DOWNLOAD_PATH=/data/media
+WAWACITY_URL=https://www.wawacity.city/
+MAX_CONCURRENT_DOWNLOADS=2
+# Optionnel :
+BOT_NOTIFY_URL=...
+APP_PUBLIC_URL=http://<serveur>:8765
 ```
 
-- `BACKEND_URL` et `SELENIUM_BINARY_LOCATION` sont surchargés automatiquement par `docker-compose.yml`.
-- `DATABASE_URL` pointe vers le volume `backend_db` (`/app/data/dl_bot.db`).
-- Fichiers téléchargés dans le volume `media` (`/data/media`).
+**Important** : Portainer n'écrit pas de `.env` sur disque — les variables sont injectées via substitution `${VAR}` dans le compose. Ne pas utiliser `env_file:` dans le compose pour Portainer.
+
+Mise à jour après un push :
+1. GitHub Actions rebuild les images (~10 min)
+2. Portainer → Stack → **"Pull and redeploy"**
+
+#### Déploiement direct sur le serveur
+
+```bash
+cp .env.example .env  # remplir les variables
+docker compose up -d
+```
+
+#### Première migration (si DB existante à migrer)
+
+```bash
+# Copier l'ancienne DB dans le volume Docker
+docker volume create dl_discord_bot_backend_db
+docker run --rm \
+  -v dl_discord_bot_backend_db:/app/data \
+  -v "$(pwd)/backend":/src \
+  alpine cp /src/dl_bot.db /app/data/dl_bot.db
+
+# Appliquer les migrations après démarrage
+docker compose exec backend uv run alembic upgrade head
+```
+
+Ports : **`:8765`** (externe) → `:8000` (interne container).
+Volumes : `media` → `/data/media`, `backend_db` → `/app/data/dl_bot.db`.
 
 ### Production (systemd)
 
