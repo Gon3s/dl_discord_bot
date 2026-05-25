@@ -357,7 +357,8 @@ class WawacityScraper(BaseScraper):
                 sb.js_click("#subButton")
             else:
                 logger.warning(
-                    "Button not found on page, skipping click and searching for links directly"
+                    "Button not found on page, skipping click"
+                    " and searching for links directly"
                 )
 
             # Chercher le lien résultant avec plusieurs stratégies
@@ -378,9 +379,9 @@ class WawacityScraper(BaseScraper):
             except Exception:
                 pass
 
-            # Fallback : n'importe quel lien externe sur la page (hors dl-protect lui-même)
-            # dl-protect peut rediriger vers un intermédiaire (ex: trbt.cc) au lieu d'un
-            # provider direct — AllDebrid sait résoudre ces intermédiaires.
+            # Fallback : n'importe quel lien externe sur la page
+            # (hors dl-protect lui-même) — dl-protect peut rediriger vers un
+            # intermédiaire (ex: trbt.cc) qu'AllDebrid sait résoudre.
             try:
                 all_links = sb.find_elements(By.XPATH, "//a[@href]")
                 for a in all_links:
