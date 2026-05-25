@@ -1,0 +1,35 @@
+services:
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    ports:
+      - "8000:8000"
+    env_file: .env
+    environment:
+      # Chromium installé dans l'image — override l'éventuelle valeur vide du .env
+      SELENIUM_BINARY_LOCATION: /usr/bin/chromium
+      # Base de données dans un volume dédié (séparé du code applicatif)
+      DATABASE_URL: sqlite+aiosqlite:////app/data/dl_bot.db
+    volumes:
+      - media:/data/media
+      - backend_db:/app/data
+    restart: unless-stopped
+
+  bot:
+    build:
+      context: .
+      dockerfile: bot/Dockerfile
+    env_file: .env
+    environment:
+      # Résolution interne Docker — remplace http://localhost:8000 du .env
+      BACKEND_URL: http://backend:8000
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+volumes:
+  media:
+    driver: local
+  backend_db:
+    driver: local

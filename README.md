@@ -112,7 +112,30 @@ uv run python main.py
 
 > En développement, le proxy Angular redirige `/api` et `/ws` vers `:8000` automatiquement.
 
-### 3. Production (systemd)
+### 3. Production — Docker Compose
+
+```bash
+cp .env.example .env   # puis remplir DISCORD_TOKEN, ALLDEBRID_API_KEY, etc.
+docker compose up -d --build
+```
+
+- **`backend`** — FastAPI + Angular buildé, accessible sur `:8000`
+- **`bot`** — Discord thin client, se connecte à `backend` via le réseau interne Docker
+
+```bash
+# Voir les logs
+docker compose logs -f
+
+# Mise à jour après un pull
+docker compose up -d --build
+
+# Arrêter la stack
+docker compose down
+```
+
+> Les données sont persistées dans deux volumes Docker nommés : `media` (fichiers téléchargés) et `backend_db` (base SQLite).
+
+### 4. Production (systemd — alternative)
 
 ```bash
 bash deploy/install.sh
