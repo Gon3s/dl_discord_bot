@@ -1,13 +1,13 @@
-# CLAUDE.md — dl_discord_bot v2
+# CLAUDE.md - dl_discord_bot v2
 
 ## Présentation du projet
 
 Application trois tiers pour rechercher et télécharger des films/séries/mangas
 depuis Wawacity via AllDebrid.
 
-- **`backend/`** — FastAPI (Python 3.12) : toute la logique scraping, debrid, téléchargement, BDD
-- **`frontend/`** — Angular 21 + Tailwind CSS v3 : interface web principale
-- **`bot/`** — Discord Bot thin client : appelle le backend via HTTP
+- **`backend/`** - FastAPI (Python 3.12) : toute la logique scraping, debrid, téléchargement, BDD
+- **`frontend/`** - Angular 21 + Tailwind CSS v3 : interface web principale
+- **`bot/`** - Discord Bot thin client : appelle le backend via HTTP
 
 Docs complètes : `docs/plan-v2.md` et `docs/architecture-v2.md`
 
@@ -68,7 +68,7 @@ uv run python main.py
 
 ### Production (Docker Compose)
 
-Les images sont buildées automatiquement par GitHub Actions et poussées sur `ghcr.io` à chaque push sur `main`. Le `docker-compose.yml` référence ces images — pas de `build:` local.
+Les images sont buildées automatiquement par GitHub Actions et poussées sur `ghcr.io` à chaque push sur `main`. Le `docker-compose.yml` référence ces images - pas de `build:` local.
 
 #### Déploiement via Portainer (méthode utilisée en prod)
 
@@ -89,7 +89,7 @@ BOT_NOTIFY_URL=...
 APP_PUBLIC_URL=http://<serveur>:8765
 ```
 
-**Important** : Portainer n'écrit pas de `.env` sur disque — les variables sont injectées via substitution `${VAR}` dans le compose. Ne pas utiliser `env_file:` dans le compose pour Portainer.
+**Important** : Portainer n'écrit pas de `.env` sur disque - les variables sont injectées via substitution `${VAR}` dans le compose. Ne pas utiliser `env_file:` dans le compose pour Portainer.
 
 Mise à jour après un push :
 1. GitHub Actions rebuild les images (~10 min)
@@ -133,7 +133,7 @@ cd frontend && ng build --configuration production
 sudo systemctl restart dl_backend.service
 ```
 
-> L'interface web est accessible sur **`http://<serveur>:8000`** — servie directement par FastAPI.
+> L'interface web est accessible sur **`http://<serveur>:8000`** - servie directement par FastAPI.
 
 ### WSL / Node
 
@@ -157,11 +157,15 @@ Copier `.env.example` → `.env` à la racine. Variables clés :
 |---|---|
 | `DISCORD_TOKEN` | Token du bot Discord |
 | `DISCORD_GUILD` | ID du serveur Discord |
+| `DEBRID_PROVIDER` | Fournisseur debrid (`alldebrid` ou `realdebrid`) |
 | `ALLDEBRID_API_KEY` | Clé API AllDebrid |
+| `REALDEBRID_API_TOKEN` | Token API Real-Debrid |
 | `DOWNLOAD_PATH` | Chemin de stockage des fichiers (ex: `/data/media`) |
 | `WAWACITY_URL` | URL de base Wawacity (ex: `https://www.wawacity.city/`) |
 | `DATABASE_URL` | `sqlite+aiosqlite:///./dl_bot.db` |
 | `MAX_CONCURRENT_DOWNLOADS` | Nombre de téléchargements simultanés (défaut: 2) |
+| `CLOUDFLARE_TUNNEL_TOKEN` | Token tunnel Cloudflare (optionnel) |
+| `SELENIUM_BINARY_LOCATION` | Binaire Chrome pour SeleniumBase (vide = auto) |
 | `BACKEND_URL` | URL du backend pour le bot (ex: `http://localhost:8000`) |
 
 ---
@@ -209,7 +213,7 @@ class MonScraper(BaseScraper):
 Aucune autre modification n'est nécessaire. Le registre est automatique.
 
 **Sources actuelles :**
-- `wawacity` — implémenté (`backend/app/scrapers/wawacity.py`)
+- `wawacity` - implémenté (`backend/app/scrapers/wawacity.py`)
 
 ---
 
@@ -220,19 +224,19 @@ Aucune autre modification n'est nécessaire. Le registre est automatique.
 - **Linter** : `ruff check`
 - `ruff` est une dépendance dev du backend : utiliser `cd backend && uv run ruff check`
 - **Type hints** obligatoires sur toutes les fonctions publiques
-- Async partout dans le backend — pas de `requests` ni d'appels bloquants dans les coroutines
+- Async partout dans le backend - pas de `requests` ni d'appels bloquants dans les coroutines
 - Les appels Selenium (bloquants) doivent être wrappés dans `asyncio.get_event_loop().run_in_executor(None, ...)`
-- **Selenium ne supporte pas la parallélisation** — utiliser `_dl_protect_sem = asyncio.Semaphore(1)` pour sérialiser les sessions Chrome
-- Exceptions custom dans `app/core/exceptions.py` — pas de `assert False` ni de `print()`
+- **Selenium ne supporte pas la parallélisation** - utiliser `_dl_protect_sem = asyncio.Semaphore(1)` pour sérialiser les sessions Chrome
+- Exceptions custom dans `app/core/exceptions.py` - pas de `assert False` ni de `print()`
 
 ### TypeScript (frontend)
-- **Angular 21 standalone components** uniquement — pas de NgModule.
+- **Angular 21 standalone components** uniquement - pas de NgModule.
 - **Tailwind CSS v3.4** actuellement. La migration v4 est suivie par l'issue #71.
 - **`signal()` / `computed()`** pour l'état local quand c'est adapté.
 - **`linkedSignal()`** pour l'état dérivé mais modifiable.
 - **`resource`/RxJS** selon le pattern déjà présent dans la feature concernée.
-- **`takeUntilDestroyed()`** pour les subscriptions dans le constructeur — remplace `OnDestroy + Subscription`
-- `ApiService` pour tous les appels HTTP — pas de `HttpClient` en direct dans les composants
+- **`takeUntilDestroyed()`** pour les subscriptions dans le constructeur - remplace `OnDestroy + Subscription`
+- `ApiService` pour tous les appels HTTP - pas de `HttpClient` en direct dans les composants
 - `WsService` pour toutes les connexions WebSocket
 - `inject()` à la place de l'injection par constructeur
 
@@ -246,8 +250,11 @@ POST   /api/v1/downloads
 GET    /api/v1/downloads
 GET    /api/v1/downloads/{id}
 DELETE /api/v1/downloads/{id}
-POST   /api/v1/downloads/{id}/retry   ← reset + re-enqueue si status=error
+POST   /api/v1/downloads/{id}/retry   <- reset + re-enqueue si status=error
 GET    /api/v1/episodes
+GET    /api/v1/favorites
+POST   /api/v1/favorites
+DELETE /api/v1/favorites/{id}
 GET    /api/v1/history
 DELETE /api/v1/history/{id}
 GET    /api/v1/settings
@@ -283,9 +290,9 @@ Schémas Pydantic dans `backend/app/models/schemas.py`.
 
 ## Workflow issue
 
-1. `/start-issue {numero} {nom}` — crée la branche `feat/{numero}-{nom}` depuis `main`
+1. `/start-issue {numero} {nom}` - crée la branche `feat/{numero}-{nom}` depuis `main`
 2. Implémenter avec les skills ci-dessous
-3. `/finish-issue {numero}` — met à jour docs + ferme l'issue + ouvre la PR
+3. `/finish-issue {numero}` - met à jour docs + ferme l'issue + ouvre la PR
 4. **Attendre la revue et validation de la PR avant de merger**
 5. Après merge : `/deploy` pour mettre en prod
 
