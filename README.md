@@ -5,6 +5,7 @@
 **Self-hosted media downloader with a web UI and Discord bot.**  
 Search movies, TV shows and manga, debrид links via AllDebrid / Real-Debrid, track downloads in real time.
 
+[![Release](https://img.shields.io/github/v/release/Gon3s/dl_discord_bot?color=blue)](https://github.com/Gon3s/dl_discord_bot/releases)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Angular](https://img.shields.io/badge/Angular-21-DD0031?logo=angular&logoColor=white)](https://angular.dev/)
