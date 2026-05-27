@@ -1,0 +1,21 @@
+meta {
+  name: Retry download
+  type: http
+  seq: 6
+}
+
+post {
+  url: {{baseUrl}}/api/v1/downloads/{{downloadId}}/retry
+  body: none
+  auth: none
+}
+
+tests {
+  test("status 200 or 201", function() {
+    expect(res.status).to.be.oneOf([200, 201]);
+  });
+
+  test("has download_id", function() {
+    expect(res.body).to.have.property("download_id");
+  });
+}

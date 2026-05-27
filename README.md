@@ -2,14 +2,14 @@
 
 # 🎬 dl_discord_bot
 
-**Application trois tiers pour rechercher et télécharger des films, séries et mangas**  
-via AllDebrid / Real-Debrid, pilotable depuis une interface web ou Discord.
+**Self-hosted media downloader with a web UI and Discord bot.**  
+Search movies, TV shows and manga, debrид links via AllDebrid / Real-Debrid, track downloads in real time.
 
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Angular](https://img.shields.io/badge/Angular-21-DD0031?logo=angular&logoColor=white)](https://angular.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-3.4-38B2AC?logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Tests](https://img.shields.io/badge/tests-140%20passed-4CAF50?logo=pytest&logoColor=white)](backend/tests/)
+[![Tests](https://img.shields.io/badge/tests-120%20passed-4CAF50?logo=pytest&logoColor=white)](backend/tests/)
 [![License](https://img.shields.io/badge/license-MIT-lightgrey)](LICENSE)
 
 ![Demo](demo/demo.gif)
@@ -18,36 +18,103 @@ via AllDebrid / Real-Debrid, pilotable depuis une interface web ou Discord.
 
 ---
 
-## ✨ Fonctionnalités
+## What is this?
 
-- 🔍 **Recherche** - Films, séries et mangas sur [Wawacity](https://www.wawacity.city/) depuis une interface web ou Discord
-- ⚡ **Débridage automatique** - Compatible [AllDebrid](https://alldebrid.com) et [Real-Debrid](https://real-debrid.com), résolution des liens dl-protect via Selenium
-- 📺 **Gestion des épisodes** - Sélection de saisons et épisodes directement depuis l'UI
-- 📡 **Progression temps réel** - Suivi des téléchargements via WebSocket
-- 📂 **Historique & favoris** - Consultation et recherche des téléchargements passés
-- ⚙️ **Paramètres dynamiques** - Configuration modifiable depuis l'interface sans redémarrage
-- 🤖 **Bot Discord** - Lancer une recherche ou un téléchargement depuis n'importe quel canal
+A three-tier application built for personal use on a home server:
+
+- **Web UI** (Angular 21) - search, browse episodes, manage the download queue, history, favorites
+- **FastAPI backend** - scraping, debrid resolution, async download queue, SQLite persistence, WebSocket progress
+- **Discord bot** - trigger searches and downloads from any channel without opening a browser
+
+Everything runs in Docker. One port (`:8765`) exposes both the API and the pre-built frontend.
 
 ---
 
-## 📸 Aperçu
+## ✨ Features
+
+- 🔍 **Search** - movies, TV shows, manga from a single interface
+- ⚡ **Auto-debrid** - AllDebrid and Real-Debrid support, dl-protect link resolution via SeleniumBase
+- 📺 **Episode picker** - browse seasons and individual episodes before downloading
+- 📡 **Real-time progress** - WebSocket-based download tracking
+- 📂 **History & favorites** - searchable download history, save titles for later
+- ⚙️ **Live settings** - change debrid provider, download path and concurrency from the UI without restarting
+- 🤖 **Discord bot** - `!search`, `!url`, `!status` slash commands
+- 🌐 **Cloudflare Tunnel** - optional, for remote access without port-forwarding
+
+---
+
+## 📸 Screenshots
 
 <details>
-<summary>Voir les screenshots</summary>
+<summary>Expand</summary>
 
-| Recherche | Modal téléchargement |
-|:---------:|:--------------------:|
+| Search | Download modal |
+|:------:|:--------------:|
 | ![Search](demo/screenshots/02_search_results.png) | ![Modal](demo/screenshots/03_download_modal.png) |
 
-| Sélection d'épisodes | File de téléchargement |
-|:--------------------:|:----------------------:|
+| Episode picker | Download queue |
+|:--------------:|:--------------:|
 | ![Episodes](demo/screenshots/05_episodes_panel.png) | ![Downloads](demo/screenshots/06_downloads.png) |
 
-| Historique | Paramètres |
-|:----------:|:----------:|
+| History | Settings |
+|:-------:|:--------:|
 | ![History](demo/screenshots/07_history.png) | ![Settings](demo/screenshots/08_settings.png) |
 
 </details>
+
+---
+
+## 🚀 Quick start (Docker)
+
+**Minimum required - copy, fill in two values, run:**
+
+```yaml
+# docker-compose.minimal.yml
+services:
+  backend:
+    image: ghcr.io/gon3s/dl-discord-bot-backend:latest
+    ports:
+      - "8765:8000"
+    environment:
+      DEBRID_PROVIDER: alldebrid
+      ALLDEBRID_API_KEY: YOUR_KEY
+      DOWNLOAD_PATH: /data/media
+    volumes:
+      - media:/data/media
+      - backend_db:/app/data
+    shm_size: '2gb'
+    restart: unless-stopped
+volumes:
+  media:
+  backend_db:
+```
+
+```bash
+docker compose -f docker-compose.minimal.yml up -d
+# Open http://localhost:8765
+```
+
+**Full stack with Discord bot and optional Cloudflare Tunnel:**
+
+```bash
+cp .env.example .env   # fill in the variables below
+docker compose up -d
+```
+
+```bash
+# .env - required
+DISCORD_TOKEN=your_discord_bot_token
+DISCORD_GUILD=your_server_id
+DEBRID_PROVIDER=alldebrid        # or realdebrid
+ALLDEBRID_API_KEY=your_key       # or REALDEBRID_API_TOKEN=
+DOWNLOAD_PATH=/data/media
+
+# .env - optional
+CLOUDFLARE_TUNNEL_TOKEN=         # for remote access without port-forwarding
+MAX_CONCURRENT_DOWNLOADS=2
+```
+
+Images are built by GitHub Actions on every push to `main` and published to `ghcr.io`.
 
 ---
 
@@ -55,173 +122,83 @@ via AllDebrid / Real-Debrid, pilotable depuis une interface web ou Discord.
 
 ```
 dl_discord_bot/
-├── backend/        FastAPI · SQLite · Alembic · aiohttp · SeleniumBase
-├── frontend/       Angular 21 · Tailwind CSS v3 · Signals · WebSocket
-├── bot/            Discord thin client → appels HTTP au backend
-└── deploy/         Scripts systemd (install.sh + units)
+├── backend/    FastAPI - SQLite - Alembic - aiohttp - SeleniumBase
+├── frontend/   Angular 21 - Tailwind CSS v3 - Signals - WebSocket
+├── bot/        Discord thin client -> HTTP calls to the backend
+└── deploy/     systemd units (alternative to Docker)
 ```
 
-Le backend sert également le frontend buildé en production - un seul port `:8000` suffit.
+The backend serves the pre-built frontend as static files - a single port handles everything.
 
 ---
 
-## 🚀 Démarrage rapide
+## 🔧 All environment variables
 
-### Prérequis
-
-| Outil | Version minimale |
-|-------|-----------------|
-| Python | 3.12 |
-| [uv](https://docs.astral.sh/uv/) | dernière |
-| Node.js | 20+ |
-| Chrome / Chromium | requis pour Selenium (liens dl-protect) |
-
-### 1. Configuration
-
-```bash
-cp .env.example .env
-```
-
-Remplir au minimum dans `.env` :
-
-```bash
-DISCORD_TOKEN=          # Token du bot Discord
-DEBRID_PROVIDER=alldebrid
-ALLDEBRID_API_KEY=      # ou REALDEBRID_API_TOKEN=
-DOWNLOAD_PATH=/data/media
-WAWACITY_URL=https://www.wawacity.city/
-```
-
-> Voir la section [Variables d'environnement](#-variables-denvironnement) pour la liste complète.
-
-### 2. Développement local
-
-```bash
-# Backend - API + frontend buildé sur :8000
-cd backend
-uv run uvicorn app.main:app --reload --port 8000
-
-# Frontend - hot-reload sur :4200 (dev uniquement)
-cd frontend
-npm ci && npm run start -- --port 4200
-
-# Bot Discord
-cd bot
-uv run python main.py
-```
-
-> En développement, le proxy Angular redirige `/api` et `/ws` vers `:8000` automatiquement.
-
-### 3. Production — Docker Compose
-
-```bash
-cp .env.example .env   # puis remplir DISCORD_TOKEN, ALLDEBRID_API_KEY, etc.
-docker compose up -d --build
-```
-
-- **`backend`** — FastAPI + Angular buildé, accessible sur `:8000`
-- **`bot`** — Discord thin client, se connecte à `backend` via le réseau interne Docker
-
-```bash
-# Voir les logs
-docker compose logs -f
-
-# Mise à jour après un pull
-docker compose up -d --build
-
-# Arrêter la stack
-docker compose down
-```
-
-> Les données sont persistées dans deux volumes Docker nommés : `media` (fichiers téléchargés) et `backend_db` (base SQLite).
-
-### 4. Production (systemd — alternative)
-
-```bash
-bash deploy/install.sh
-```
-
-Ce script :
-1. Build le frontend Angular (`ng build --configuration production`)
-2. Applique les migrations Alembic
-3. Installe et démarre `dl_backend.service` + `discord_bot.service`
-
-L'interface est ensuite accessible sur **`http://<serveur>:8000`**.
-
-```bash
-# Mise à jour après un pull
-sudo systemctl restart dl_backend.service discord_bot.service
-
-# Logs en direct
-journalctl -u dl_backend -u discord_bot -f
-```
-
----
-
-## 🔧 Variables d'environnement
-
-| Variable | Description | Exemple |
+| Variable | Description | Default |
 |----------|-------------|---------|
-| `DISCORD_TOKEN` | Token du bot Discord | `MTI...` |
-| `DISCORD_GUILD` | ID du serveur Discord | `123456789` |
-| `DEBRID_PROVIDER` | Fournisseur actif | `alldebrid` ou `realdebrid` |
-| `ALLDEBRID_API_KEY` | Clé API AllDebrid | `abc123` |
-| `REALDEBRID_API_TOKEN` | Token API Real-Debrid | `abc123` |
-| `DOWNLOAD_PATH` | Répertoire de destination | `/data/media` |
-| `WAWACITY_URL` | URL de base Wawacity | `https://www.wawacity.city/` |
-| `DATABASE_URL` | SQLite async | `sqlite+aiosqlite:///./dl_bot.db` |
-| `MAX_CONCURRENT_DOWNLOADS` | Téléchargements simultanés | `2` |
-| `SELENIUM_BINARY_LOCATION` | Binaire Chrome pour SeleniumBase | `cft` ou `/usr/bin/chromium` |
-| `BACKEND_URL` | URL backend pour le bot | `http://localhost:8000` |
+| `DISCORD_TOKEN` | Discord bot token | - |
+| `DISCORD_GUILD` | Discord server ID | - |
+| `DEBRID_PROVIDER` | `alldebrid` or `realdebrid` | `alldebrid` |
+| `ALLDEBRID_API_KEY` | AllDebrid API key | - |
+| `REALDEBRID_API_TOKEN` | Real-Debrid API token | - |
+| `DOWNLOAD_PATH` | Destination folder | `/data/media` |
+| `WAWACITY_URL` | Wawacity base URL | `https://www.wawacity.city/` |
+| `DATABASE_URL` | SQLite async URL | `sqlite+aiosqlite:///./dl_bot.db` |
+| `MAX_CONCURRENT_DOWNLOADS` | Parallel downloads | `2` |
+| `CLOUDFLARE_TUNNEL_TOKEN` | Cloudflare Tunnel token | - |
+| `SELENIUM_BINARY_LOCATION` | Chrome binary for SeleniumBase | auto |
+| `BACKEND_URL` | Backend URL used by the bot | `http://localhost:8000` |
 
-> Les paramètres opérationnels (`debrid_provider`, `download_path`, etc.) sont modifiables depuis l'interface web sans redémarrage.
-
----
-
-## 🌐 API REST
-
-| Méthode | Endpoint | Description |
-|---------|----------|-------------|
-| `GET` | `/api/v1/search` | Rechercher un titre (`?q=&source=&category=`) |
-| `GET` | `/api/v1/episodes` | Lister les épisodes d'une série |
-| `POST` | `/api/v1/downloads` | Lancer un téléchargement |
-| `GET` | `/api/v1/downloads` | Lister les téléchargements actifs |
-| `GET` | `/api/v1/downloads/{id}` | Détail d'un téléchargement |
-| `DELETE` | `/api/v1/downloads/{id}` | Supprimer un téléchargement |
-| `POST` | `/api/v1/downloads/{id}/retry` | Relancer un téléchargement en erreur |
-| `GET` | `/api/v1/history` | Historique des téléchargements |
-| `DELETE` | `/api/v1/history/{id}` | Supprimer une entrée de l'historique |
-| `GET` | `/api/v1/favorites` | Favoris |
-| `GET` | `/api/v1/settings` | Lire la configuration |
-| `PUT` | `/api/v1/settings` | Mettre à jour la configuration |
-| `GET` | `/api/v1/status` | Santé du backend |
-| `WS` | `/ws/downloads/{id}` | Progression temps réel d'un téléchargement |
-| `WS` | `/ws/queue` | État de la file d'attente |
-
-Une collection [Bruno](https://www.usebruno.com/) complète est disponible dans `bruno/`.
+> Operational settings (`debrid_provider`, `download_path`, concurrency) can also be changed live from the web UI without restarting.
 
 ---
 
-## 🤖 Commandes Discord
+## 🌐 REST API
 
-| Commande | Description |
-|----------|-------------|
-| `!search <titre> [films\|series\|mangas]` | Rechercher un titre |
-| `!url <url>` | Télécharger depuis une URL directe |
-| `!status` | Statut du backend et du fournisseur de débridage |
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `GET` | `/api/v1/search` | Search (`?q=&source=&category=`) |
+| `GET` | `/api/v1/episodes` | List episodes for a series URL |
+| `POST` | `/api/v1/downloads` | Queue a download |
+| `GET` | `/api/v1/downloads` | List active downloads |
+| `GET` | `/api/v1/downloads/{id}` | Get download details |
+| `DELETE` | `/api/v1/downloads/{id}` | Cancel / remove a download |
+| `POST` | `/api/v1/downloads/{id}/retry` | Retry a failed download |
+| `GET` | `/api/v1/history` | Download history |
+| `DELETE` | `/api/v1/history/{id}` | Remove a history entry |
+| `GET` | `/api/v1/favorites` | List favorites |
+| `POST` | `/api/v1/favorites` | Add a favorite |
+| `DELETE` | `/api/v1/favorites/{id}` | Remove a favorite |
+| `GET` | `/api/v1/settings` | Read settings |
+| `PUT` | `/api/v1/settings` | Update settings |
+| `GET` | `/api/v1/status` | Backend health + debrid status |
+| `WS` | `/ws/downloads/{id}` | Real-time download progress |
+| `WS` | `/ws/queue` | Real-time queue state |
+
+A full [Bruno](https://www.usebruno.com/) collection is available in `bruno/`.
 
 ---
 
-## 🧩 Ajouter un scraper
+## 🤖 Discord commands
 
-Créer `backend/app/scrapers/<nom>.py` - le registre est automatique :
+| Command | Description |
+|---------|-------------|
+| `!search <title> [films\|series\|mangas]` | Search for a title |
+| `!url <url>` | Download from a direct page URL |
+| `!status` | Backend health and debrid provider status |
+
+---
+
+## 🧩 Adding a scraper
+
+Drop a new file in `backend/app/scrapers/<name>.py` - the registry is automatic, no other file needs editing:
 
 ```python
 from app.scrapers.base import BaseScraper, SearchResult, ProviderLinks, register
 
 @register
-class MonScraper(BaseScraper):
-    source_name = "mon_source"  # valeur du paramètre ?source= dans l'API
+class MyScraper(BaseScraper):
+    source_name = "mysite"   # maps to the ?source= query parameter
 
     async def search(
         self, query: str, category: str, year=None, limit=10, sort=None, page=1
@@ -234,58 +211,73 @@ class MonScraper(BaseScraper):
     async def get_episodes(self, url: str, providers=None): ...
 ```
 
-Aucune autre modification n'est nécessaire.
+See `backend/app/scrapers/wawacity.py` for a reference implementation.  
+Contributions for new sources are welcome - see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ---
 
-## 🧪 Tests & qualité
+## 🧪 Tests & code quality
 
 ```bash
 cd backend
-
-# Suite de tests (pytest-asyncio)
-uv run pytest
-
-# Linter
-uv run ruff check
-
-# Formatter
-uv run ruff format
+uv run pytest           # 120 tests
+uv run ruff check       # linter
+uv run ruff format      # formatter
 ```
 
 ---
 
-## 🗄️ Migrations base de données
+## 🗄️ Database migrations
 
 ```bash
 cd backend
-
-# Créer une migration après modification des modèles ORM
 uv run alembic revision --autogenerate -m "description"
-
-# Appliquer toutes les migrations
 uv run alembic upgrade head
-
-# Rollback d'une migration
 uv run alembic downgrade -1
 ```
 
 ---
 
-## 📖 Documentation
+## 🖥️ Local development (without Docker)
 
-- [`docs/plan-v2.md`](docs/plan-v2.md) - Plan d'implémentation et décisions de conception
-- [`docs/architecture-v2.md`](docs/architecture-v2.md) - Diagrammes d'architecture
+### Requirements
+
+| Tool | Min version |
+|------|-------------|
+| Python | 3.12 |
+| [uv](https://docs.astral.sh/uv/) | latest |
+| Node.js | 20+ |
+| Chrome / Chromium | for Selenium (dl-protect links) |
+
+```bash
+# Backend
+cd backend && uv run uvicorn app.main:app --reload --port 8000
+
+# Frontend (hot-reload on :4200)
+cd frontend && npm ci && npm run start -- --port 4200
+
+# Discord bot
+cd bot && uv run python main.py
+```
+
+The Angular dev proxy forwards `/api` and `/ws` to `:8000` automatically.
 
 ---
 
-## ⚠️ Avertissement légal
+## ⚠️ Legal notice
 
-Ce projet est fourni à des fins éducatives et pour usage personnel uniquement.  
-Respectez les conditions d'utilisation des sites sources et les lois en vigueur dans votre pays concernant le téléchargement de contenus protégés.
+This project is provided for **educational purposes and personal use only**.  
+It does not host, distribute or cache any copyrighted content - it automates interactions with third-party websites.  
+You are solely responsible for ensuring your use complies with the terms of service of any website you access and with the copyright laws of your country.
 
 ---
 
-## 📄 Licence
+## 🤝 Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Bug reports, new scrapers and UI improvements are all welcome.
+
+---
+
+## 📄 License
 
 [MIT](LICENSE)

@@ -1,0 +1,17 @@
+meta {
+  name: Delete favorite
+  type: http
+  seq: 3
+}
+
+delete {
+  url: {{baseUrl}}/api/v1/favorites/{{favoriteId}}
+  body: none
+  auth: none
+}
+
+tests {
+  test("status 204", function() {
+    expect(res.status).to.equal(204);
+  });
+}

@@ -1,0 +1,41 @@
+meta {
+  name: Add favorite
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/api/v1/favorites
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "title": "Inception 2010 FRENCH 1080p BluRay",
+    "url": "https://www.wawacity.city/films/inception-2010.html",
+    "category": "films",
+    "year": 2010,
+    "source": "wawacity"
+  }
+}
+
+script:post-response {
+  if (res.status === 201) {
+    bru.setVar("favoriteId", res.body.id);
+  }
+}
+
+tests {
+  test("status 201", function() {
+    expect(res.status).to.equal(201);
+  });
+
+  test("has id", function() {
+    expect(res.body).to.have.property("id");
+  });
+
+  test("title matches", function() {
+    expect(res.body.title).to.equal("Inception 2010 FRENCH 1080p BluRay");
+  });
+}
