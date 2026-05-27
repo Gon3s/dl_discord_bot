@@ -1,4 +1,4 @@
-# Architecture v2 — dl_discord_bot
+# Architecture v2 — DLux
 
 ## 1. Vue d'ensemble du système
 
@@ -292,7 +292,7 @@ classDiagram
 ## 7. Structure du monorepo
 
 ```
-dl_discord_bot/                     ← monorepo racine
+dlux/                               ← monorepo racine
 │
 ├── backend/                        ← FastAPI (Python)
 │   ├── app/

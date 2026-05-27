@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ghcr.io/gon3s/dl-discord-bot-backend:latest
+    image: ghcr.io/gon3s/dlux-backend:latest
     ports:
       - "8765:8000"
     environment:
@@ -21,7 +21,7 @@ services:
     restart: unless-stopped
 
   bot:
-    image: ghcr.io/gon3s/dl-discord-bot-bot:latest
+    image: ghcr.io/gon3s/dlux-bot:latest
     environment:
       BACKEND_URL: http://backend:8000
       DISCORD_TOKEN: ${DISCORD_TOKEN}

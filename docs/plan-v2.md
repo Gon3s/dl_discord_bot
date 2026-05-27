@@ -1,4 +1,4 @@
-# Plan v2 : dl_discord_bot
+# Plan v2 : DLux
 
 ## État actuel
 
@@ -17,7 +17,7 @@ Tailwind CSS v4 reste à faire et est suivie par l'issue #71.
 ## Structure du projet (monorepo)
 
 ```
-dl_discord_bot/
+dlux/
 ├── backend/
 │   ├── app/
 │   │   ├── main.py              # FastAPI factory + lifespan

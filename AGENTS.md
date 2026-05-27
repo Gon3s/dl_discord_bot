@@ -1,4 +1,4 @@
-# AGENTS.md - dl_discord_bot v2
+# AGENTS.md - DLux v2
 
 ## Présentation du projet
 

@@ -5,8 +5,8 @@ Contributions are welcome - bug reports, new scrapers, UI improvements, translat
 ## Getting started
 
 ```bash
-git clone https://github.com/gon3s/dl-discord-bot
-cd dl-discord-bot
+git clone https://github.com/gon3s/dlux
+cd dlux
 cp .env.example .env   # fill in your keys
 ```
 
@@ -57,5 +57,5 @@ All tests must pass before opening a PR.
 
 Please include:
 - Your OS and deployment method (Docker / systemd / local)
-- Relevant logs (`docker compose logs backend` or `journalctl -u dl_backend`)
+- Relevant logs (`docker compose logs backend` or `journalctl -u dlux_backend`)
 - Steps to reproduce

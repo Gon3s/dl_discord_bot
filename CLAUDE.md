@@ -1,4 +1,4 @@
-# CLAUDE.md - dl_discord_bot v2
+# CLAUDE.md - DLux v2
 
 ## Présentation du projet
 
@@ -106,9 +106,9 @@ docker compose up -d
 
 ```bash
 # Copier l'ancienne DB dans le volume Docker
-docker volume create dl_discord_bot_backend_db
+docker volume create dlux_backend_db
 docker run --rm \
-  -v dl_discord_bot_backend_db:/app/data \
+  -v dlux_backend_db:/app/data \
   -v "$(pwd)/backend":/src \
   alpine cp /src/dl_bot.db /app/data/dl_bot.db
 

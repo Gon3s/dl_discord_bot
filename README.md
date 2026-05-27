@@ -1,11 +1,11 @@
 <div align="center">
 
-# 🎬 dl_discord_bot
+# 🎬 DLux
 
 **Self-hosted media downloader with a web UI and Discord bot.**  
 Search movies, TV shows and manga, debrид links via AllDebrid / Real-Debrid, track downloads in real time.
 
-[![Release](https://img.shields.io/github/v/release/Gon3s/dl_discord_bot?color=blue)](https://github.com/Gon3s/dl_discord_bot/releases)
+[![Release](https://img.shields.io/github/v/release/Gon3s/dlux?color=blue)](https://github.com/Gon3s/dlux/releases)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115-009688?logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Angular](https://img.shields.io/badge/Angular-21-DD0031?logo=angular&logoColor=white)](https://angular.dev/)
@@ -73,7 +73,7 @@ Everything runs in Docker. One port (`:8765`) exposes both the API and the pre-b
 # docker-compose.minimal.yml
 services:
   backend:
-    image: ghcr.io/gon3s/dl-discord-bot-backend:latest
+    image: ghcr.io/gon3s/dlux-backend:latest
     ports:
       - "8765:8000"
     environment:
@@ -122,7 +122,7 @@ Images are built by GitHub Actions on every push to `main` and published to `ghc
 ## 🏗️ Architecture
 
 ```
-dl_discord_bot/
+dlux/
 ├── backend/    FastAPI - SQLite - Alembic - aiohttp - SeleniumBase
 ├── frontend/   Angular 21 - Tailwind CSS v3 - Signals - WebSocket
 ├── bot/        Discord thin client -> HTTP calls to the backend

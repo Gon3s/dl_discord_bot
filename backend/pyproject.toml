@@ -1,7 +1,7 @@
 [project]
-name = "dl-discord-bot-backend"
+name = "dlux-backend"
 version = "2.0.0"
-description = "FastAPI backend for dl_discord_bot v2"
+description = "FastAPI backend for DLux v2"
 requires-python = ">=3.12"
 dependencies = [
     "fastapi>=0.115.0",

@@ -1,4 +1,4 @@
-# Frontend dl_discord_bot
+# Frontend DLux
 
 Interface web Angular 21 du projet v2. Elle consomme le backend FastAPI via
 `/api/v1/*` et les WebSockets `/ws/*`.
@@ -26,7 +26,7 @@ Ne pas utiliser le `npm` Windows depuis WSL. Installer Node dans WSL ou ajouter
 le runtime local au `PATH` si présent :
 
 ```bash
-export PATH="/mnt/c/Users/gones/Dev/dl_discord_bot/.codex/runtime/node-v22.12.0-linux-x64/bin:$PATH"
+export PATH="/mnt/c/Users/gones/Dev/dlux/.codex/runtime/node-v22.12.0-linux-x64/bin:$PATH"
 node --version
 npm --version
 ```

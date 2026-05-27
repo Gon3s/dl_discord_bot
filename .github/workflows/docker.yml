@@ -36,7 +36,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.OWNER }}/dl-discord-bot-backend
+          images: ${{ env.REGISTRY }}/${{ env.OWNER }}/dlux-backend
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,prefix=sha-
@@ -76,7 +76,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.OWNER }}/dl-discord-bot-bot
+          images: ${{ env.REGISTRY }}/${{ env.OWNER }}/dlux-bot
           tags: |
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,prefix=sha-
