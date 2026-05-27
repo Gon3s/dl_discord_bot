@@ -226,11 +226,34 @@ class DownloadService:
                     if is_magnet:
                         debrid_data = await self._debrid_magnet(dl_protect_url)
                     else:
-                        link_scraper = scraper or get_scraper("wawacity")
-                        provider_url = await link_scraper.resolve_link(dl_protect_url)
-                        logger.info(
-                            "Download %s — resolved: %s", download_id, provider_url
-                        )
+                        provider_url: str | None = None
+                        if hasattr(self._debrid, "redirect_link"):
+                            try:
+                                provider_url = await self._debrid.redirect_link(
+                                    dl_protect_url
+                                )
+                                logger.info(
+                                    "Download %s — resolved via API: %s",
+                                    download_id,
+                                    provider_url,
+                                )
+                            except Exception as exc:
+                                logger.info(
+                                    "Download %s — API redirect failed (%s),"
+                                    " falling back to Selenium",
+                                    download_id,
+                                    exc,
+                                )
+                        if provider_url is None:
+                            link_scraper = scraper or get_scraper("wawacity")
+                            provider_url = await link_scraper.resolve_link(
+                                dl_protect_url
+                            )
+                            logger.info(
+                                "Download %s — resolved via Selenium: %s",
+                                download_id,
+                                provider_url,
+                            )
                         debrid_data = await self._debrid.debrid_link(provider_url)
                     break
                 except DebridAPIError as exc:
