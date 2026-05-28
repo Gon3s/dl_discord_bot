@@ -15,7 +15,7 @@ services:
       BOT_NOTIFY_URL: ${BOT_NOTIFY_URL:-http://bot:8766/notify}
       APP_PUBLIC_URL: ${APP_PUBLIC_URL:-}
     volumes:
-      - ${DOWNLOAD_PATH:-/data/media}:/data/media
+      - /home/gones/moovies:/data/media
       - backend_db:/app/data
     shm_size: '2gb'
     restart: unless-stopped
