@@ -12,7 +12,7 @@ services:
       DOWNLOAD_PATH: ${DOWNLOAD_PATH:-/data/media}
       WAWACITY_URL: ${WAWACITY_URL:-https://www.wawacity.city/}
       MAX_CONCURRENT_DOWNLOADS: ${MAX_CONCURRENT_DOWNLOADS:-2}
-      BOT_NOTIFY_URL: ${BOT_NOTIFY_URL:-}
+      BOT_NOTIFY_URL: ${BOT_NOTIFY_URL:-http://bot:8766/notify}
       APP_PUBLIC_URL: ${APP_PUBLIC_URL:-}
     volumes:
       - media:/data/media
@@ -26,6 +26,7 @@ services:
       BACKEND_URL: http://backend:8000
       DISCORD_TOKEN: ${DISCORD_TOKEN}
       DISCORD_GUILD: ${DISCORD_GUILD:-}
+      DISCORD_CHANNEL_ID: ${DISCORD_CHANNEL_ID:-}
     depends_on:
       - backend
     restart: unless-stopped

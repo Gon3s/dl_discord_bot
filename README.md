@@ -149,6 +149,9 @@ The backend serves the pre-built frontend as static files - a single port handle
 | `CLOUDFLARE_TUNNEL_TOKEN` | Cloudflare Tunnel token | - |
 | `SELENIUM_BINARY_LOCATION` | Chrome binary for SeleniumBase | auto |
 | `BACKEND_URL` | Backend URL used by the bot | `http://localhost:8000` |
+| `DISCORD_CHANNEL_ID` | Discord channel ID for series notifications | - |
+| `BOT_NOTIFY_URL` | Internal bot URL for notifications (Docker default: `http://bot:8766/notify`) | - |
+| `APP_PUBLIC_URL` | Public app URL for links in Discord notifications | - |
 
 > Operational settings (`debrid_provider`, `download_path`, concurrency) can also be changed live from the web UI without restarting.
 

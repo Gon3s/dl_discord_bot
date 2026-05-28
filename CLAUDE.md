@@ -85,7 +85,8 @@ DOWNLOAD_PATH=/data/media
 WAWACITY_URL=https://www.wawacity.city/
 MAX_CONCURRENT_DOWNLOADS=2
 # Optionnel :
-BOT_NOTIFY_URL=...
+DISCORD_CHANNEL_ID=...
+BOT_NOTIFY_URL=http://bot:8766/notify
 APP_PUBLIC_URL=http://<serveur>:8765
 ```
 
@@ -167,6 +168,9 @@ Copier `.env.example` → `.env` à la racine. Variables clés :
 | `CLOUDFLARE_TUNNEL_TOKEN` | Token tunnel Cloudflare (optionnel) |
 | `SELENIUM_BINARY_LOCATION` | Binaire Chrome pour SeleniumBase (vide = auto) |
 | `BACKEND_URL` | URL du backend pour le bot (ex: `http://localhost:8000`) |
+| `DISCORD_CHANNEL_ID` | ID du channel Discord pour les notifications de séries |
+| `BOT_NOTIFY_URL` | URL interne du bot pour les notifs (défaut Docker: `http://bot:8766/notify`) |
+| `APP_PUBLIC_URL` | URL publique de l'app pour les liens dans les notifs Discord |
 
 ---
 
