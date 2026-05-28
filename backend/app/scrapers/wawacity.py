@@ -281,7 +281,7 @@ class WawacityScraper(BaseScraper):
             uc=True,
             headless=True,
             binary_location=settings.selenium_binary_location or None,
-            chromium_arg="--no-sandbox --disable-dev-shm-usage",
+            chromium_arg="--no-sandbox --disable-dev-shm-usage --no-zygote --disable-gpu",
         )
         try:
             driver.get(url)
@@ -332,7 +332,7 @@ class WawacityScraper(BaseScraper):
             test=False,
             headless=True,
             binary_location=binary_location,
-            chromium_arg="--no-sandbox --disable-dev-shm-usage",
+            chromium_arg="--no-sandbox --disable-dev-shm-usage --no-zygote --disable-gpu",
         ) as sb:
             logger.debug("Opening dl-protect: %s", url)
             sb.driver.uc_open_with_reconnect(url, reconnect_time=20)
