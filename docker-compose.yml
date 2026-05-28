@@ -9,13 +9,13 @@ services:
       DEBRID_PROVIDER: ${DEBRID_PROVIDER:-alldebrid}
       ALLDEBRID_API_KEY: ${ALLDEBRID_API_KEY:-}
       REALDEBRID_API_TOKEN: ${REALDEBRID_API_TOKEN:-}
-      DOWNLOAD_PATH: ${DOWNLOAD_PATH:-/data/media}
+      DOWNLOAD_PATH: /data/media
       WAWACITY_URL: ${WAWACITY_URL:-https://www.wawacity.city/}
       MAX_CONCURRENT_DOWNLOADS: ${MAX_CONCURRENT_DOWNLOADS:-2}
       BOT_NOTIFY_URL: ${BOT_NOTIFY_URL:-http://bot:8766/notify}
       APP_PUBLIC_URL: ${APP_PUBLIC_URL:-}
     volumes:
-      - ${DOWNLOAD_PATH:-/data/media}:${DOWNLOAD_PATH:-/data/media}
+      - ${DOWNLOAD_PATH:-/data/media}:/data/media
       - backend_db:/app/data
     shm_size: '2gb'
     restart: unless-stopped
