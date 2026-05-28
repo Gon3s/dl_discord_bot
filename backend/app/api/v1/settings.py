@@ -14,7 +14,6 @@ RUNTIME_SETTINGS = {
     "app_public_url",
     "bot_notify_url",
     "debrid_provider",
-    "download_path",
     "max_concurrent_downloads",
     "notification_enabled",
     "notification_interval_hours",
