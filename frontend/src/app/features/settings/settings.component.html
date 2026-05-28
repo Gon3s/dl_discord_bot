@@ -1,181 +1,253 @@
 <!-- Header -->
-<header class="sticky top-0 z-10 px-7 py-4 flex items-center gap-4"
-        style="background:#000;border-bottom:1px solid #1a1f10">
+<header
+  class="sticky top-0 z-10 px-7 py-4 flex items-center gap-4"
+  style="background: #000; border-bottom: 1px solid #1a1f10"
+>
   <div class="flex-1">
-    <p class="text-sm font-black tracking-widest uppercase" style="color:#e8ecd8">Settings</p>
-    <p class="text-[10px] tracking-wider mt-0.5" style="color:#3a4022">PATHS · SOURCE · PROVIDERS · API</p>
+    <p class="text-sm font-black tracking-widest uppercase" style="color: #e8ecd8">Settings</p>
+    <p class="text-[10px] tracking-wider mt-0.5" style="color: #3a4022">SOURCE · PROVIDERS · API</p>
   </div>
   @if (diskFreeGb() !== undefined) {
-    <span class="text-[9px] font-mono px-2 py-1 rounded"
-          style="background:rgba(62,67,46,.3);color:#6b7a4a;border:1px solid #1a1f10">
-      {{ diskFreeGb() | number:'1.0-1' }} GB FREE
+    <span
+      class="text-[9px] font-mono px-2 py-1 rounded"
+      style="background: rgba(62, 67, 46, 0.3); color: #6b7a4a; border: 1px solid #1a1f10"
+    >
+      {{ diskFreeGb() | number: '1.0-1' }} GB FREE
     </span>
   }
-  <button (click)="save()" [disabled]="saving()"
-          class="px-5 py-2 rounded text-xs font-black transition flex items-center gap-2"
-          style="background:var(--lime);color:#000">
+  <button
+    (click)="save()"
+    [disabled]="saving()"
+    class="px-5 py-2 rounded text-xs font-black transition flex items-center gap-2"
+    style="background: var(--lime); color: #000"
+  >
     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-            d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/>
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+      />
     </svg>
     {{ saving() ? '…' : 'SAVE →' }}
   </button>
 </header>
 
 @if (saved()) {
-  <div class="fixed bottom-5 right-5 z-50 text-black text-xs font-black px-4 py-2.5 rounded flex items-center gap-2 tracking-wider"
-       style="background:var(--lime)">✓ SAVED</div>
+  <div
+    class="fixed bottom-5 right-5 z-50 text-black text-xs font-black px-4 py-2.5 rounded flex items-center gap-2 tracking-wider"
+    style="background: var(--lime)"
+  >
+    ✓ SAVED
+  </div>
 }
 
 @if (loading()) {
-  <div class="px-7 py-10 text-[10px] tracking-widest" style="color:#3a4022">LOADING…</div>
+  <div class="px-7 py-10 text-[10px] tracking-widest" style="color: #3a4022">LOADING…</div>
 } @else {
-
-<main class="flex-1 px-7 py-5 max-w-xl space-y-4">
-
-  <!-- DOWNLOAD PATH -->
-  <div class="rounded-lg p-4" style="background:#0c0c0c;border:1px solid #1a1f10">
-    <p class="text-[9px] tracking-widest font-black mb-3" style="color:#4a5a2a">// DOWNLOAD PATH</p>
-    <div>
-      <label class="text-[9px] tracking-widest block mb-1" style="color:#3a4022">BASE PATH</label>
-      <input type="text"
-             [ngModel]="downloadPath()" (ngModelChange)="downloadPath.set($event)"
-             class="w-full rounded px-3 py-2 text-xs"
-             style="background:#111;border:1px solid #1a1f10;color:#c8d890;font-family:inherit;outline:none" />
-    </div>
-  </div>
-
-  <!-- SOURCE -->
-  <div class="rounded-lg p-4" style="background:#0c0c0c;border:1px solid #1a1f10">
-    <p class="text-[9px] tracking-widest font-black mb-3" style="color:#4a5a2a">// SOURCE</p>
-    <div class="space-y-3">
-      <div>
-        <label class="text-[9px] tracking-widest block mb-1" style="color:#3a4022">WAWACITY URL</label>
-        <input type="url"
-               [ngModel]="wawacityUrl()" (ngModelChange)="wawacityUrl.set($event)"
-               placeholder="https://www.wawacity.vip/"
-               class="w-full rounded px-3 py-2 text-xs"
-               style="background:#111;border:1px solid #1a1f10;color:#c8d890;font-family:inherit;outline:none" />
-      </div>
-
-      <div>
-        <label class="text-[9px] tracking-widest block mb-1" style="color:#3a4022">DEFAULT CATEGORY</label>
-        <div class="flex rounded overflow-hidden" style="border:1px solid #1a1f10">
-          @for (cat of categories; track cat) {
-            <button class="flex-1 py-2 text-[10px] font-black transition"
-                    [style.background]="defaultCategory() === cat ? 'var(--lime)' : 'transparent'"
-                    [style.color]="defaultCategory() === cat ? '#000' : '#6b7a4a'"
-                    (click)="defaultCategory.set(cat)">
-              {{ cat.toUpperCase() }}
-            </button>
-          }
+  <main class="flex-1 px-7 py-5 max-w-xl space-y-4">
+    <!-- SOURCE -->
+    <div class="rounded-lg p-4" style="background: #0c0c0c; border: 1px solid #1a1f10">
+      <p class="text-[9px] tracking-widest font-black mb-3" style="color: #4a5a2a">// SOURCE</p>
+      <div class="space-y-3">
+        <div>
+          <label class="text-[9px] tracking-widest block mb-1" style="color: #3a4022"
+            >WAWACITY URL</label
+          >
+          <input
+            type="url"
+            [ngModel]="wawacityUrl()"
+            (ngModelChange)="wawacityUrl.set($event)"
+            placeholder="https://www.wawacity.vip/"
+            class="w-full rounded px-3 py-2 text-xs"
+            style="
+              background: #111;
+              border: 1px solid #1a1f10;
+              color: #c8d890;
+              font-family: inherit;
+              outline: none;
+            "
+          />
         </div>
-      </div>
 
-      <div>
-        <label class="text-[9px] tracking-widest block mb-1" style="color:#3a4022">
-          MAX CONCURRENT DOWNLOADS — <span style="color:var(--lime)">{{ maxConcurrent() }}</span>
-        </label>
-        <input type="range" min="1" max="5"
-               [ngModel]="maxConcurrent()" (ngModelChange)="maxConcurrent.set($event)"
-               class="w-full" style="accent-color:var(--lime)" />
-      </div>
-    </div>
-  </div>
-
-  <!-- PROVIDERS -->
-  <div class="rounded-lg p-4" style="background:#0c0c0c;border:1px solid #1a1f10">
-    <p class="text-[9px] tracking-widest font-black mb-3" style="color:#4a5a2a">// PROVIDERS — ENABLED</p>
-    <div class="space-y-2">
-      @for (p of allProviders; track p; let i = $index) {
-        <div class="rounded-lg px-3 py-2.5 flex items-center gap-3 transition"
-             [style.border]="isProviderEnabled(p) ? '1px solid rgba(167,209,41,.3)' : '1px solid #1a1f10'"
-             [style.background]="isProviderEnabled(p) ? 'rgba(167,209,41,.03)' : '#0c0c0c'">
-          <span class="text-[9px] font-mono w-4" style="color:#3a4022">#{{ i + 1 }}</span>
-          <div class="w-6 h-6 rounded flex items-center justify-center font-black text-[10px]"
-               [style.background]="isProviderEnabled(p) ? 'rgba(167,209,41,.12)' : 'rgba(62,67,46,.2)'"
-               [style.color]="isProviderEnabled(p) ? 'var(--lime)' : '#3a4022'"
-               [style.border]="isProviderEnabled(p) ? '1px solid rgba(167,209,41,.2)' : '1px solid #1a1f10'">
-            {{ p[0] }}
-          </div>
-          <div class="flex-1">
-            <p class="text-xs font-black" style="color:#c8d890">{{ p }}</p>
-            <p class="text-[9px]" style="color:#3a4022">{{ isProviderEnabled(p) ? 'ENABLED' : 'DISABLED' }}</p>
-          </div>
-          <div class="w-9 h-5 rounded-full relative cursor-pointer transition"
-               [style.background]="isProviderEnabled(p) ? 'var(--lime)' : '#1a1f10'"
-               [style.border]="isProviderEnabled(p) ? 'none' : '1px solid #2d3520'"
-               (click)="toggleProvider(p)">
-            <div class="absolute top-0.5 w-3.5 h-3.5 rounded-full transition-all"
-                 [style.left]="isProviderEnabled(p) ? '20px' : '2px'"
-                 [style.background]="isProviderEnabled(p) ? '#000' : '#3a4022'"></div>
+        <div>
+          <label class="text-[9px] tracking-widest block mb-1" style="color: #3a4022"
+            >DEFAULT CATEGORY</label
+          >
+          <div class="flex rounded overflow-hidden" style="border: 1px solid #1a1f10">
+            @for (cat of categories; track cat) {
+              <button
+                class="flex-1 py-2 text-[10px] font-black transition"
+                [style.background]="defaultCategory() === cat ? 'var(--lime)' : 'transparent'"
+                [style.color]="defaultCategory() === cat ? '#000' : '#6b7a4a'"
+                (click)="defaultCategory.set(cat)"
+              >
+                {{ cat.toUpperCase() }}
+              </button>
+            }
           </div>
         </div>
-      }
-    </div>
-  </div>
 
-  <!-- DEBRID API -->
-  <div class="rounded-lg p-4" style="background:#0c0c0c;border:1px solid #1a1f10">
-    <div class="flex items-center justify-between mb-3">
-      <p class="text-[9px] tracking-widest font-black" style="color:#4a5a2a">// DEBRID API</p>
-      @if (debridOk() !== undefined) {
-        <span class="text-[9px] font-black px-2 py-0.5 rounded"
-              [style.background]="debridOk() ? 'rgba(167,209,41,.12)' : 'rgba(80,10,10,.3)'"
-              [style.color]="debridOk() ? 'var(--lime)' : '#c04040'"
-              [style.border]="debridOk() ? '1px solid rgba(167,209,41,.2)' : '1px solid rgba(120,20,20,.3)'">
-          {{ debridOk() ? 'CONNECTED' : 'ERROR' }}
-        </span>
-      }
-    </div>
-    <div class="space-y-3">
-      <div>
-        <label class="text-[9px] tracking-widest block mb-1" style="color:#3a4022">ACTIVE PROVIDER</label>
-        <div class="flex rounded overflow-hidden" style="border:1px solid #1a1f10">
-          @for (provider of debridProviders; track provider.value) {
-            <button class="flex-1 py-2 text-[10px] font-black transition"
-                    [style.background]="debridProvider() === provider.value ? 'var(--lime)' : 'transparent'"
-                    [style.color]="debridProvider() === provider.value ? '#000' : '#6b7a4a'"
-                    (click)="debridProvider.set(provider.value)">
-              {{ provider.label.toUpperCase() }}
-            </button>
-          }
+        <div>
+          <label class="text-[9px] tracking-widest block mb-1" style="color: #3a4022">
+            MAX CONCURRENT DOWNLOADS — <span style="color: var(--lime)">{{ maxConcurrent() }}</span>
+          </label>
+          <input
+            type="range"
+            min="1"
+            max="5"
+            [ngModel]="maxConcurrent()"
+            (ngModelChange)="maxConcurrent.set($event)"
+            class="w-full"
+            style="accent-color: var(--lime)"
+          />
         </div>
       </div>
-      <label class="text-[9px] tracking-widest block mb-1" style="color:#3a4022">{{ activeDebridSecretLabel() }}</label>
-      <div class="flex gap-2">
-        <input [type]="showApiKey() ? 'text' : 'password'"
-               [ngModel]="activeDebridSecret()" (ngModelChange)="setActiveDebridSecret($event)"
-               class="flex-1 rounded px-3 py-2 text-xs"
-               style="background:#111;border:1px solid #1a1f10;color:#c8d890;font-family:inherit;outline:none" />
-        <button (click)="showApiKey.set(!showApiKey())"
-                class="rounded px-3 py-2 text-[10px] transition"
-                style="background:transparent;border:1px solid #1a1f10;color:#6b7a4a">
-          {{ showApiKey() ? 'HIDE' : 'SHOW' }}
+    </div>
+
+    <!-- PROVIDERS -->
+    <div class="rounded-lg p-4" style="background: #0c0c0c; border: 1px solid #1a1f10">
+      <p class="text-[9px] tracking-widest font-black mb-3" style="color: #4a5a2a">
+        // PROVIDERS — ENABLED
+      </p>
+      <div class="space-y-2">
+        @for (p of allProviders; track p; let i = $index) {
+          <div
+            class="rounded-lg px-3 py-2.5 flex items-center gap-3 transition"
+            [style.border]="
+              isProviderEnabled(p) ? '1px solid rgba(167,209,41,.3)' : '1px solid #1a1f10'
+            "
+            [style.background]="isProviderEnabled(p) ? 'rgba(167,209,41,.03)' : '#0c0c0c'"
+          >
+            <span class="text-[9px] font-mono w-4" style="color: #3a4022">#{{ i + 1 }}</span>
+            <div
+              class="w-6 h-6 rounded flex items-center justify-center font-black text-[10px]"
+              [style.background]="
+                isProviderEnabled(p) ? 'rgba(167,209,41,.12)' : 'rgba(62,67,46,.2)'
+              "
+              [style.color]="isProviderEnabled(p) ? 'var(--lime)' : '#3a4022'"
+              [style.border]="
+                isProviderEnabled(p) ? '1px solid rgba(167,209,41,.2)' : '1px solid #1a1f10'
+              "
+            >
+              {{ p[0] }}
+            </div>
+            <div class="flex-1">
+              <p class="text-xs font-black" style="color: #c8d890">{{ p }}</p>
+              <p class="text-[9px]" style="color: #3a4022">
+                {{ isProviderEnabled(p) ? 'ENABLED' : 'DISABLED' }}
+              </p>
+            </div>
+            <div
+              class="w-9 h-5 rounded-full relative cursor-pointer transition"
+              [style.background]="isProviderEnabled(p) ? 'var(--lime)' : '#1a1f10'"
+              [style.border]="isProviderEnabled(p) ? 'none' : '1px solid #2d3520'"
+              (click)="toggleProvider(p)"
+            >
+              <div
+                class="absolute top-0.5 w-3.5 h-3.5 rounded-full transition-all"
+                [style.left]="isProviderEnabled(p) ? '20px' : '2px'"
+                [style.background]="isProviderEnabled(p) ? '#000' : '#3a4022'"
+              ></div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- DEBRID API -->
+    <div class="rounded-lg p-4" style="background: #0c0c0c; border: 1px solid #1a1f10">
+      <div class="flex items-center justify-between mb-3">
+        <p class="text-[9px] tracking-widest font-black" style="color: #4a5a2a">// DEBRID API</p>
+        @if (debridOk() !== undefined) {
+          <span
+            class="text-[9px] font-black px-2 py-0.5 rounded"
+            [style.background]="debridOk() ? 'rgba(167,209,41,.12)' : 'rgba(80,10,10,.3)'"
+            [style.color]="debridOk() ? 'var(--lime)' : '#c04040'"
+            [style.border]="
+              debridOk() ? '1px solid rgba(167,209,41,.2)' : '1px solid rgba(120,20,20,.3)'
+            "
+          >
+            {{ debridOk() ? 'CONNECTED' : 'ERROR' }}
+          </span>
+        }
+      </div>
+      <div class="space-y-3">
+        <div>
+          <label class="text-[9px] tracking-widest block mb-1" style="color: #3a4022"
+            >ACTIVE PROVIDER</label
+          >
+          <div class="flex rounded overflow-hidden" style="border: 1px solid #1a1f10">
+            @for (provider of debridProviders; track provider.value) {
+              <button
+                class="flex-1 py-2 text-[10px] font-black transition"
+                [style.background]="
+                  debridProvider() === provider.value ? 'var(--lime)' : 'transparent'
+                "
+                [style.color]="debridProvider() === provider.value ? '#000' : '#6b7a4a'"
+                (click)="debridProvider.set(provider.value)"
+              >
+                {{ provider.label.toUpperCase() }}
+              </button>
+            }
+          </div>
+        </div>
+        <label class="text-[9px] tracking-widest block mb-1" style="color: #3a4022">{{
+          activeDebridSecretLabel()
+        }}</label>
+        <div class="flex gap-2">
+          <input
+            [type]="showApiKey() ? 'text' : 'password'"
+            [ngModel]="activeDebridSecret()"
+            (ngModelChange)="setActiveDebridSecret($event)"
+            class="flex-1 rounded px-3 py-2 text-xs"
+            style="
+              background: #111;
+              border: 1px solid #1a1f10;
+              color: #c8d890;
+              font-family: inherit;
+              outline: none;
+            "
+          />
+          <button
+            (click)="showApiKey.set(!showApiKey())"
+            class="rounded px-3 py-2 text-[10px] transition"
+            style="background: transparent; border: 1px solid #1a1f10; color: #6b7a4a"
+          >
+            {{ showApiKey() ? 'HIDE' : 'SHOW' }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- DANGER ZONE -->
+    <div
+      class="rounded-lg p-4"
+      style="background: rgba(80, 10, 10, 0.15); border: 1px solid rgba(120, 20, 20, 0.3)"
+    >
+      <p class="text-[9px] tracking-widest font-black mb-3" style="color: #c04040">
+        // DANGER ZONE
+      </p>
+      <div class="flex flex-wrap gap-2">
+        <button
+          class="px-3 py-2 rounded text-[10px] transition"
+          style="background: transparent; border: 1px solid rgba(120, 20, 20, 0.4); color: #c04040"
+          onmouseover="this.style.color = '#ef4444'"
+          onmouseout="this.style.color = '#c04040'"
+        >
+          CLEAR HISTORY
+        </button>
+        <button
+          class="px-3 py-2 rounded text-[10px] transition"
+          style="background: transparent; border: 1px solid rgba(120, 20, 20, 0.4); color: #c04040"
+          onmouseover="this.style.color = '#ef4444'"
+          onmouseout="this.style.color = '#c04040'"
+        >
+          CANCEL ALL DOWNLOADS
         </button>
       </div>
     </div>
-  </div>
 
-  <!-- DANGER ZONE -->
-  <div class="rounded-lg p-4"
-       style="background:rgba(80,10,10,.15);border:1px solid rgba(120,20,20,.3)">
-    <p class="text-[9px] tracking-widest font-black mb-3" style="color:#c04040">// DANGER ZONE</p>
-    <div class="flex flex-wrap gap-2">
-      <button class="px-3 py-2 rounded text-[10px] transition"
-              style="background:transparent;border:1px solid rgba(120,20,20,.4);color:#c04040"
-              onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#c04040'">
-        CLEAR HISTORY
-      </button>
-      <button class="px-3 py-2 rounded text-[10px] transition"
-              style="background:transparent;border:1px solid rgba(120,20,20,.4);color:#c04040"
-              onmouseover="this.style.color='#ef4444'" onmouseout="this.style.color='#c04040'">
-        CANCEL ALL DOWNLOADS
-      </button>
-    </div>
-  </div>
-
-  <div class="h-8"></div>
-</main>
-
+    <div class="h-8"></div>
+  </main>
 }
