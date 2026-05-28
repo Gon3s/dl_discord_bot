@@ -27,6 +27,8 @@ _dl_protect_sem = asyncio.Semaphore(1)
 
 _XPATH_LINK = '//*[@id="protected-container"]/div[2]/div/ul/li/a'
 
+_CHROMIUM_ARGS = "--no-sandbox --disable-dev-shm-usage --no-zygote --disable-gpu"
+
 _LANGUAGE_MAP: dict[str, str] = {
     "FR": "🇫🇷",
     "EN": "🇬🇧",
@@ -281,7 +283,7 @@ class WawacityScraper(BaseScraper):
             uc=True,
             headless=True,
             binary_location=settings.selenium_binary_location or None,
-            chromium_arg="--no-sandbox --disable-dev-shm-usage --no-zygote --disable-gpu",
+            chromium_arg=_CHROMIUM_ARGS,
         )
         try:
             driver.get(url)
@@ -332,7 +334,7 @@ class WawacityScraper(BaseScraper):
             test=False,
             headless=True,
             binary_location=binary_location,
-            chromium_arg="--no-sandbox --disable-dev-shm-usage --no-zygote --disable-gpu",
+            chromium_arg=_CHROMIUM_ARGS,
         ) as sb:
             logger.debug("Opening dl-protect: %s", url)
             sb.driver.uc_open_with_reconnect(url, reconnect_time=20)
