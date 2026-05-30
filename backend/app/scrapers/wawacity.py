@@ -43,7 +43,7 @@ _CATEGORY_MAP: dict[str, str] = {
 }
 
 _SORT_MAP: dict[str, str] = {
-    "films": "blu-ray_1080p-720p",
+    "films": "exclus",
     "series": "vostfr-hq",
     "mangas": "vostfr-hq",
 }

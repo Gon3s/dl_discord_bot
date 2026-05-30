@@ -29,7 +29,13 @@ export class SearchStateService {
   readonly category = signal('films');
   readonly year = signal('');
   readonly source = signal<string>(initialSource());
-  readonly sort = linkedSignal<string>(() => { this.category(); this.source(); return ''; });
+  readonly sort = linkedSignal<string>(() => {
+    this.source();
+    const cat = this.category();
+    if (cat === 'films') return 'exclus';
+    if (cat === 'series' || cat === 'mangas') return 'vostfr-hq';
+    return '';
+  });
   readonly searchParams = signal<SearchParams | undefined>(undefined);
 
   private readonly settingsResource = rxResource({
@@ -42,12 +48,12 @@ export class SearchStateService {
     effect(() => {
       const settings = this.settingsResource.value();
       if (!settings || this.searchParams()) return;
-      const defaultCat = settings.find(s => s.key === 'default_category')?.value;
+      const defaultCat = settings.find((s) => s.key === 'default_category')?.value;
       if (defaultCat) this.category.set(defaultCat);
     });
   }
   readonly destination = signal<'server' | 'client'>(
-    (localStorage.getItem('dl_destination') as 'server' | 'client') ?? 'server'
+    (localStorage.getItem('dl_destination') as 'server' | 'client') ?? 'server',
   );
 
   // Historique chargé une fois au démarrage — singleton, pas de rechargement à chaque navigation
@@ -61,13 +67,16 @@ export class SearchStateService {
   readonly activeTitles = toSignal(
     this.refreshTrigger$.pipe(
       switchMap(() => this.api.getDownloads()),
-      map(downloads => new Set(
-        downloads
-          .filter(d => ACTIVE_STATUSES.has(d.status))
-          .map(d => d.title.toLowerCase())
-      ))
+      map(
+        (downloads) =>
+          new Set(
+            downloads
+              .filter((d) => ACTIVE_STATUSES.has(d.status))
+              .map((d) => d.title.toLowerCase()),
+          ),
+      ),
     ),
-    { initialValue: new Set<string>() }
+    { initialValue: new Set<string>() },
   );
 
   refreshDownloads(): void {
@@ -75,24 +84,27 @@ export class SearchStateService {
   }
 
   // Set des source_url téléchargées — lookup O(1) — uniquement les completed
-  readonly downloadedUrls = computed(() =>
-    new Set((this.historyResource.value()?.items ?? [])
-      .filter(h => h.status === 'completed')
-      .map(h => h.source_url))
+  readonly downloadedUrls = computed(
+    () =>
+      new Set(
+        (this.historyResource.value()?.items ?? [])
+          .filter((h) => h.status === 'completed')
+          .map((h) => h.source_url),
+      ),
   );
 
   // Set des titres en minuscules — pour matcher les séries par préfixe — uniquement les completed
   private readonly downloadedTitles = computed(() =>
     (this.historyResource.value()?.items ?? [])
-      .filter(h => h.status === 'completed')
-      .map(h => h.title.toLowerCase())
+      .filter((h) => h.status === 'completed')
+      .map((h) => h.title.toLowerCase()),
   );
 
   /** Film/manga : match par URL. Série : match si au moins un épisode a été téléchargé. */
   isDownloaded(url: string, title: string): boolean {
     if (this.downloadedUrls().has(url)) return true;
     const prefix = title.toLowerCase() + ' —';
-    return this.downloadedTitles().some(t => t.startsWith(prefix));
+    return this.downloadedTitles().some((t) => t.startsWith(prefix));
   }
 
   /** Épisode individuel : match exact sur le titre complet "Série — Épisode XX". */

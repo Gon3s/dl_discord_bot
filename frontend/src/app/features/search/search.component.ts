@@ -1,4 +1,12 @@
-import { Component, signal, computed, inject, ChangeDetectionStrategy, DestroyRef, effect } from '@angular/core';
+import {
+  Component,
+  signal,
+  computed,
+  inject,
+  ChangeDetectionStrategy,
+  DestroyRef,
+  effect,
+} from '@angular/core';
 import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -30,12 +38,24 @@ export class SearchComponent {
   protected readonly favorites = inject(FavoriteService);
   protected readonly watchService = inject(NotificationWatchService);
 
-  protected get query() { return this.state.query; }
-  protected get category() { return this.state.category; }
-  protected get year() { return this.state.year; }
-  protected get sort() { return this.state.sort; }
-  protected get source() { return this.state.source; }
-  protected get searchParams() { return this.state.searchParams; }
+  protected get query() {
+    return this.state.query;
+  }
+  protected get category() {
+    return this.state.category;
+  }
+  protected get year() {
+    return this.state.year;
+  }
+  protected get sort() {
+    return this.state.sort;
+  }
+  protected get source() {
+    return this.state.source;
+  }
+  protected get searchParams() {
+    return this.state.searchParams;
+  }
 
   protected readonly currentPage = signal(1);
   protected readonly accumulatedResults = signal<SearchResult[]>([]);
@@ -47,7 +67,15 @@ export class SearchComponent {
       return { ...sp, page: this.currentPage() };
     },
     stream: ({ params }) =>
-      this.api.search(params.q, params.category, params.year, 20, params.sort, params.page, params.source),
+      this.api.search(
+        params.q,
+        params.category,
+        params.year,
+        20,
+        params.sort,
+        params.page,
+        params.source,
+      ),
   });
 
   protected results = computed(() => this.accumulatedResults());
@@ -63,9 +91,7 @@ export class SearchComponent {
   });
 
   protected readonly categories = CATEGORIES;
-  protected readonly sources = [
-    { value: 'wawacity', label: 'WAWACITY' },
-  ];
+  protected readonly sources = [{ value: 'wawacity', label: 'WAWACITY' }];
 
   protected readonly sortOptions: Record<string, { label: string; value: string }[]> = {
     films: [
@@ -102,7 +128,7 @@ export class SearchComponent {
       if (this.currentPage() === 1) {
         this.accumulatedResults.set(results);
       } else {
-        this.accumulatedResults.update(prev => [...prev, ...results]);
+        this.accumulatedResults.update((prev) => [...prev, ...results]);
       }
     });
 
@@ -120,14 +146,16 @@ export class SearchComponent {
       const src = params.get('source');
       if (cat) this.state.category.set(cat);
       if (src) this.state.setSource(src);
-      this.search();
     }
+    this.search();
   }
 
   // --- Film/manga modal ---
   protected modalOpen = signal(false);
   protected selectedResult = signal<SearchResult | null>(null);
-  protected get selectedDestination() { return this.state.destination; }
+  protected get selectedDestination() {
+    return this.state.destination;
+  }
   protected launching = signal(false);
   protected launchError = signal('');
 
@@ -136,22 +164,21 @@ export class SearchComponent {
   protected launchingAll = signal(false);
 
   protected readonly episodesResource = rxResource({
-    params: () => this.episodePanelOpen() ? this.selectedResult() : null,
-    stream: ({ params }) => params ? this.api.getEpisodes(params.url, params.source) : EMPTY,
+    params: () => (this.episodePanelOpen() ? this.selectedResult() : null),
+    stream: ({ params }) => (params ? this.api.getEpisodes(params.url, params.source) : EMPTY),
   });
 
   protected episodes = computed(() => this.episodesResource.value() ?? []);
   protected episodesLoading = computed(() => this.episodesResource.isLoading());
   protected lastDownloadedEp = computed(() => {
     const nums = this.episodes()
-      .filter(ep => this.state.isEpisodeDownloaded(this.epFullTitle(ep)))
-      .map(ep => ep.number);
+      .filter((ep) => this.state.isEpisodeDownloaded(this.epFullTitle(ep)))
+      .map((ep) => ep.number);
     return nums.length ? Math.max(...nums) : -1;
   });
 
   search(): void {
     const q = this.query().trim();
-    if (!q) return;
     this.currentPage.set(1);
     this.searchParams.set({
       q,
@@ -163,7 +190,7 @@ export class SearchComponent {
   }
 
   loadMore(): void {
-    this.currentPage.update(p => p + 1);
+    this.currentPage.update((p) => p + 1);
   }
 
   openResult(result: SearchResult): void {
@@ -194,17 +221,20 @@ export class SearchComponent {
       destination: this.selectedDestination(),
     };
     this.launching.set(true);
-    this.api.startDownload(payload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.launching.set(false);
-        this.closeModal();
-        this.router.navigate(['/downloads']);
-      },
-      error: () => {
-        this.launchError.set('Failed to start download');
-        this.launching.set(false);
-      },
-    });
+    this.api
+      .startDownload(payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.launching.set(false);
+          this.closeModal();
+          this.router.navigate(['/downloads']);
+        },
+        error: () => {
+          this.launchError.set('Failed to start download');
+          this.launching.set(false);
+        },
+      });
   }
 
   epFullTitle(ep: Episode): string {
@@ -219,18 +249,21 @@ export class SearchComponent {
       title: this.epFullTitle(ep),
       media_type: 'series',
       destination: this.selectedDestination(),
-      alternative_urls: ep.links.map(l => l.url).filter(u => u !== url),
+      alternative_urls: ep.links.map((l) => l.url).filter((u) => u !== url),
     };
     this.launching.set(true);
-    this.api.startDownload(payload).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.launching.set(false);
-        this.state.refreshDownloads();
-      },
-      error: () => {
-        this.launching.set(false);
-      },
-    });
+    this.api
+      .startDownload(payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.launching.set(false);
+          this.state.refreshDownloads();
+        },
+        error: () => {
+          this.launching.set(false);
+        },
+      });
   }
 
   downloadAll(): void {
@@ -239,7 +272,7 @@ export class SearchComponent {
     if (!r || !eps.length) return;
 
     const requests = eps
-      .map(ep => ({ ep, url: this.pickBestLink(ep.links) }))
+      .map((ep) => ({ ep, url: this.pickBestLink(ep.links) }))
       .filter(({ url }) => !!url)
       .map(({ ep, url }) =>
         this.api.startDownload({
@@ -247,22 +280,24 @@ export class SearchComponent {
           title: `${r.title} — ${ep.title}`,
           media_type: 'series',
           destination: this.selectedDestination(),
-          alternative_urls: ep.links.map(l => l.url).filter(u => u !== url),
-        })
+          alternative_urls: ep.links.map((l) => l.url).filter((u) => u !== url),
+        }),
       );
 
     if (!requests.length) return;
     this.launchingAll.set(true);
-    forkJoin(requests).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => {
-        this.launchingAll.set(false);
-        this.closeEpisodePanel();
-        this.router.navigate(['/downloads']);
-      },
-      error: () => {
-        this.launchingAll.set(false);
-      },
-    });
+    forkJoin(requests)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.launchingAll.set(false);
+          this.closeEpisodePanel();
+          this.router.navigate(['/downloads']);
+        },
+        error: () => {
+          this.launchingAll.set(false);
+        },
+      });
   }
 
   qualityColor(quality: string | null): string {
@@ -274,7 +309,7 @@ export class SearchComponent {
 
   private pickBestLink(links: EpisodeLink[]): string | null {
     for (const provider of PREFERRED_PROVIDERS) {
-      const link = links.find(l => l.provider === provider);
+      const link = links.find((l) => l.provider === provider);
       if (link) return link.url;
     }
     return links[0]?.url ?? null;
