@@ -69,10 +69,11 @@ class WawacityScraper(BaseScraper):
     ) -> list[SearchResult]:
         wawa_category = _CATEGORY_MAP.get(category, category)
         params: dict[str, str | int] = {
-            "search": query,
             "p": wawa_category,
             "s": sort or _SORT_MAP.get(wawa_category, "vostfr-hq"),
         }
+        if query:
+            params["search"] = query
         if year is not None:
             params["year"] = year
         if page > 1:

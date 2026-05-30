@@ -9,7 +9,7 @@ router = APIRouter()
 
 @router.get("/search", response_model=SearchResponse)
 async def search(
-    q: str = Query(..., min_length=1, description="Search query"),
+    q: str = Query("", description="Search query"),
     source: str = Query("wawacity", description="Scraper source"),
     category: str = Query("films", description="Content category"),
     sort: str | None = Query(None, description="Sort / subsection filter (s= param)"),

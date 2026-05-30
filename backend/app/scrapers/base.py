@@ -49,7 +49,7 @@ class BaseScraper(ABC):
     @abstractmethod
     async def search(
         self,
-        query: str,
+        query: str = "",
         category: str,
         year: int | None = None,
         limit: int = 10,
