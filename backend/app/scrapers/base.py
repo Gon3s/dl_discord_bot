@@ -50,7 +50,7 @@ class BaseScraper(ABC):
     async def search(
         self,
         query: str = "",
-        category: str,
+        category: str = "films",
         year: int | None = None,
         limit: int = 10,
         sort: str | None = None,
