@@ -3,7 +3,7 @@
 # 🎬 DLux
 
 **Self-hosted media downloader with a web UI and Discord bot.**  
-Search movies, TV shows and manga, debrид links via AllDebrid / Real-Debrid, track downloads in real time.
+Search movies, TV shows and manga, debride les liens via AllDebrid / Real-Debrid, track downloads in real time.
 
 [![Release](https://img.shields.io/github/v/release/Gon3s/dlux?color=blue)](https://github.com/Gon3s/dlux/releases)
 [![Python](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
