@@ -72,9 +72,9 @@ class TestSearch:
         resp = await client.get("/api/v1/search?q=dune&source=unknown")
         assert resp.status_code == 400
 
-    async def test_empty_query_returns_422(self, client) -> None:
+    async def test_empty_query_returns_results(self, client) -> None:
         resp = await client.get("/api/v1/search?q=")
-        assert resp.status_code == 422
+        assert resp.status_code == 200
 
 
 # ---------------------------------------------------------------------------
