@@ -261,6 +261,11 @@ POST   /api/v1/favorites
 DELETE /api/v1/favorites/{id}
 GET    /api/v1/history
 DELETE /api/v1/history/{id}
+GET    /api/v1/notifications
+POST   /api/v1/notifications
+PATCH  /api/v1/notifications/{id}      <- toggle auto_download / discord_notify
+DELETE /api/v1/notifications/{id}
+POST   /api/v1/notifications/test-discord
 GET    /api/v1/settings
 PUT    /api/v1/settings
 GET    /api/v1/status
@@ -281,33 +286,17 @@ Schémas Pydantic dans `backend/app/models/schemas.py`.
 | `backend/app/core/events.py` | Bus événements WebSocket (dict UUID→Queue) |
 | `backend/app/scrapers/base.py` | BaseScraper ABC + registre de scrapers |
 | `backend/app/services/download_service.py` | Logique debrid + téléchargement + progression |
-| `frontend/src/app/core/models/` | Interfaces TypeScript (SearchResult, Download, etc.) |
+| `backend/app/services/notification_service.py` | Scheduler de veille séries + notif Discord |
+| `frontend/src/app/core/models/` | Interfaces TypeScript (SearchResult, Download, Favorite, Notification, etc.) |
 | `frontend/src/app/core/services/api.service.ts` | Wrapper HttpClient → backend :8000 |
 | `frontend/src/app/core/services/ws.service.ts` | RxJS WebSocketSubject → WS :8000 |
+| `frontend/src/app/core/services/search-state.service.ts` | État partagé de la recherche (signals) |
+| `frontend/src/app/core/services/favorite.service.ts` | Gestion des favoris |
+| `frontend/src/app/core/services/notification-watch.service.ts` | Veille / notifications côté front |
 | `frontend/src/app/features/search/` | Feature search (component + routes) |
 | `frontend/src/app/features/downloads/` | Feature downloads (component + routes) |
+| `frontend/src/app/features/favorites/` | Feature favorites (component + routes) |
 | `frontend/src/app/features/history/` | Feature history (component + routes) |
+| `frontend/src/app/features/notifications/` | Feature notifications (veille séries) |
 | `frontend/src/app/features/settings/` | Feature settings (component + routes) |
 | `bot/client.py` | Thin client HTTP vers le backend |
-
----
-
-## Workflow issue
-
-1. `/start-issue {numero} {nom}` - crée la branche `feat/{numero}-{nom}` depuis `main`
-2. Implémenter avec les skills ci-dessous
-3. `/finish-issue {numero}` - met à jour docs + ferme l'issue + ouvre la PR
-4. **Attendre la revue et validation de la PR avant de merger**
-5. Après merge : `/deploy` pour mettre en prod
-
-## Skills disponibles
-
-| Commande | Description |
-|---|---|
-| `/start-issue` | Crée une branche `feat/{numero}-{nom}` depuis `main` |
-| `/finish-issue` | Met à jour docs, ferme l'issue, ouvre la PR |
-| `/add-scraper` | Scaffolde un nouveau scraper + ouvre une PR |
-| `/db-migrate` | Crée et applique une migration Alembic + ouvre une PR |
-| `/check-api` | Vérifie que tous les endpoints API répondent correctement |
-| `/deploy` | Build frontend + redémarre la stack via systemd |
-| `/test` | Lance la suite de tests du backend |
