@@ -375,6 +375,32 @@ class DownloadService:
             raise DownloadError(f"Unsafe filename rejected: {name!r}")
         return base
 
+    @staticmethod
+    def _jellyfin_episode_name(filename: str, show: str, season: int) -> str:
+        """Rename a series file to the ``Show SxxEyy.ext`` form Jellyfin needs.
+
+        Jellyfin only detects episodes whose filename contains ``SxxEyy``.
+        French source names such as ``Show saison 1 ep1.avi`` are ignored,
+        leaving the episode invisible in the library. When the episode number
+        can be parsed, rebuild the name; otherwise keep the original filename.
+        """
+        # Already in SxxEyy form: leave it untouched so quality tags and the
+        # original release name are preserved.
+        if re.search(r"S\d{1,2}[. _-]*E\d{1,3}", filename, re.IGNORECASE):
+            return filename
+        # French source names ("... ep1", "... Episode 3") are invisible to
+        # Jellyfin; rebuild them when an episode number can be parsed.
+        em = re.search(
+            r"(?:^|[. _-])(?:episode|ep)[. _]*(\d{1,3})",
+            filename,
+            re.IGNORECASE,
+        )
+        if not em:
+            return filename
+        episode = int(em.group(1))
+        ext = Path(filename).suffix
+        return f"{show} S{season:02d}E{episode:02d}{ext}"
+
     def _resolve_dest(self, media_type: str, filename: str) -> Path:
         """Return the full destination path based on media type and filename."""
         base = Path(settings.download_path)
@@ -395,6 +421,7 @@ class DownloadService:
                 show = self._safe_component(m.group(1).replace(".", " ").strip())
                 num = int(m.group(2) or m.group(3))
                 season = f"S{num:02d}"  # e.g. S01
+                filename = self._jellyfin_episode_name(filename, show, num)
                 dest = base / "Shows" / show / f"{show} - {season}" / filename
             else:
                 dest = base / "Shows" / filename
