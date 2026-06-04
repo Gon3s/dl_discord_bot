@@ -300,6 +300,92 @@ class TestSettings:
         assert mock_settings.debrid_provider == "realdebrid"
         assert mock_settings.max_concurrent_downloads == 3
 
+    async def test_get_masks_secret_keys(self, client) -> None:
+        await client.put(
+            "/api/v1/settings",
+            json={
+                "settings": {
+                    "alldebrid_api_key": "super-secret",
+                    "realdebrid_api_token": "tok-123",
+                }
+            },
+        )
+        resp = await client.get("/api/v1/settings")
+        values = {s["key"]: s["value"] for s in resp.json()}
+        assert values["alldebrid_api_key"] == "********"
+        assert values["realdebrid_api_token"] == "********"
+
+    async def test_put_response_masks_secret_keys(self, client) -> None:
+        resp = await client.put(
+            "/api/v1/settings",
+            json={"settings": {"alldebrid_api_key": "super-secret"}},
+        )
+        values = {s["key"]: s["value"] for s in resp.json()}
+        assert values["alldebrid_api_key"] == "********"
+
+    async def test_empty_secret_not_masked(self, client) -> None:
+        await client.put(
+            "/api/v1/settings",
+            json={"settings": {"alldebrid_api_key": ""}},
+        )
+        resp = await client.get("/api/v1/settings")
+        values = {s["key"]: s["value"] for s in resp.json()}
+        assert values["alldebrid_api_key"] == ""
+
+    async def test_put_mask_value_preserves_stored_secret(self, client) -> None:
+        await client.put(
+            "/api/v1/settings",
+            json={"settings": {"alldebrid_api_key": "real-key"}},
+        )
+        # Client echoes back the mask (e.g. user did not edit the field).
+        resp = await client.put(
+            "/api/v1/settings",
+            json={
+                "settings": {
+                    "alldebrid_api_key": "********",
+                    "wawacity_url": "https://wawa.example/",
+                }
+            },
+        )
+        assert resp.status_code == 200
+        # Stored secret untouched, masked in response.
+        values = {s["key"]: s["value"] for s in resp.json()}
+        assert values["alldebrid_api_key"] == "********"
+        assert values["wawacity_url"] == "https://wawa.example/"
+
+    async def test_mask_echo_keeps_stored_secret_in_db(
+        self, client, db_session
+    ) -> None:
+        from app.models.orm import Setting
+
+        await client.put(
+            "/api/v1/settings",
+            json={"settings": {"alldebrid_api_key": "real-key"}},
+        )
+        # Client echoes the mask back instead of the real secret.
+        await client.put(
+            "/api/v1/settings",
+            json={"settings": {"alldebrid_api_key": "********"}},
+        )
+        stored = await db_session.get(Setting, "alldebrid_api_key")
+        assert stored is not None
+        assert stored.value == "real-key"
+
+    async def test_put_changes_secret_when_not_mask(self, client, db_session) -> None:
+        from app.models.orm import Setting
+
+        await client.put(
+            "/api/v1/settings",
+            json={"settings": {"alldebrid_api_key": "old-key"}},
+        )
+        await client.put(
+            "/api/v1/settings",
+            json={"settings": {"alldebrid_api_key": "new-key"}},
+        )
+        stored = await db_session.get(Setting, "alldebrid_api_key")
+        assert stored is not None
+        assert stored.value == "new-key"
+
 
 # ---------------------------------------------------------------------------
 # Status
