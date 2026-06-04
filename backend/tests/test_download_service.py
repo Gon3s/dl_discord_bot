@@ -417,6 +417,22 @@ class TestResolveDest:
             / "Show Name S01E03 x264.mkv"
         )
 
+    def test_series_french_naming_renamed_to_sxxeyy(
+        self, service: DownloadService
+    ) -> None:
+        # French source names ("saison 1 ep1") are invisible to Jellyfin and
+        # must be rebuilt to the SxxEyy form it can detect.
+        dest = service._resolve_dest(
+            "series", "Smallville saison 1 ep1-Wawacity.ec.avi"
+        )
+        assert dest == (
+            self.base
+            / "Shows"
+            / "Smallville"
+            / "Smallville - S01"
+            / "Smallville S01E01.avi"
+        )
+
     @pytest.mark.parametrize(
         ("evil", "expected_name"),
         [
