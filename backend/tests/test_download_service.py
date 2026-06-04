@@ -382,3 +382,58 @@ class TestRunErrors:
         refreshed = await service.get(download.id)
         assert refreshed is not None
         assert refreshed.status == "error"
+
+
+class TestResolveDest:
+    @pytest.fixture(autouse=True)
+    def _base(self, tmp_path):
+        from app.services import download_service as ds
+
+        with patch.object(ds.settings, "download_path", str(tmp_path)):
+            self.base = tmp_path
+            yield
+
+    def test_film_goes_under_movies(self, service: DownloadService) -> None:
+        dest = service._resolve_dest("films", "Cool.Movie.2024.mkv")
+        assert dest == self.base / "Movies" / "Cool.Movie.2024.mkv"
+
+    def test_series_dot_separated(self, service: DownloadService) -> None:
+        dest = service._resolve_dest("series", "Show.Name.S01E03.x264.mkv")
+        assert dest == (
+            self.base
+            / "Shows"
+            / "Show Name"
+            / "Show Name - S01"
+            / "Show.Name.S01E03.x264.mkv"
+        )
+
+    def test_series_space_separated(self, service: DownloadService) -> None:
+        dest = service._resolve_dest("series", "Show Name S01E03 x264.mkv")
+        assert dest == (
+            self.base
+            / "Shows"
+            / "Show Name"
+            / "Show Name - S01"
+            / "Show Name S01E03 x264.mkv"
+        )
+
+    @pytest.mark.parametrize(
+        ("evil", "expected_name"),
+        [
+            ("../../etc/cron.d/x", "x"),
+            ("/etc/passwd", "passwd"),
+            ("foo/../../bar", "bar"),
+            ("sub/dir/file.mkv", "file.mkv"),
+        ],
+    )
+    def test_neutralizes_path_traversal_to_basename(
+        self, service: DownloadService, evil: str, expected_name: str
+    ) -> None:
+        dest = service._resolve_dest("films", evil)
+        assert dest == self.base / "Movies" / expected_name
+        assert dest.resolve().is_relative_to(self.base.resolve())
+
+    @pytest.mark.parametrize("evil", ["..", ".", ""])
+    def test_rejects_unsafe_filename(self, service: DownloadService, evil: str) -> None:
+        with pytest.raises(DownloadError):
+            service._resolve_dest("films", evil)

@@ -362,25 +362,48 @@ class DownloadService:
             item = magnets
         return str(item.get("status", "")).lower()
 
+    @staticmethod
+    def _safe_component(name: str) -> str:
+        """Sanitize a path component (filename or directory).
+
+        Reduces to its basename and rejects path-traversal values. The
+        filename comes from third-party debrid data, so it must never be
+        trusted to build a path.
+        """
+        base = Path(name.strip()).name
+        if not base or base in (".", "..") or "/" in base or "\\" in base:
+            raise DownloadError(f"Unsafe filename rejected: {name!r}")
+        return base
+
     def _resolve_dest(self, media_type: str, filename: str) -> Path:
         """Return the full destination path based on media type and filename."""
         base = Path(settings.download_path)
+        filename = self._safe_component(filename)
         if media_type == "films":
-            return base / "Movies" / filename
-        if media_type in ("series", "mangas"):
-            # Try to extract show title + season from filename
-            # Pattern: ShowTitle.S01E03.anything.ext  or  ShowTitle.S01.anything.ext
+            dest = base / "Movies" / filename
+        elif media_type in ("series", "mangas"):
+            # Try to extract show title + season from filename.
+            # Accept dot- or space-separated names:
+            #   ShowTitle.S01E03.anything.ext  /  Show Title S01 anything.ext
             m = re.match(
-                r"^(.+?)\.(S\d{1,2})(?:E\d+)?(?:\.|$)",
+                r"^(.+?)[. _](S\d{1,2})(?:E\d+)?(?:[. _]|$)",
                 filename,
                 re.IGNORECASE,
             )
             if m:
-                show = m.group(1).replace(".", " ")
+                show = self._safe_component(m.group(1).replace(".", " ").strip())
                 season = m.group(2).upper()  # e.g. S01
-                return base / "Shows" / show / f"{show} - {season}" / filename
-            return base / "Shows" / filename
-        return base / filename
+                dest = base / "Shows" / show / f"{show} - {season}" / filename
+            else:
+                dest = base / "Shows" / filename
+        else:
+            dest = base / filename
+
+        # Defense in depth: ensure the resolved path stays under download_path.
+        resolved = dest.resolve()
+        if not resolved.is_relative_to(base.resolve()):
+            raise DownloadError(f"Destination escapes download path: {filename!r}")
+        return dest
 
     async def _stream_to_disk(
         self, download: Download, url: str, filename: str
