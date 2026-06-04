@@ -383,16 +383,18 @@ class DownloadService:
             dest = base / "Movies" / filename
         elif media_type in ("series", "mangas"):
             # Try to extract show title + season from filename.
-            # Accept dot- or space-separated names:
+            # Accept dot- or space-separated names, English or French:
             #   ShowTitle.S01E03.anything.ext  /  Show Title S01 anything.ext
+            #   Show saison 1 ep1.ext          /  Show.Saison.1.Episode.3.ext
             m = re.match(
-                r"^(.+?)[. _](S\d{1,2})(?:E\d+)?(?:[. _]|$)",
+                r"^(.+?)[. _-]+(?:S(\d{1,2})|saison[. _]*(\d{1,2}))",
                 filename,
                 re.IGNORECASE,
             )
             if m:
                 show = self._safe_component(m.group(1).replace(".", " ").strip())
-                season = m.group(2).upper()  # e.g. S01
+                num = int(m.group(2) or m.group(3))
+                season = f"S{num:02d}"  # e.g. S01
                 dest = base / "Shows" / show / f"{show} - {season}" / filename
             else:
                 dest = base / "Shows" / filename
