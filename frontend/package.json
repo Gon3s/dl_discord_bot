@@ -27,7 +27,7 @@
     "@hono/node-server": "^1.19.13"
   },
   "devDependencies": {
-    "@angular/build": "^21.2.6",
+    "@angular/build": "^22.1.2",
     "@angular/cli": "^21.2.6",
     "@angular/compiler-cli": "^21.2.0",
     "autoprefixer": "^10.4.27",
