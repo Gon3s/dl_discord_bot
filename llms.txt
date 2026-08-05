@@ -1,0 +1,16 @@
+# DLux
+
+> Self-hosted media downloader with a web UI and Discord bot. Search movies, TV shows and manga, debride links via AllDebrid / Real-Debrid, track downloads in real time.
+
+DLux is a three-tier application built for personal use on a home server: an Angular 21 web UI, a FastAPI backend (scraping, debrid resolution, async download queue, WebSocket progress), and a Discord bot. Everything runs in Docker behind a single port.
+
+## Docs
+
+- [README](https://github.com/Gon3s/dlux/blob/main/README.md): overview, quick start, architecture, full environment variable reference
+- [REST API reference](https://github.com/Gon3s/dlux/blob/main/README.md#-rest-api): endpoints for search, downloads, history, favorites, settings, WebSocket channels
+- [CONTRIBUTING](https://github.com/Gon3s/dlux/blob/main/CONTRIBUTING.md): how to add a new scraper source
+- [LICENSE](https://github.com/Gon3s/dlux/blob/main/LICENSE): MIT
+
+## Notes
+
+Provided for educational purposes and personal use only. Does not host, distribute or cache copyrighted content — automates interactions with third-party websites.
