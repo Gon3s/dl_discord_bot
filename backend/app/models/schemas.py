@@ -1,7 +1,9 @@
 from datetime import datetime
-from typing import Literal
+from ipaddress import ip_address
+from typing import Annotated, Literal
+from urllib.parse import parse_qs, urlsplit
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, StringConstraints, field_validator
 
 # --- Search ---
 
@@ -41,12 +43,78 @@ class EpisodeRead(BaseModel):
 # --- Downloads ---
 
 
+MediaType = Literal["films", "series", "mangas"]
+
+_MEDIA_TYPE_ALIASES: dict[str, MediaType] = {
+    "film": "films",
+    "films": "films",
+    "movie": "films",
+    "serie": "series",
+    "series": "series",
+    "manga": "mangas",
+    "mangas": "mangas",
+}
+_MAX_URL_LENGTH = 4096
+_MAX_ALTERNATIVE_URLS = 20
+_DownloadUrl = Annotated[
+    str,
+    StringConstraints(strip_whitespace=True, min_length=1, max_length=_MAX_URL_LENGTH),
+]
+
+
+def _validate_download_url(value: str) -> str:
+    parsed = urlsplit(value)
+    if parsed.scheme not in {"http", "https", "magnet"}:
+        raise ValueError("URL scheme must be http, https, or magnet")
+
+    if parsed.scheme == "magnet":
+        if not parse_qs(parsed.query).get("xt"):
+            raise ValueError("magnet URL must contain an xt parameter")
+        return value
+
+    if not parsed.hostname:
+        raise ValueError("HTTP URL must contain a hostname")
+    if parsed.username or parsed.password:
+        raise ValueError("URL credentials are not allowed")
+    if parsed.hostname.lower() == "localhost":
+        raise ValueError("local URLs are not allowed")
+    try:
+        address = ip_address(parsed.hostname)
+    except ValueError:
+        pass
+    else:
+        if not address.is_global:
+            raise ValueError("private or reserved IP addresses are not allowed")
+    return value
+
+
 class DownloadCreate(BaseModel):
-    source_url: str
-    title: str
-    media_type: str
+    source_url: _DownloadUrl
+    title: Annotated[
+        str, StringConstraints(strip_whitespace=True, min_length=1, max_length=500)
+    ]
+    media_type: MediaType
     destination: Literal["server", "client"] = "server"
-    alternative_urls: list[str] = []
+    alternative_urls: list[_DownloadUrl] = Field(
+        default_factory=list, max_length=_MAX_ALTERNATIVE_URLS
+    )
+
+    @field_validator("media_type", mode="before")
+    @classmethod
+    def normalize_media_type(cls, value: object) -> object:
+        if isinstance(value, str):
+            return _MEDIA_TYPE_ALIASES.get(value.lower(), value.lower())
+        return value
+
+    @field_validator("source_url")
+    @classmethod
+    def validate_source_url(cls, value: str) -> str:
+        return _validate_download_url(value)
+
+    @field_validator("alternative_urls")
+    @classmethod
+    def validate_alternative_urls(cls, values: list[str]) -> list[str]:
+        return [_validate_download_url(value) for value in values]
 
 
 class DownloadRead(BaseModel):

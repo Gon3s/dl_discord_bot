@@ -8,8 +8,10 @@ humains, à Codex et à Claude Code.
 
 - [ ] Protéger l'application avec Cloudflare Access ou une authentification
   applicative couvrant REST et WebSocket.
-- [ ] Valider `source_url` et `alternative_urls` : protocoles autorisés, nombre et
-  taille maximum, rejet des adresses locales/privées et liste d'hôtes autorisés.
+- [x] Valider `source_url` et `alternative_urls` : protocoles autorisés, nombre et
+  taille maximum, rejet de `localhost` et des adresses IP locales ou réservées.
+- [ ] Décider si les URL de téléchargement doivent utiliser une liste d'hôtes
+  autorisés ou une résolution DNS protégée contre le rebinding.
 - [ ] Remplacer les chaînes libres de `media_type`, `status` et `source` par des
   types ou enums partagés.
 - [ ] Ajouter des limites de requêtes et de taille de file pour empêcher le spam,
@@ -20,7 +22,7 @@ humains, à Codex et à Claude Code.
 
 ## P1 - Fiabilité des téléchargements
 
-- [ ] Implémenter une vraie annulation : état `cancelled`, retrait logique de la
+- [x] Implémenter une vraie annulation : état `cancelled`, retrait logique de la
   file, interruption du worker et nettoyage du fichier partiel.
 - [ ] Télécharger vers un fichier `.part`, contrôler la taille lorsqu'elle est
   connue, puis effectuer un renommage atomique.

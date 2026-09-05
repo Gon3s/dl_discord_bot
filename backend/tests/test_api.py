@@ -193,10 +193,28 @@ class TestDownloads:
         assert resp.status_code == 200
         assert resp.json()["id"] == d.id
 
-    async def test_delete_download_returns_204(self, client, db_session) -> None:
+    async def test_delete_download_cancels_queued_job(self, client, db_session) -> None:
         d = await _seed_download(db_session)
-        resp = await client.delete(f"/api/v1/downloads/{d.id}")
+
+        with patch("app.api.v1.downloads.download_queue") as mock_queue:
+            resp = await client.delete(f"/api/v1/downloads/{d.id}")
+
         assert resp.status_code == 204
+        mock_queue.cancel.assert_called_once_with(d.id)
+        await db_session.refresh(d)
+        assert d.status == "cancelled"
+
+    async def test_delete_download_removes_terminal_job(
+        self, client, db_session
+    ) -> None:
+        d = await _seed_download(db_session, status="completed")
+        download_id = d.id
+
+        resp = await client.delete(f"/api/v1/downloads/{download_id}")
+
+        assert resp.status_code == 204
+        db_session.expire_all()
+        assert await db_session.get(Download, download_id) is None
 
     async def test_delete_download_returns_404_for_unknown(self, client) -> None:
         resp = await client.delete("/api/v1/downloads/nonexistent")

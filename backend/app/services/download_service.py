@@ -82,6 +82,7 @@ class DownloadService:
                         "downloading",
                         "error",
                         "completed",
+                        "cancelled",
                         "ready_for_client",
                     ]
                 )
@@ -98,6 +99,28 @@ class DownloadService:
         await self._session.delete(download)
         await self._session.commit()
         return True
+
+    async def cancel(self, download_id: str) -> Download | None:
+        """Persist cancellation after the queue has stopped the running job."""
+        download = await self.get(download_id)
+        if download is None:
+            return None
+        await self._set_status(
+            download,
+            "cancelled",
+            speed_mbps=None,
+            completed_at=datetime.now(UTC),
+        )
+        await _emit(
+            download_id,
+            WsProgressEvent(
+                download_id=download_id,
+                status="cancelled",
+                progress_pct=download.progress_pct,
+                filename=download.filename,
+            ).model_dump(),
+        )
+        return download
 
     async def retry(self, download_id: str) -> Download | None:
         """Reset a failed download and re-enqueue it."""
@@ -454,6 +477,7 @@ class DownloadService:
 
                 total = int(response.headers.get("Content-Length", 0))
                 f = await loop.run_in_executor(None, open, str(dest), "wb")
+                cancelled = False
                 try:
                     async for chunk in response.content.iter_chunked(_CHUNK_SIZE):
                         await loop.run_in_executor(None, f.write, chunk)
@@ -493,8 +517,13 @@ class DownloadService:
                                 filename=filename,
                             )
                             last_db_update = now
+                except asyncio.CancelledError:
+                    cancelled = True
+                    raise
                 finally:
                     await loop.run_in_executor(None, f.close)
+                    if cancelled:
+                        await asyncio.to_thread(dest.unlink, missing_ok=True)
 
         await self._set_status(
             download,

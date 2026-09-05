@@ -1,3 +1,4 @@
+import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
@@ -73,6 +74,79 @@ class TestDelete:
 
         assert result is True
         assert await service.get(download.id) is None
+
+
+class TestCancel:
+    async def test_marks_download_cancelled_and_keeps_record(
+        self, service: DownloadService, download_create: DownloadCreate
+    ) -> None:
+        download = await service.create(download_create)
+
+        with patch("app.services.download_service.events.emit", new=AsyncMock()):
+            result = await service.cancel(download.id)
+
+        assert result is not None
+        refreshed = await service.get(download.id)
+        assert refreshed is not None
+        assert refreshed.status == "cancelled"
+        assert refreshed.completed_at is not None
+
+    async def test_returns_none_for_unknown_id(self, service: DownloadService) -> None:
+        assert await service.cancel("nonexistent-id") is None
+
+    async def test_stream_cancellation_removes_partial_file(
+        self,
+        service: DownloadService,
+        download_create: DownloadCreate,
+        tmp_path,
+    ) -> None:
+        download = await service.create(download_create)
+        waiting = asyncio.Event()
+
+        class FakeContent:
+            async def iter_chunked(self, chunk_size):
+                yield b"partial"
+                waiting.set()
+                await asyncio.Event().wait()
+
+        class FakeResponse:
+            status = 200
+            headers = {"Content-Length": "100"}
+            content = FakeContent()
+
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return None
+
+        class FakeSession:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, *args):
+                return None
+
+            def get(self, url):
+                return FakeResponse()
+
+        from app.services import download_service as module
+
+        with (
+            patch.object(module.settings, "download_path", str(tmp_path)),
+            patch.object(module.aiohttp, "ClientSession", return_value=FakeSession()),
+        ):
+            task = asyncio.create_task(
+                service._stream_to_disk(
+                    download, "https://cdn.example.com/movie.mkv", "movie.mkv"
+                )
+            )
+            await asyncio.wait_for(waiting.wait(), timeout=1.0)
+            task.cancel()
+            with pytest.raises(asyncio.CancelledError):
+                await task
+
+        assert not (tmp_path / "Movies" / "movie.mkv").exists()
 
 
 class TestListActive:

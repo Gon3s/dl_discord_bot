@@ -64,3 +64,49 @@ class TestDownloadQueue:
         assert "good" in processed
 
         await q.stop()
+
+    async def test_cancel_skips_queued_job(self) -> None:
+        q = DownloadQueue()
+        processed: list[str] = []
+
+        async def handler(download_id: str) -> None:
+            processed.append(download_id)
+
+        q.set_handler(handler)
+        await q.enqueue("cancelled")
+        q.cancel("cancelled")
+        q.start()
+        await asyncio.sleep(0.05)
+
+        assert processed == []
+        assert q.size == 0
+        await q.stop()
+
+    async def test_cancel_interrupts_active_job_and_worker_continues(self) -> None:
+        q = DownloadQueue()
+        started = asyncio.Event()
+        interrupted = asyncio.Event()
+        processed: list[str] = []
+
+        async def handler(download_id: str) -> None:
+            if download_id == "cancelled":
+                started.set()
+                try:
+                    await asyncio.Event().wait()
+                finally:
+                    interrupted.set()
+            else:
+                processed.append(download_id)
+
+        q.set_handler(handler)
+        q.start()
+        await q.enqueue("cancelled")
+        await asyncio.wait_for(started.wait(), timeout=1.0)
+
+        assert q.cancel("cancelled") is True
+        await asyncio.wait_for(interrupted.wait(), timeout=1.0)
+        await q.enqueue("next")
+        await asyncio.sleep(0.05)
+
+        assert processed == ["next"]
+        await q.stop()
