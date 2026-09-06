@@ -1,8 +1,10 @@
+import type { ScraperSource } from './source.type';
+
 export interface Notification {
   id: string;
   title: string;
   url: string;
-  source: string;
+  source: ScraperSource;
   poster_url: string | null;
   last_episode_count: number;
   last_checked_at: string | null;
@@ -13,7 +15,7 @@ export interface Notification {
 export interface NotificationCreate {
   title: string;
   url: string;
-  source: string;
+  source: ScraperSource;
   poster_url?: string | null;
 }
 

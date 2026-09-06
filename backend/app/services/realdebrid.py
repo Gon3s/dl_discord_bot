@@ -2,12 +2,13 @@ import aiohttp
 
 from app.config import settings
 from app.core.exceptions import DebridAPIError, DebridHTTPError
+from app.models.domain import DebridProvider
 
 _BASE_URL = "https://api.real-debrid.com/rest/1.0"
 
 
 class RealDebridClient:
-    name = "realdebrid"
+    name = DebridProvider.REALDEBRID
     display_name = "Real-Debrid"
 
     def __init__(self) -> None:

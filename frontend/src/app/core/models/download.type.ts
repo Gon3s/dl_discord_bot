@@ -1,10 +1,13 @@
+import type { MediaType } from '../constants/media';
+import type { DownloadStatus } from '../constants/download-status';
+
 export type Download = {
   id: string;
   title: string;
   source_url: string;
-  media_type: string;
+  media_type: MediaType;
   destination: string;
-  status: string;
+  status: DownloadStatus;
   progress_pct: number;
   speed_mbps: number | null;
   eta_s: number | null;
@@ -17,13 +20,13 @@ export type Download = {
 
 export type DownloadCreated = {
   download_id: string;
-  status: string;
+  status: DownloadStatus;
 };
 
 export type StartDownloadPayload = {
   source_url: string;
   title: string;
-  media_type: string;
+  media_type: MediaType;
   destination: 'server' | 'client';
   alternative_urls?: string[];
 };

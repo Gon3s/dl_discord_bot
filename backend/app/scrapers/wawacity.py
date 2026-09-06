@@ -11,6 +11,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 from seleniumbase import SB, Driver
 
 from app.config import settings
+from app.models.domain import ScraperSource
 from app.scrapers.base import (
     BaseScraper,
     Episode,
@@ -56,7 +57,7 @@ def _match_language(flag_class: str) -> str:
 
 @register
 class WawacityScraper(BaseScraper):
-    source_name = "wawacity"
+    source_name = ScraperSource.WAWACITY
 
     async def search(
         self,

@@ -9,13 +9,16 @@ import type { ApiStatus } from '../models/api-status.type';
 import type { Episode } from '../models/episode.type';
 import type { Favorite, FavoriteCreate } from '../models/favorite.type';
 import type { Notification, NotificationCreate, NotificationPatch } from '../models/notification.type';
+import type { MediaType } from '../constants/media';
+import type { HistoryStatus } from '../constants/download-status';
+import type { HistorySource, ScraperSource } from '../models/source.type';
 
 @Injectable({ providedIn: 'root' })
 export class ApiService {
   private readonly http = inject(HttpClient);
   private readonly base = '/api/v1';
 
-  search(query: string, category: string, year?: string, limit = 20, sort?: string, page = 1, source = 'wawacity'): Observable<SearchResponse> {
+  search(query: string, category: MediaType, year?: string, limit = 20, sort?: string, page = 1, source: ScraperSource = 'wawacity'): Observable<SearchResponse> {
     let params = new HttpParams().set('q', query).set('category', category).set('limit', limit).set('page', page).set('source', source);
     if (year) params = params.set('year', year);
     if (sort) params = params.set('sort', sort);
@@ -44,8 +47,8 @@ export class ApiService {
 
   getHistory(params?: {
     q?: string;
-    status?: string;
-    provider?: string;
+    status?: HistoryStatus;
+    provider?: HistorySource;
     from?: string;
     to?: string;
     page?: number;
@@ -88,7 +91,7 @@ export class ApiService {
     return this.http.delete<void>(`${this.base}/favorites/${id}`);
   }
 
-  getEpisodes(url: string, source = 'wawacity', providers?: string[]): Observable<Episode[]> {
+  getEpisodes(url: string, source: ScraperSource = 'wawacity', providers?: string[]): Observable<Episode[]> {
     let params = new HttpParams().set('url', url).set('source', source);
     if (providers?.length) params = params.set('providers', providers.join(','));
     return this.http.get<Episode[]>(`${this.base}/episodes`, { params });

@@ -1,12 +1,15 @@
+import type { ScraperSource } from './source.type';
+import type { MediaType } from '../constants/media';
+
 export type Favorite = {
   id: string;
   title: string;
   url: string;
-  category: string | null;
+  category: MediaType | null;
   year: number | null;
   quality: string | null;
   language: string | null;
-  source: string;
+  source: ScraperSource;
   poster_url: string | null;
   added_at: string;
 };

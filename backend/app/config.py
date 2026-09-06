@@ -2,6 +2,8 @@ from pathlib import Path
 
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+from app.models.domain import DebridProvider
+
 _ENV_FILE = Path(__file__).resolve().parents[2] / ".env"
 
 
@@ -10,7 +12,7 @@ class Settings(BaseSettings):
 
     discord_token: str = ""
     discord_guild: str = ""
-    debrid_provider: str = "alldebrid"
+    debrid_provider: DebridProvider = DebridProvider.ALLDEBRID
     alldebrid_api_key: str = ""
     realdebrid_api_token: str = ""
     download_path: str = "/data/media"

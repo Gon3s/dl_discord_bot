@@ -8,7 +8,7 @@ import { FavoriteService } from '#core/services/favorite.service';
 import { NotificationWatchService } from '#core/services/notification-watch.service';
 import { SearchStateService } from '#core/services/search-state.service';
 import { ApiService } from '#core/services/api.service';
-import { CATEGORIES } from '#core/constants/media';
+import { CATEGORIES, type MediaType } from '#core/constants/media';
 import type { Favorite } from '#core/models/favorite.type';
 import type { SearchResult } from '#core/models/search.type';
 import type { Episode, EpisodeLink } from '#core/models/episode.type';
@@ -32,8 +32,8 @@ export class FavoritesComponent {
   protected readonly watchService = inject(NotificationWatchService);
   protected readonly state = inject(SearchStateService);
 
-  protected readonly categories = ['tous', ...CATEGORIES];
-  protected readonly filterCategory = signal<string>('tous');
+  protected readonly categories = ['tous', ...CATEGORIES] as const;
+  protected readonly filterCategory = signal<MediaType | 'tous'>('tous');
   protected readonly sortBy = linkedSignal<SortOption>(() => { this.filterCategory(); return 'added_at'; });
 
   protected readonly filtered = computed(() => {

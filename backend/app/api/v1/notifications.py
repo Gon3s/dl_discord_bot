@@ -4,6 +4,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import get_db
+from app.models.domain import ScraperSource
 from app.models.orm import Notification
 from app.models.schemas import NotificationCreate, NotificationPatch, NotificationRead
 from app.services.notification_service import notification_scheduler
@@ -58,7 +59,7 @@ async def test_discord_notification() -> None:
         title = "Test Notification"
         url = ""
         poster_url = None
-        source = "wawacity"
+        source = ScraperSource.WAWACITY
 
     await notification_scheduler._notify_discord(_FakeNotif(), new_count=2, total=12)  # type: ignore[arg-type]
 

@@ -122,8 +122,8 @@ sequenceDiagram
     SVC->>AD: debrid_link(protected_url)
     AD-->>SVC: debrid_url (TTL limité)
 
-    SVC->>API: emit(status: "ready_for_client", debrid_url)
-    API-->>WB: WS { status: "ready_for_client", debrid_url }
+    SVC->>API: emit(status: "completed", debrid_url)
+    API-->>WB: WS { status: "completed", debrid_url }
     WB->>U: window.open(debrid_url)<br/>→ téléchargement navigateur natif
 
     Note over WB,U: Aucun fichier stocké côté serveur
@@ -205,9 +205,9 @@ erDiagram
         TEXT title
         TEXT source_url
         TEXT source "wawacity"
-        TEXT media_type "movie | serie"
+        TEXT media_type "films | series | mangas"
         TEXT destination "server | client"
-        TEXT status "queued | scraping | debriding | downloading | completed | error | cancelled | ready_for_client"
+        TEXT status "queued | scraping | resolving | debriding | downloading | completed | error | cancelled | ready_for_client"
         TEXT provider "1fichier | Turbobit | Rapidgator"
         TEXT filename
         TEXT file_path "NULL si client"
@@ -239,13 +239,33 @@ erDiagram
 
 ---
 
-## 6. Architecture des scrapers (plugin system)
+## 6. Contrat des valeurs métier
+
+Les chaînes persistées restent des colonnes SQLite `TEXT`. Les valeurs API sont
+centralisées par `backend/app/models/domain.py` et reprises par les types
+TypeScript du frontend.
+
+| Champ | Valeurs canoniques |
+|---|---|
+| `media_type` | `films`, `series`, `mangas` |
+| `status` téléchargement | `queued`, `scraping`, `resolving`, `debriding`, `downloading`, `completed`, `error`, `cancelled` |
+| `source` scraper | `wawacity` |
+| fournisseur debrid | `alldebrid`, `realdebrid` |
+
+`film`, `movie`, `serie` et `manga` restent acceptés à l'entrée puis sont
+normalisés. `unknown` reste réservé à l'historique CSV importé. Le statut
+`ready_for_client` reste lisible et supprimable pour compatibilité, mais les
+téléchargements client actuels émettent `completed`.
+
+---
+
+## 7. Architecture des scrapers (plugin system)
 
 ```mermaid
 classDiagram
     class BaseScraper {
         <<abstract>>
-        +str source_name
+        +ScraperSource source_name
         +search(query, category, year, limit, sort, page) list~SearchResult~
         +get_provider_links(url, providers) list~ProviderLinks~
         +get_episodes(url, providers) list~Episode~
@@ -267,7 +287,7 @@ classDiagram
     }
 
     class WawacityScraper {
-        +str source_name = "wawacity"
+        +ScraperSource source_name = WAWACITY
         +search() list~SearchResult~
         +get_provider_links() list~ProviderLinks~
         +get_episodes() list~Episode~
@@ -289,7 +309,7 @@ classDiagram
 
 ---
 
-## 7. Structure du monorepo
+## 8. Structure du monorepo
 
 ```
 dlux/                               ← monorepo racine
@@ -319,6 +339,7 @@ dlux/                               ← monorepo racine
 │   │   │   ├── download_service.py ← debrid + download + progression
 │   │   │   └── alldebrid.py        ← ← migration alldebrid.py (async)
 │   │   └── models/
+│   │       ├── domain.py           ← enums métier partagés
 │   │       ├── orm.py              ← tables SQLAlchemy
 │   │       └── schemas.py          ← Pydantic request/response
 │   ├── alembic/                    ← migrations BDD
@@ -329,6 +350,7 @@ dlux/                               ← monorepo racine
 ├── bot/                            ← Discord Bot (Python)
 │   ├── main.py                     ← entry point
 │   ├── client.py                   ← BackendClient (aiohttp wrapper)
+│   ├── domain.py                   ← valeurs API consommées par le bot
 │   ├── cogs/
 │   │   ├── search.py               ← !search → GET /api/v1/search
 │   │   └── download.py             ← !url, !status → POST /api/v1/downloads
@@ -340,6 +362,7 @@ dlux/                               ← monorepo racine
 │   │   │   ├── models/
 │   │   │   │   ├── search.type.ts  ← interfaces TypeScript partagées
 │   │   │   │   ├── download.type.ts
+│   │   │   │   ├── source.type.ts  ← sources scraper/debrid
 │   │   │   │   └── index.ts
 │   │   │   └── services/
 │   │   │       ├── api.service.ts  ← HttpClient → /api/v1 (même origin)
@@ -363,7 +386,7 @@ dlux/                               ← monorepo racine
 
 ---
 
-## 8. Déploiement actuel : systemd
+## 9. Déploiement actuel : systemd
 
 ```mermaid
 graph TB

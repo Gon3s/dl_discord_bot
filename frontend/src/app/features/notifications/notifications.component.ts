@@ -5,6 +5,7 @@ import { ApiService } from '#core/services/api.service';
 import { NotificationWatchService } from '#core/services/notification-watch.service';
 import type { Notification } from '#core/models/notification.type';
 import type { SearchResult } from '#core/models/search.type';
+import type { ScraperSource } from '#core/models/source.type';
 
 @Component({
   selector: 'app-notifications',
@@ -19,7 +20,7 @@ export class NotificationsComponent {
 
   protected readonly addPanelOpen = signal(false);
   protected readonly searchQuery = signal('');
-  protected readonly searchSource = signal('wawacity');
+  protected readonly searchSource = signal<ScraperSource>('wawacity');
   protected readonly searchResults = signal<SearchResult[]>([]);
   protected readonly searching = signal(false);
   protected readonly testingDiscord = signal(false);

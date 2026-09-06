@@ -1,17 +1,20 @@
+import type { ScraperSource } from './source.type';
+import type { MediaType } from '../constants/media';
+
 export type SearchResult = {
   title: string;
   url: string;
   year: number | null;
-  category: string | null;
+  category: MediaType | null;
   quality: string | null;
   language: string | null;
-  source: string;
+  source: ScraperSource;
   poster_url: string | null;
 };
 
 export type SearchResponse = {
   results: SearchResult[];
   total: number;
-  source: string;
+  source: ScraperSource;
   page: number;
 };

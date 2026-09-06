@@ -6,13 +6,9 @@ humains, à Codex et à Claude Code.
 
 ## P0 - Sécurité avant exposition publique
 
-- [ ] Protéger l'application avec Cloudflare Access ou une authentification
-  applicative couvrant REST et WebSocket.
 - [x] Valider `source_url` et `alternative_urls` : protocoles autorisés, nombre et
   taille maximum, rejet de `localhost` et des adresses IP locales ou réservées.
-- [ ] Décider si les URL de téléchargement doivent utiliser une liste d'hôtes
-  autorisés ou une résolution DNS protégée contre le rebinding.
-- [ ] Remplacer les chaînes libres de `media_type`, `status` et `source` par des
+- [x] Remplacer les chaînes libres de `media_type`, `status` et `source` par des
   types ou enums partagés.
 - [ ] Ajouter des limites de requêtes et de taille de file pour empêcher le spam,
   l'épuisement du quota debrid et le remplissage du disque.
@@ -68,6 +64,8 @@ humains, à Codex et à Claude Code.
 
 ## P2 - Exploitation et déploiement
 
+- [ ] Décider si les URL de téléchargement doivent utiliser une liste d'hôtes
+  autorisés ou une résolution DNS protégée contre le rebinding.
 - [ ] Remplacer le chemin hôte `/home/gones/moovies` par une variable documentée
   ou un volume portable.
 - [ ] Utiliser des tags d'image immuables pour les déploiements, avec une procédure

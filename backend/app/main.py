@@ -16,6 +16,7 @@ from app.api.ws import router as ws_router
 from app.config import settings as app_settings
 from app.core.queue import download_queue
 from app.database import AsyncSessionLocal, Base, engine
+from app.models.domain import DownloadStatus, ScraperSource
 from app.models.orm import Download, History, Setting
 from app.services.download_service import DownloadService
 from app.services.notification_service import notification_scheduler
@@ -55,7 +56,7 @@ async def _migrate_csv_if_needed() -> None:
                 source_url=row["url"].strip(),
                 filename=row["title"].strip(),
                 media_type="unknown",
-                source="wawacity",
+                source=ScraperSource.WAWACITY,
                 downloaded_at=now,
             )
             for row in rows
@@ -107,7 +108,7 @@ async def _resume_pending_downloads() -> None:
     """Reload pending downloads from database and enqueue them."""
     async with AsyncSessionLocal() as session:
         result = await session.execute(
-            select(Download.id).where(Download.status == "queued")
+            select(Download.id).where(Download.status == DownloadStatus.QUEUED)
         )
         pending_ids = result.scalars().all()
         for download_id in pending_ids:

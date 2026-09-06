@@ -1,12 +1,16 @@
+import type { MediaType } from '../constants/media';
+import type { HistoryStatus } from '../constants/download-status';
+import type { HistorySource } from './source.type';
+
 export type HistoryRead = {
   id: string;
   title: string;
   source_url: string;
   filename: string | null;
-  media_type: string;
-  source: string;
+  media_type: MediaType | 'unknown';
+  source: HistorySource;
   destination: string | null;
-  status: string;
+  status: HistoryStatus;
   error: string | null;
   downloaded_at: string;
 };

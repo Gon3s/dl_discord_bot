@@ -2,13 +2,14 @@ import aiohttp
 
 from app.config import settings
 from app.core.exceptions import AllDebridAPIError, AllDebridHTTPError
+from app.models.domain import DebridProvider
 
 _BASE_URL = "https://api.alldebrid.com/v4"
 _AGENT = "AlldebridBot"
 
 
 class AllDebridClient:
-    name = "alldebrid"
+    name = DebridProvider.ALLDEBRID
     display_name = "AllDebrid"
 
     def __init__(self) -> None:

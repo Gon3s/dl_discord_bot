@@ -3,6 +3,7 @@ from datetime import UTC, datetime
 import pytest
 from pydantic import ValidationError
 
+from app.models.domain import MediaType
 from app.models.schemas import (
     DownloadCreate,
     DownloadRead,
@@ -141,7 +142,26 @@ class TestDownloadRead:
             error=None,
         )
         assert data.id == "abc-123"
+        assert data.media_type is MediaType.FILMS
         assert data.status == "queued"
+
+    def test_invalid_status_rejected(self):
+        now = datetime.now(UTC)
+        with pytest.raises(ValidationError):
+            DownloadRead(
+                id="abc-123",
+                title="Film",
+                source_url="https://example.com",
+                media_type="films",
+                destination="server",
+                status="not-a-status",
+                progress_pct=0.0,
+                speed_mbps=None,
+                filename=None,
+                created_at=now,
+                completed_at=None,
+                error=None,
+            )
 
 
 class TestSearchResult:
@@ -165,6 +185,12 @@ class TestSearchResult:
         )
         assert r.year == 2010
         assert r.quality == "1080p"
+
+    def test_unknown_source_rejected(self):
+        with pytest.raises(ValidationError):
+            SearchResult(
+                title="Inception", url="https://example.com", source="unknown"
+            )
 
 
 class TestSettingsUpdate:

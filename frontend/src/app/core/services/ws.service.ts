@@ -2,11 +2,12 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { defer, retry } from 'rxjs';
 import { webSocket, WebSocketSubject } from 'rxjs/webSocket';
+import type { DownloadStatus } from '../constants/download-status';
 
 export interface QueueEvent {
   type: string;
   download_id: string;
-  status: string;
+  status: DownloadStatus;
   progress_pct?: number;
   speed_mbps?: number;
   eta_s?: number;

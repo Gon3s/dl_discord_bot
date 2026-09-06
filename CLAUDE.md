@@ -196,11 +196,12 @@ uv run alembic downgrade -1
 Pour ajouter une nouvelle source de données, créer `backend/app/scrapers/<nom>.py` :
 
 ```python
+from app.models.domain import ScraperSource
 from app.scrapers.base import BaseScraper, SearchResult, ProviderLinks, register
 
 @register
 class MonScraper(BaseScraper):
-    source_name = "mon_source"  # valeur du param ?source= dans l'API
+    source_name = ScraperSource.MON_SOURCE  # valeur du param ?source= dans l'API
 
     async def search(
         self, query, category, year=None, limit=10, sort=None, page=1
@@ -214,7 +215,8 @@ class MonScraper(BaseScraper):
         ...
 ```
 
-Aucune autre modification n'est nécessaire. Le registre est automatique.
+Ajouter aussi `MON_SOURCE` à `ScraperSource` dans `backend/app/models/domain.py`
+et à la liste frontend `SCRAPER_SOURCES`. Le registre reste automatique.
 
 **Sources actuelles :**
 - `wawacity` - implémenté (`backend/app/scrapers/wawacity.py`)

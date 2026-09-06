@@ -2,11 +2,12 @@ import { Injectable, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ApiService } from './api.service';
 import type { Notification } from '../models/notification.type';
+import type { ScraperSource } from '../models/source.type';
 
 interface WatchableResult {
   title: string;
   url: string;
-  source: string;
+  source: ScraperSource;
   poster_url?: string | null;
 }
 

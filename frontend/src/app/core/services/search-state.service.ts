@@ -3,22 +3,27 @@ import { toSignal, rxResource } from '@angular/core/rxjs-interop';
 import { BehaviorSubject, switchMap, map } from 'rxjs';
 import { ApiService } from './api.service';
 import type { SearchResult } from '../models/search.type';
+import { PENDING_STATUSES } from '../constants/download-status';
+import { MEDIA_TYPES, type MediaType } from '../constants/media';
+import { SCRAPER_SOURCES, type ScraperSource } from '../models/source.type';
 
-const ACTIVE_STATUSES = new Set(['queued', 'scraping', 'resolving', 'debriding', 'downloading']);
-const DEFAULT_SOURCE = 'wawacity';
-const ENABLED_SOURCES = new Set([DEFAULT_SOURCE]);
+const ACTIVE_STATUSES = new Set<string>(PENDING_STATUSES);
+const DEFAULT_SOURCE: ScraperSource = 'wawacity';
+const ENABLED_SOURCES = new Set<ScraperSource>(SCRAPER_SOURCES);
 
-function initialSource(): string {
+function initialSource(): ScraperSource {
   const stored = localStorage.getItem('dl_source');
-  return stored && ENABLED_SOURCES.has(stored) ? stored : DEFAULT_SOURCE;
+  return stored && ENABLED_SOURCES.has(stored as ScraperSource)
+    ? (stored as ScraperSource)
+    : DEFAULT_SOURCE;
 }
 
 export type SearchParams = {
   q: string;
-  category: string;
+  category: MediaType;
   year?: string;
   sort?: string;
-  source: string;
+  source: ScraperSource;
 };
 
 @Injectable({ providedIn: 'root' })
@@ -26,9 +31,9 @@ export class SearchStateService {
   private readonly api = inject(ApiService);
 
   readonly query = signal('');
-  readonly category = signal('films');
+  readonly category = signal<MediaType>('films');
   readonly year = signal('');
-  readonly source = signal<string>(initialSource());
+  readonly source = signal<ScraperSource>(initialSource());
   readonly sort = linkedSignal<string>(() => {
     this.source();
     const cat = this.category();
@@ -49,7 +54,9 @@ export class SearchStateService {
       const settings = this.settingsResource.value();
       if (!settings || this.searchParams()) return;
       const defaultCat = settings.find((s) => s.key === 'default_category')?.value;
-      if (defaultCat) this.category.set(defaultCat);
+      if (defaultCat && MEDIA_TYPES.includes(defaultCat as MediaType)) {
+        this.category.set(defaultCat as MediaType);
+      }
     });
   }
   readonly destination = signal<'server' | 'client'>(
@@ -121,7 +128,9 @@ export class SearchStateService {
   }
 
   setSource(value: string): void {
-    const source = ENABLED_SOURCES.has(value) ? value : DEFAULT_SOURCE;
+    const source = ENABLED_SOURCES.has(value as ScraperSource)
+      ? (value as ScraperSource)
+      : DEFAULT_SOURCE;
     this.source.set(source);
     localStorage.setItem('dl_source', source);
   }

@@ -16,7 +16,7 @@ import { ApiService } from '#core/services/api.service';
 import { SearchStateService } from '#core/services/search-state.service';
 import { FavoriteService } from '#core/services/favorite.service';
 import { NotificationWatchService } from '#core/services/notification-watch.service';
-import { CATEGORIES } from '#core/constants/media';
+import { CATEGORIES, type MediaType } from '#core/constants/media';
 import type { SearchResult } from '#core/models/search.type';
 import type { StartDownloadPayload } from '#core/models/download.type';
 import type { Episode, EpisodeLink } from '#core/models/episode.type';
@@ -144,7 +144,9 @@ export class SearchComponent {
       this.state.query.set(q);
       const cat = params.get('category');
       const src = params.get('source');
-      if (cat) this.state.category.set(cat);
+      if (cat && CATEGORIES.includes(cat as MediaType)) {
+        this.state.category.set(cat as MediaType);
+      }
       if (src) this.state.setSource(src);
     }
     this.search();

@@ -3,12 +3,13 @@ import { rxResource, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { SlicePipe } from '@angular/common';
 import { ApiService } from '#core/services/api.service';
-import { ALL_PROVIDERS } from '#core/constants/media';
+import type { HistoryStatus } from '#core/constants/download-status';
+import { HISTORY_SOURCES, type HistorySource } from '#core/models/source.type';
 
 type HistoryParams = {
   q: string;
-  status: string;
-  provider: string;
+  status: HistoryStatus | '';
+  provider: HistorySource | '';
   from: string;
   to: string;
   page: number;
@@ -28,8 +29,8 @@ export class HistoryComponent {
 
   // Form fields — local editable state, only committed on applyFilters()
   protected filterQuery = signal('');
-  protected filterStatus = signal('');
-  protected filterProvider = signal('');
+  protected filterStatus = signal<HistoryStatus | ''>('');
+  protected filterProvider = signal<HistorySource | ''>('');
   protected filterFrom = signal('');
   protected filterTo = signal('');
   protected pageSize = signal(10);
@@ -68,7 +69,7 @@ export class HistoryComponent {
   });
 
   protected readonly pageSizes = [10, 25, 50];
-  protected readonly providers = ['', ...ALL_PROVIDERS];
+  protected readonly providers = ['', ...HISTORY_SOURCES];
 
   applyFilters(): void {
     this.params.set({

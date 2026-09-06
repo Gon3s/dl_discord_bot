@@ -3,6 +3,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.models.domain import HistorySource, HistoryStatus
 from app.models.orm import History
 from app.models.schemas import HistoryList, HistoryRead
 
@@ -14,8 +15,10 @@ async def list_history(
     page: int = Query(1, ge=1),
     limit: int = Query(20, ge=1, le=100),
     q: str | None = Query(None, description="Filter by title"),
-    status: str | None = Query(None, description="Filter by status"),
-    provider: str | None = Query(None, description="Filter by source/provider"),
+    status: HistoryStatus | None = Query(None, description="Filter by status"),
+    provider: HistorySource | None = Query(
+        None, description="Filter by source/provider"
+    ),
     session: AsyncSession = Depends(get_db),
 ) -> HistoryList:
     base_query = select(History)

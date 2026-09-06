@@ -1,13 +1,14 @@
 import logging
+from typing import cast
 
 import discord
 from discord.ext import commands
 
 from client import BackendClient, BackendError
+from domain import MediaTypeInput, VALID_MEDIA_TYPE_INPUTS
 
 logger = logging.getLogger(__name__)
 
-_VALID_MEDIA_TYPES = ["movie", "serie", "manga"]
 _STATUS_COLORS = {
     "pending": discord.Color.light_grey(),
     "downloading": discord.Color.blue(),
@@ -33,7 +34,7 @@ class DownloadCog(commands.Cog):
             await ctx.send("URL invalide.")
             return
 
-        if media_type is None or media_type not in _VALID_MEDIA_TYPES:
+        if media_type is None or media_type not in VALID_MEDIA_TYPE_INPUTS:
             embed = discord.Embed(
                 title="Type de média invalide",
                 description="Types disponibles: `movie`, `serie`, `manga`\nEx: `!url https://... movie`",
@@ -48,7 +49,7 @@ class DownloadCog(commands.Cog):
             result = await self.backend.create_download(
                 source_url=url,
                 title=url,
-                media_type=media_type,
+                media_type=cast(MediaTypeInput, media_type),
                 destination="server",
             )
         except BackendError as exc:

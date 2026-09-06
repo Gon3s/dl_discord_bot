@@ -3,6 +3,8 @@ from typing import Any
 
 import aiohttp
 
+from domain import Category, MediaTypeInput, ScraperSource
+
 logger = logging.getLogger(__name__)
 
 _RETRY_STATUSES = {500, 502, 503, 504}
@@ -66,8 +68,8 @@ class BackendClient:
     async def search(
         self,
         q: str,
-        source: str = "wawacity",
-        category: str | None = None,
+        source: ScraperSource = "wawacity",
+        category: Category | None = None,
         year: int | None = None,
         limit: int = 5,
     ) -> dict[str, Any]:
@@ -84,7 +86,7 @@ class BackendClient:
         self,
         source_url: str,
         title: str,
-        media_type: str,
+        media_type: MediaTypeInput,
         destination: str = "server",
     ) -> dict[str, Any]:
         payload = {

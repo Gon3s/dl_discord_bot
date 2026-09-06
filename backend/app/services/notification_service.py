@@ -8,6 +8,7 @@ from sqlalchemy import select
 from app.config import settings
 from app.core.queue import download_queue
 from app.database import AsyncSessionLocal
+from app.models.domain import MediaType
 from app.models.orm import Notification
 from app.models.schemas import DownloadCreate
 from app.scrapers.base import get_scraper
@@ -155,7 +156,7 @@ class NotificationScheduler:
                 data = DownloadCreate(
                     source_url=url,
                     title=f"{notif.title} — {ep.title}",
-                    media_type="series",
+                    media_type=MediaType.SERIES,
                     destination="server",
                     alternative_urls=alt_urls,
                 )

@@ -5,6 +5,7 @@ from sqlalchemy import DateTime, Float, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
+from app.models.domain import DownloadStatus, HistoryStatus
 
 
 class Download(Base):
@@ -17,7 +18,7 @@ class Download(Base):
     source_url: Mapped[str] = mapped_column(Text)
     media_type: Mapped[str] = mapped_column(String(50))
     destination: Mapped[str] = mapped_column(String(20), default="server")
-    status: Mapped[str] = mapped_column(String(20), default="queued")
+    status: Mapped[str] = mapped_column(String(20), default=DownloadStatus.QUEUED)
     progress_pct: Mapped[float] = mapped_column(Float, default=0.0)
     speed_mbps: Mapped[float | None] = mapped_column(Float, nullable=True)
     filename: Mapped[str | None] = mapped_column(String(500), nullable=True)
@@ -42,7 +43,7 @@ class History(Base):
     media_type: Mapped[str] = mapped_column(String(50))
     source: Mapped[str] = mapped_column(String(100))
     destination: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    status: Mapped[str] = mapped_column(String(50), default="completed")
+    status: Mapped[str] = mapped_column(String(50), default=HistoryStatus.COMPLETED)
     error: Mapped[str | None] = mapped_column(Text, nullable=True)
     downloaded_at: Mapped[datetime] = mapped_column(
         DateTime, default=lambda: datetime.now(UTC)

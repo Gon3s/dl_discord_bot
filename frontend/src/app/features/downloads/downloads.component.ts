@@ -7,6 +7,7 @@ import { ApiService } from '#core/services/api.service';
 import { WsService } from '#core/services/ws.service';
 import { ACTIVE_STATUSES, COMPLETED_STATUSES, STATUS_LABEL } from '#core/constants/download-status';
 import type { Download } from '#core/models/download.type';
+import type { DownloadStatus } from '#core/constants/download-status';
 
 @Component({
   selector: 'app-downloads',
@@ -128,7 +129,7 @@ export class DownloadsComponent {
     });
   }
 
-  statusLabel(status: string): string {
+  statusLabel(status: DownloadStatus): string {
     return STATUS_LABEL[status] ?? status.toUpperCase();
   }
 }

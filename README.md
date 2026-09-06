@@ -195,14 +195,16 @@ A full [Bruno](https://www.usebruno.com/) collection is available in `bruno/`.
 
 ## 🧩 Adding a scraper
 
-Drop a new file in `backend/app/scrapers/<name>.py` - the registry is automatic, no other file needs editing:
+Drop a new file in `backend/app/scrapers/<name>.py`. The registry is automatic;
+also add the source to backend/frontend source types:
 
 ```python
+from app.models.domain import ScraperSource
 from app.scrapers.base import BaseScraper, SearchResult, ProviderLinks, register
 
 @register
 class MyScraper(BaseScraper):
-    source_name = "mysite"   # maps to the ?source= query parameter
+    source_name = ScraperSource.MYSITE  # maps to the ?source= query parameter
 
     async def search(
         self, query: str, category: str, year=None, limit=10, sort=None, page=1
@@ -214,6 +216,9 @@ class MyScraper(BaseScraper):
 
     async def get_episodes(self, url: str, providers=None): ...
 ```
+
+Add `MYSITE` to `ScraperSource` in `backend/app/models/domain.py` and to
+`SCRAPER_SOURCES` in `frontend/src/app/core/models/source.type.ts`.
 
 See `backend/app/scrapers/wawacity.py` for a reference implementation.  
 Contributions for new sources are welcome - see [CONTRIBUTING.md](CONTRIBUTING.md).

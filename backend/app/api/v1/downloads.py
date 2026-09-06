@@ -3,6 +3,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.queue import download_queue
 from app.database import get_db
+from app.models.domain import TERMINAL_DOWNLOAD_STATUSES
 from app.models.schemas import DownloadCreate, DownloadCreated, DownloadRead
 from app.services.download_service import DownloadService
 
@@ -50,7 +51,7 @@ async def delete_download(
     if download is None:
         raise HTTPException(status_code=404, detail="Download not found")
 
-    if download.status in {"completed", "error", "cancelled", "ready_for_client"}:
+    if download.status in TERMINAL_DOWNLOAD_STATUSES:
         await service.delete(download_id)
         return
 

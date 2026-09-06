@@ -1,16 +1,16 @@
 import asyncio
 import logging
+from typing import cast
 
 import discord
 from discord.ext import commands
 
 from client import BackendClient, BackendError
+from domain import CATEGORY_TO_MEDIA_TYPE, Category, VALID_CATEGORIES
 
 logger = logging.getLogger(__name__)
 
 _NUMBERS = ["1️⃣", "2️⃣", "3️⃣", "4️⃣", "5️⃣", "6️⃣", "7️⃣", "8️⃣", "9️⃣", "🔟"]
-_VALID_CATEGORIES = ["films", "series", "mangas"]
-_CATEGORY_TO_MEDIA_TYPE = {"films": "movie", "series": "serie", "mangas": "manga"}
 
 
 def _build_embed(result: dict, index: int, total: int) -> discord.Embed:
@@ -42,7 +42,7 @@ class SearchCog(commands.Cog):
             await ctx.send("Erreur: requête vide")
             return
 
-        if category is None or category not in _VALID_CATEGORIES:
+        if category is None or category not in VALID_CATEGORIES:
             embed = discord.Embed(
                 title="Catégorie invalide",
                 description="Catégories disponibles: `films`, `series`, `mangas`\nEx: `!search Dragon Ball series`",
@@ -51,10 +51,13 @@ class SearchCog(commands.Cog):
             await ctx.send(embed=embed)
             return
 
+        selected_category = cast(Category, category)
         count = min(count, 10)
 
         try:
-            response = await self.backend.search(query, category=category, year=year, limit=count)
+            response = await self.backend.search(
+                query, category=selected_category, year=year, limit=count
+            )
         except BackendError as exc:
             logger.error("search backend error: %s", exc)
             await ctx.send(f"Erreur backend ({exc.status}): impossible d'effectuer la recherche.")
@@ -94,7 +97,7 @@ class SearchCog(commands.Cog):
 
         await ctx.send(f"Sélectionné : **{selected['title']}**")
 
-        media_type = _CATEGORY_TO_MEDIA_TYPE[category]
+        media_type = CATEGORY_TO_MEDIA_TYPE[selected_category]
         try:
             result = await self.backend.create_download(
                 source_url=selected["url"],

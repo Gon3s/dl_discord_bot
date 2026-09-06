@@ -2,16 +2,18 @@ import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 
+from app.models.domain import ScraperSource
+
 logger = logging.getLogger(__name__)
 
-_registry: dict[str, type["BaseScraper"]] = {}
+_registry: dict[ScraperSource, type["BaseScraper"]] = {}
 
 
 @dataclass
 class SearchResult:
     title: str
     url: str
-    source: str
+    source: ScraperSource
     year: int | None = None
     quality: str | None = None
     language: str | None = None
@@ -37,14 +39,18 @@ def register(cls: type["BaseScraper"]) -> type["BaseScraper"]:
     return cls
 
 
-def get_scraper(source: str) -> "BaseScraper":
-    if source not in _registry:
+def get_scraper(source: str | ScraperSource) -> "BaseScraper":
+    try:
+        source_name = ScraperSource(source)
+    except ValueError as exc:
+        raise KeyError(f"No scraper registered for source: {source!r}") from exc
+    if source_name not in _registry:
         raise KeyError(f"No scraper registered for source: {source!r}")
-    return _registry[source]()
+    return _registry[source_name]()
 
 
 class BaseScraper(ABC):
-    source_name: str
+    source_name: ScraperSource
 
     @abstractmethod
     async def search(
